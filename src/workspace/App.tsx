@@ -9,33 +9,18 @@ const App = (): JSX.Element => {
     <Container
       maxWidth={false}
       disableGutters
-      sx={{
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-
-        backgroundColor: 'red',
-      }}
+      sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <Box sx={{ backgroundColor: 'green' }}>
         <span>Header</span>
       </Box>
 
-      <Grid
-        container
-        spacing={0}
-        alignItems='stretch'
-        sx={{
-          flex: 1,
-          overflow: 'auto',
-          backgroundColor: 'blue',
-        }}
-      >
-        <Grid item xs={6} sx={{ backgroundColor: 'purple' }}>
+      <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
+        <Grid item xs={6}>
           <FolderPanel />
         </Grid>
 
-        <Grid item xs={6} sx={{ backgroundColor: 'orange' }}>
+        <Grid item xs={6}>
           <FolderPanel />
         </Grid>
       </Grid>
