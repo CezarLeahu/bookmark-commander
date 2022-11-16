@@ -19,7 +19,7 @@ export const parentPath = async (
   let n = node
   while (n?.parentId !== undefined && n.parentId !== '0') {
     n = (await chrome.bookmarks.get(n.parentId))[0]
-    parents.push(n)
+    parents.unshift(n)
   }
 
   return parents
@@ -27,13 +27,9 @@ export const parentPath = async (
 
 export const children = async (nodeID: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
   const node = (await chrome.bookmarks.get(nodeID))[0]
-  const childrenNodes = await chrome.bookmarks.getChildren(nodeID)
+  const childNodes = await chrome.bookmarks.getChildren(nodeID)
 
-  return [
-    {
-      title: '..',
-      id: node.parentId ?? '0',
-    },
-    ...childrenNodes,
-  ]
+  return node?.parentId === undefined
+    ? childNodes
+    : [{ title: '..', id: node.parentId }, ...childNodes]
 }

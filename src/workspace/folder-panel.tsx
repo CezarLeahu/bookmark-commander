@@ -1,4 +1,10 @@
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  GridColDef,
+  GridCellParams,
+  MuiEvent,
+  GridCallbackDetails,
+} from '@mui/x-data-grid'
 import { children, parentPath } from '../bookmarks/bookmarks'
 import { useEffect, useState } from 'react'
 import {
@@ -17,7 +23,7 @@ const columns: GridColDef[] = [
     field: 'title',
     headerName: 'Title',
     width: 250,
-    editable: true,
+    editable: false,
   },
   {
     field: 'url',
@@ -71,6 +77,20 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
     )
   }, [currentNodeID])
 
+  const handleCellDoubleClick = (
+    params: GridCellParams,
+    event: MuiEvent<React.MouseEvent>,
+    details: GridCallbackDetails,
+  ): void => {
+    switch (params.row.url) {
+      case undefined: // folder
+        setCurrentNodeID(String(params.id))
+        break
+      default: // actual bookmark
+        chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
+    }
+  }
+
   return (
     <Container
       maxWidth={false}
@@ -108,7 +128,9 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
       <Box>
         <Breadcrumbs aria-label='breadcrumb'>
           {breadcrumbs.map(d => (
-            <Link key={d.id}>{d.title}</Link>
+            <Link key={d.id} onClick={() => setCurrentNodeID(d.id)}>
+              {d.title}
+            </Link>
           ))}
           <Typography color='text.primary'>{currentNode?.title}</Typography>
         </Breadcrumbs>
@@ -120,8 +142,8 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         autoPageSize
         checkboxSelection
         density='compact'
-        disableSelectionOnClick
         experimentalFeatures={{ newEditingApi: true }}
+        onCellDoubleClick={handleCellDoubleClick}
         sx={{
           flex: 1,
         }}
