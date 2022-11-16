@@ -1,34 +1,75 @@
-import Container from '@mui/material/Container'
-import Box from '@mui/material/Box'
-import Link from '@mui/material/Link'
-import Typography from '@mui/material/Typography'
-import Breadcrumbs from '@mui/material/Breadcrumbs'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import Button from '@mui/material/Button'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import { bookmarks, breadcrumbs, mainLocations } from '../bookmarks/bookmarks'
+import { children, parentPath } from '../bookmarks/bookmarks'
+import { useEffect, useState } from 'react'
+import {
+  Alert,
+  Container,
+  Box,
+  Link,
+  Typography,
+  Breadcrumbs,
+  ButtonGroup,
+  Button,
+} from '@mui/material'
 
 const columns: GridColDef[] = [
   {
     field: 'title',
     headerName: 'Title',
-    // width: 250,
+    width: 250,
     editable: true,
   },
   {
     field: 'url',
     headerName: 'URL',
     // width: 250,
-    editable: true,
+    flex: 1,
+    editable: false,
   },
 ]
 
-const rows = bookmarks()
+interface FolderPanelProps {
+  readonly index: number
+}
 
-const FolderPanel = (): JSX.Element => {
-  const [pathDirs, currentDir] = breadcrumbs()
+const FolderPanel = (props: FolderPanelProps): JSX.Element => {
+  const [topNodes, setTopNodes] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+  const [error, setError] = useState<string>()
 
-  const mainDirs = mainLocations()
+  useEffect(() => {
+    chrome.bookmarks.getChildren('0').then(
+      r => setTopNodes(r),
+      e => setError(e),
+    )
+  }, [])
+
+  const [currentNodeID, setCurrentNodeID] = useState<string>(String(props.index))
+  const [currentNode, setCurrentNode] = useState<chrome.bookmarks.BookmarkTreeNode>()
+
+  useEffect(() => {
+    chrome.bookmarks.get(currentNodeID).then(
+      r => setCurrentNode(r[0]),
+      e => setError(e),
+    )
+  }, [topNodes, currentNodeID])
+
+  const [breadcrumbs, setBreadcrumbs] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+
+  useEffect(() => {
+    parentPath(currentNode).then(
+      r => setBreadcrumbs(r),
+      e => setError(e),
+    )
+  }, [currentNode])
+
+  const [rows, setRows] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+
+  useEffect(() => {
+    children(currentNodeID).then(
+      r => setRows(r),
+      e => setError(e),
+    )
+  }, [currentNodeID])
 
   return (
     <Container
@@ -42,10 +83,23 @@ const FolderPanel = (): JSX.Element => {
         flexDirection: 'column',
       }}
     >
+      <Box>
+        {error !== undefined ? (
+          <Alert severity='error' onClose={() => setError(undefined)}>
+            {error}
+          </Alert>
+        ) : (
+          <></>
+        )}
+      </Box>
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
-          {mainDirs.map(d => (
-            <Button key={'maindir=' + d.id} sx={{ textTransform: 'none' }}>
+          {topNodes.map(d => (
+            <Button
+              key={d.id}
+              sx={{ textTransform: 'none' }}
+              onClick={() => setCurrentNodeID(d.id)}
+            >
               {d.title}
             </Button>
           ))}
@@ -53,10 +107,10 @@ const FolderPanel = (): JSX.Element => {
       </Box>
       <Box>
         <Breadcrumbs aria-label='breadcrumb'>
-          {pathDirs.map(d => (
-            <Link key={'breadcrumb-' + d.id}>{d.title}</Link>
+          {breadcrumbs.map(d => (
+            <Link key={d.id}>{d.title}</Link>
           ))}
-          <Typography color='text.primary'>{currentDir.title}</Typography>
+          <Typography color='text.primary'>{currentNode?.title}</Typography>
         </Breadcrumbs>
       </Box>
 
