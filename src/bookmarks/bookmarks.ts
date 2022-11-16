@@ -196,3 +196,30 @@ export function bookmarks(): BookmarkTreeNode[] {
     { id: '169', title: 'Roxie', url: 'Harvey' },
   ]
 }
+
+export function path(node: BookmarkTreeNode): BookmarkTreeNode[] {
+  return [
+    { id: '164', title: 'Stark', url: 'Arya' },
+    { id: '165', title: 'Targaryen', url: 'Daenerys' },
+    { id: '166', title: 'Melisandre' },
+    { id: '167', title: 'Clifford', url: 'Ferrara' },
+  ]
+}
+
+export function breadcrumbs(): [BookmarkTreeNode[], BookmarkTreeNode] {
+  return [
+    [
+      { id: '164', title: 'Stark', url: 'Arya' },
+      { id: '165', title: 'Targaryen', url: 'Daenerys' },
+      { id: '166', title: 'Melisandre' },
+    ],
+    { id: '167', title: 'Clifford', url: 'Ferrara' },
+  ]
+}
+
+export function mainLocations(): BookmarkTreeNode[] {
+  return [
+    { id: '165', title: 'Bookmark menu', url: 'TODO' },
+    { id: '166', title: 'Other bookmarks', url: 'TODO' },
+  ]
+}

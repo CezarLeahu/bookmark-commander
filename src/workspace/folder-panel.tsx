@@ -1,7 +1,12 @@
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
+import Link from '@mui/material/Link'
+import Typography from '@mui/material/Typography'
+import Breadcrumbs from '@mui/material/Breadcrumbs'
+import ButtonGroup from '@mui/material/ButtonGroup'
+import Button from '@mui/material/Button'
 import { DataGrid, GridColDef } from '@mui/x-data-grid'
-import { bookmarks } from '../bookmarks/bookmarks'
+import { bookmarks, breadcrumbs, mainLocations } from '../bookmarks/bookmarks'
 
 const columns: GridColDef[] = [
   {
@@ -21,6 +26,10 @@ const columns: GridColDef[] = [
 const rows = bookmarks()
 
 const FolderPanel = (): JSX.Element => {
+  const [pathDirs, currentDir] = breadcrumbs()
+
+  const mainDirs = mainLocations()
+
   return (
     <Container
       maxWidth={false}
@@ -33,11 +42,22 @@ const FolderPanel = (): JSX.Element => {
         flexDirection: 'column',
       }}
     >
-      <Box>
-        <span>Location Buttons</span>
+      <Box display='flex' justifyContent='center' alignItems='center'>
+        <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
+          {mainDirs.map(d => (
+            <Button key={'maindir=' + d.id} sx={{ textTransform: 'none' }}>
+              {d.title}
+            </Button>
+          ))}
+        </ButtonGroup>
       </Box>
       <Box>
-        <span>Breadcrumbs</span>
+        <Breadcrumbs aria-label='breadcrumb'>
+          {pathDirs.map(d => (
+            <Link key={'breadcrumb-' + d.id}>{d.title}</Link>
+          ))}
+          <Typography color='text.primary'>{currentDir.title}</Typography>
+        </Breadcrumbs>
       </Box>
 
       <DataGrid
