@@ -1,5 +1,6 @@
 import bookmarks = chrome.bookmarks
-import { BTN } from '../types/types'
+
+export type BTN = bookmarks.BookmarkTreeNode
 
 export const parent = async (node: BTN): Promise<BTN> => {
   if (node === undefined || node.parentId === undefined) {

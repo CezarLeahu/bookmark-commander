@@ -1,5 +1,4 @@
 import bookmarks = chrome.bookmarks
-import { BTN } from '../types/types'
 import {
   DataGrid,
   GridColDef,
@@ -7,7 +6,7 @@ import {
   MuiEvent,
   GridCallbackDetails,
 } from '@mui/x-data-grid'
-import { children, parentPath } from '../bookmarks/bookmarks'
+import { children, parentPath, BTN } from '../bookmarks/bookmarks'
 import { useEffect, useState } from 'react'
 import {
   Alert,
