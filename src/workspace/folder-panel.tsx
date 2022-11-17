@@ -1,12 +1,7 @@
 import bookmarks = chrome.bookmarks
-import {
-  DataGrid,
-  GridColDef,
-  GridCellParams,
-  MuiEvent,
-  GridCallbackDetails,
-} from '@mui/x-data-grid'
-import { children, parentPath, BTN } from '../bookmarks/bookmarks'
+import { DataGrid, GridColDef, GridCellParams } from '@mui/x-data-grid'
+import { children, parentPath } from '../bookmarks/queries'
+import { BTN } from '../bookmarks/types'
 import { useEffect, useState } from 'react'
 import {
   Alert,
@@ -36,6 +31,7 @@ const columns: GridColDef[] = [
 
 interface FolderPanelProps {
   readonly index: number
+  onSelect: (node: BTN) => void
 }
 
 const FolderPanel = (props: FolderPanelProps): JSX.Element => {
@@ -77,11 +73,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
     )
   }, [currentNodeID])
 
-  const handleCellDoubleClick = (
-    params: GridCellParams,
-    event: MuiEvent<React.MouseEvent>,
-    details: GridCallbackDetails,
-  ): void => {
+  const handleCellDoubleClick = (params: GridCellParams): void => {
     switch (params.row.url) {
       case undefined: // folder
         setCurrentNodeID(String(params.id))
@@ -90,9 +82,6 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
     }
   }
-
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
-  const [lastSelectedValue, setLastSelectedValue] = useState<BTN>()
 
   return (
     <Container
@@ -146,6 +135,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         checkboxSelection
         density='compact'
         experimentalFeatures={{ newEditingApi: true }}
+        onCellClick={(params: GridCellParams): void => props.onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         sx={{
           flex: 1,
