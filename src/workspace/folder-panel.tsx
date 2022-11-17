@@ -1,3 +1,5 @@
+import bookmarks = chrome.bookmarks
+import { BTN } from '../types/types'
 import {
   DataGrid,
   GridColDef,
@@ -28,7 +30,6 @@ const columns: GridColDef[] = [
   {
     field: 'url',
     headerName: 'URL',
-    // width: 250,
     flex: 1,
     editable: false,
   },
@@ -39,27 +40,27 @@ interface FolderPanelProps {
 }
 
 const FolderPanel = (props: FolderPanelProps): JSX.Element => {
-  const [topNodes, setTopNodes] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+  const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
 
   useEffect(() => {
-    chrome.bookmarks.getChildren('0').then(
+    bookmarks.getChildren('0').then(
       r => setTopNodes(r),
       e => setError(e),
     )
   }, [])
 
   const [currentNodeID, setCurrentNodeID] = useState<string>(String(props.index))
-  const [currentNode, setCurrentNode] = useState<chrome.bookmarks.BookmarkTreeNode>()
+  const [currentNode, setCurrentNode] = useState<BTN>()
 
   useEffect(() => {
-    chrome.bookmarks.get(currentNodeID).then(
+    bookmarks.get(currentNodeID).then(
       r => setCurrentNode(r[0]),
       e => setError(e),
     )
   }, [topNodes, currentNodeID])
 
-  const [breadcrumbs, setBreadcrumbs] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+  const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
 
   useEffect(() => {
     parentPath(currentNode).then(
@@ -68,7 +69,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
     )
   }, [currentNode])
 
-  const [rows, setRows] = useState<chrome.bookmarks.BookmarkTreeNode[]>([])
+  const [rows, setRows] = useState<BTN[]>([])
 
   useEffect(() => {
     children(currentNodeID).then(
@@ -90,6 +91,9 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
     }
   }
+
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [lastSelectedValue, setLastSelectedValue] = useState<BTN>()
 
   return (
     <Container

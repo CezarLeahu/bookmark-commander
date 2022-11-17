@@ -1,33 +1,32 @@
-export const parent = async (
-  node: chrome.bookmarks.BookmarkTreeNode,
-): Promise<chrome.bookmarks.BookmarkTreeNode> => {
+import bookmarks = chrome.bookmarks
+import { BTN } from '../types/types'
+
+export const parent = async (node: BTN): Promise<BTN> => {
   if (node === undefined || node.parentId === undefined) {
     console.log('Invalid node argument')
     throw new Error('Invalid node argument')
   }
-  return (await chrome.bookmarks.get(node.parentId))[0]
+  return (await bookmarks.get(node.parentId))[0]
 }
 
-export const parentPath = async (
-  node?: chrome.bookmarks.BookmarkTreeNode,
-): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
+export const parentPath = async (node?: BTN): Promise<BTN[]> => {
   if (node === undefined) {
     return []
   }
-  const parents: chrome.bookmarks.BookmarkTreeNode[] = []
+  const parents: BTN[] = []
 
   let n = node
   while (n?.parentId !== undefined && n.parentId !== '0') {
-    n = (await chrome.bookmarks.get(n.parentId))[0]
+    n = (await bookmarks.get(n.parentId))[0]
     parents.unshift(n)
   }
 
   return parents
 }
 
-export const children = async (nodeID: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> => {
-  const node = (await chrome.bookmarks.get(nodeID))[0]
-  const childNodes = await chrome.bookmarks.getChildren(nodeID)
+export const children = async (nodeID: string): Promise<BTN[]> => {
+  const node = (await bookmarks.get(nodeID))[0]
+  const childNodes = await bookmarks.getChildren(nodeID)
 
   return node?.parentId === undefined
     ? childNodes
