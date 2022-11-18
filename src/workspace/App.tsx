@@ -9,6 +9,11 @@ const App: React.FC = () => {
   const [error, setError] = useState<string>()
   const [, forceRerender] = useReducer((x: number) => x + 1, 0)
 
+  const panelRefs = {
+    left: useRef<FolderPanelHandle | null>(null),
+    right: useRef<FolderPanelHandle | null>(null),
+  }
+
   const selectedSide = useRef<Side>('left')
   const lastSelectedNodes = {
     left: useRef<BTN>(),
@@ -25,9 +30,6 @@ const App: React.FC = () => {
     // todo update with update API
     forceRerender()
   }
-
-  const leftPanelRef = useRef<FolderPanelHandle | null>(null)
-  const rightPanelRef = useRef<FolderPanelHandle | null>(null)
 
   return (
     <Container
@@ -57,7 +59,7 @@ const App: React.FC = () => {
               lastSelectedNodes.left.current = node
               console.log('Selected left panel')
             }}
-            ref={leftPanelRef}
+            ref={panelRefs.left}
           />
         </Grid>
 
@@ -69,14 +71,22 @@ const App: React.FC = () => {
               lastSelectedNodes.right.current = node
               console.log('Selected right panel')
             }}
-            ref={rightPanelRef}
+            ref={panelRefs.right}
           />
         </Grid>
       </Grid>
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button disabled>Rename</Button>
+          <Button
+            onClick={() =>
+              panelRefs[selectedSide.current].current?.renameCell(
+                lastSelectedNodes[selectedSide.current].current?.id,
+              )
+            }
+          >
+            Rename
+          </Button>
           <Button disabled>Edit</Button>
           <Button disabled>Copy</Button>
           <Button disabled>Move</Button>

@@ -1,5 +1,12 @@
 import bookmarks = chrome.bookmarks
-import { DataGrid, GridColDef, GridCellParams, useGridApiContext } from '@mui/x-data-grid'
+import {
+  DataGrid,
+  GridColDef,
+  GridCellParams,
+  GridRowId,
+  GridCellEditCommitParams,
+  useGridApiRef,
+} from '@mui/x-data-grid'
 import { children, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
 import { useEffect, useImperativeHandle, useState, forwardRef } from 'react'
@@ -37,7 +44,7 @@ export interface FolderPanelProps {
 }
 
 export interface FolderPanelHandle {
-  renameCell: () => void
+  renameCell: (id: GridRowId | undefined) => void
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
@@ -93,15 +100,23 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     }
   }
 
-  const apiRef = useGridApiContext()
+  const apiRef = useGridApiRef()
 
   useImperativeHandle(ref, () => ({
-    renameCell: () => {
-      apiRef.current.startCellEditMode({ id: '', field: 'title' }) // TODO id field
+    renameCell: (id: GridRowId | undefined) => {
+      if (id === undefined) {
+        return
+      }
+      // TODO this check shouldn't be needed in future MUI versions (post https://github.com/mui/mui-x/pull/6773)
+      if (apiRef?.current !== undefined) {
+        apiRef.current.startCellEditMode({ id, field: 'title' })
+      }
     },
   }))
 
-  // const handleCellEdit = (): void => {}
+  const handleCellEdit = (params: GridCellEditCommitParams): void => {
+    console.log(params.value) // TODO call api
+  }
 
   return (
     <Container
@@ -149,6 +164,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       </Box>
 
       <DataGrid
+        // apiRef={apiRef} // TODO enable when https://github.com/mui/mui-x/pull/6773 gets merged & tagged
         rows={rows}
         columns={columns}
         autoPageSize
@@ -157,6 +173,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         experimentalFeatures={{ newEditingApi: true }}
         onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
+        onCellEditCommit={handleCellEdit}
         sx={{
           flex: 1,
         }}
