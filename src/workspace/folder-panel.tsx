@@ -1,8 +1,8 @@
 import bookmarks = chrome.bookmarks
-import { DataGrid, GridColDef, GridCellParams } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridCellParams, useGridApiContext } from '@mui/x-data-grid'
 import { children, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
-import { useEffect, useState } from 'react'
+import { useEffect, useImperativeHandle, useState, forwardRef } from 'react'
 import {
   Alert,
   Container,
@@ -19,7 +19,7 @@ const columns: GridColDef[] = [
     field: 'title',
     headerName: 'Title',
     width: 250,
-    editable: false,
+    editable: true,
     sortable: false,
   },
   {
@@ -31,12 +31,20 @@ const columns: GridColDef[] = [
   },
 ]
 
-interface FolderPanelProps {
+export interface FolderPanelProps {
   readonly index: number
   onSelect: (node: BTN) => void
 }
 
-const FolderPanel = (props: FolderPanelProps): JSX.Element => {
+export interface FolderPanelHandle {
+  renameCell: () => void
+}
+
+const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
+  props: FolderPanelProps,
+  ref: React.ForwardedRef<FolderPanelHandle>,
+) => {
+  const { index, onSelect } = props
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
 
@@ -47,7 +55,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
     )
   }, [])
 
-  const [currentNodeID, setCurrentNodeID] = useState<string>(String(props.index))
+  const [currentNodeID, setCurrentNodeID] = useState<string>(String(index))
   const [currentNode, setCurrentNode] = useState<BTN>()
 
   useEffect(() => {
@@ -84,6 +92,16 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
     }
   }
+
+  const apiRef = useGridApiContext()
+
+  useImperativeHandle(ref, () => ({
+    renameCell: () => {
+      apiRef.current.startCellEditMode({ id: '', field: 'title' }) // TODO id field
+    },
+  }))
+
+  // const handleCellEdit = (): void => {}
 
   return (
     <Container
@@ -137,7 +155,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         checkboxSelection
         density='compact'
         experimentalFeatures={{ newEditingApi: true }}
-        onCellClick={(params: GridCellParams): void => props.onSelect(params.row)}
+        onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         sx={{
           flex: 1,
@@ -148,4 +166,4 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
   )
 }
 
-export default FolderPanel
+export default forwardRef(FolderPanel)

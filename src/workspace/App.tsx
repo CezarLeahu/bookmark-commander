@@ -1,6 +1,6 @@
-import { MutableRefObject, useReducer, useRef, useState } from 'react'
+import { useReducer, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
-import FolderPanel, { FolderPanelProps } from './folder-panel'
+import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
 import RenameDialog from './rename-dialog'
@@ -26,8 +26,8 @@ const App: React.FC = () => {
     forceRerender()
   }
 
-  const leftPanel = useRef<React.FC<FolderPanelProps>>()
-  const rightPanel = useRef<React.FC<FolderPanelProps>>()
+  const leftPanelRef = useRef<FolderPanelHandle | null>(null)
+  const rightPanelRef = useRef<FolderPanelHandle | null>(null)
 
   return (
     <Container
@@ -51,25 +51,25 @@ const App: React.FC = () => {
       <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
           <FolderPanel
-            ref={leftPanel}
             index={1}
             onSelect={node => {
               selectedSide.current = 'left'
               lastSelectedNodes.left.current = node
               console.log('Selected left panel')
             }}
+            ref={leftPanelRef}
           />
         </Grid>
 
         <Grid item xs={6}>
           <FolderPanel
-            ref={rightPanel}
             index={2}
             onSelect={node => {
               selectedSide.current = 'right'
               lastSelectedNodes.right.current = node
               console.log('Selected right panel')
             }}
+            ref={rightPanelRef}
           />
         </Grid>
       </Grid>
