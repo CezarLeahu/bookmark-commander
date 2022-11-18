@@ -20,12 +20,14 @@ const columns: GridColDef[] = [
     headerName: 'Title',
     width: 250,
     editable: false,
+    sortable: false,
   },
   {
     field: 'url',
     headerName: 'URL',
     flex: 1,
     editable: false,
+    sortable: false,
   },
 ]
 
@@ -140,6 +142,7 @@ const FolderPanel = (props: FolderPanelProps): JSX.Element => {
         sx={{
           flex: 1,
         }}
+        // rowReordering
       />
     </Container>
   )

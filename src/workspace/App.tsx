@@ -26,16 +26,6 @@ const App = (): JSX.Element => {
     forceRerender()
   }
 
-  const handleKeyPress = (event: KeyboardEvent): void => {
-    console.log(event.key)
-  }
-
-  useEffect(() => {
-    window.addEventListener('keypress', handleKeyPress)
-
-    return () => window.removeEventListener('keypress', handleKeyPress)
-  })
-
   return (
     <Container
       maxWidth={false}

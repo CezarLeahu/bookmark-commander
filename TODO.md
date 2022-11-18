@@ -1,45 +1,66 @@
-* [App] Keep track of the current selected panel
-  - type Side 'left'|'right'
-  - side = useRef<Side>(left)
-  - pass callback to children: updateSelectedSide(side) :void { currentSide.current  = side }, have the children call this on any DataGrid select
+# Backlog
 
-* [App] Capture keys (F2-10)
+- [App] Allow in-line renaming
 
-* [App] Embed RenameBookmark modal top-level
-  - ...
-
-* [App] Allow in-line renaming
   - editable flag re-enabled for the title field
   - action&/focus for rename
   - handle key (F2)
   - handle edit on Submmit/Enter
-  + forceRerender ? (probably not be needed here)
 
-* [App] Move functionality
+  * forceRerender ? (probably not be needed here)
+
+- [App] Embed RenameBookmark modal top-level
+
+  - ...
+
+- [App] Move functionality
+
   - Part 1: from current folder to a different one
     - move command
     - handle key (F3)
   - Part 2: inside the same folder, but on a different index
-  + on both: forceRerender
 
-* [App - Search] Use the currently-selected side as the target for opening up *Directory* search results 
-* [App - Search] Navigate to bookmark location and select the bookmark entry (in case of actual bookmarks)
+  * on both: forceRerender
 
-* [App] New Folder functionality
+- [App - Search] Use the currently-selected side as the target for opening up _Directory_ search results
+- [App - Search] Navigate to bookmark location and select the bookmark entry (in case of actual bookmarks)
 
-* [App] Delete functionality
+- [App] New Folder functionality
+
+- [App] Delete functionality
+
   - yes, add confirmation pop-up, default focus on the 'No' button
   - handle key (F8)
 
-* [App] Handle Exit action
+- [App] Handle Exit action
+
   - handle exit: close extension (current) tab
   - handle key (F10)
 
-* [App] Copy Functionality
-  - implement this last 
+- [App] Copy Functionality
+
+  - implement this last
   - handle key (F5)
 
-* [Extension] Check if tabs permissions are needed
-* [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
-* [Extension] Check what else is needed to publish the extension
-* [Extension] Actually publish the extension
+- [App] Handle row re-ordering
+
+  - it's available in the mui pro version
+  - we might need to re-implement everything... (from the base table & all)
+
+- [General] Enhance code with 'useCallback' & 'useMemo' hooks
+- [Extension] Check if tabs permissions are needed
+- [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
+- [Extension] Check what else is needed to publish the extension
+- [Extension] Actually publish the extension
+
+## Done
+
+- [App] Keep track of the current selected panel
+  - type Side 'left'|'right'
+  - side = useRef<Side>(left)
+  - pass callback to children: updateSelectedSide(side) :void { currentSide.current = side }, have the children call this on any DataGrid select
+
+## Scrapped
+
+- [App] Capture keys (F2-10)
+  - can't easily grab F keys, not a good ideea anyway -> ideea scrapped
