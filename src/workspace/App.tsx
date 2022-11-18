@@ -1,11 +1,11 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { MutableRefObject, useReducer, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
-import FolderPanel from './folder-panel'
+import FolderPanel, { FolderPanelProps } from './folder-panel'
 import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
 import RenameDialog from './rename-dialog'
 
-const App = (): JSX.Element => {
+const App: React.FC = () => {
   const [error, setError] = useState<string>()
   const [, forceRerender] = useReducer((x: number) => x + 1, 0)
 
@@ -25,6 +25,9 @@ const App = (): JSX.Element => {
     // todo update with update API
     forceRerender()
   }
+
+  const leftPanel = useRef<React.FC<FolderPanelProps>>()
+  const rightPanel = useRef<React.FC<FolderPanelProps>>()
 
   return (
     <Container
@@ -48,6 +51,7 @@ const App = (): JSX.Element => {
       <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
           <FolderPanel
+            ref={leftPanel}
             index={1}
             onSelect={node => {
               selectedSide.current = 'left'
@@ -59,6 +63,7 @@ const App = (): JSX.Element => {
 
         <Grid item xs={6}>
           <FolderPanel
+            ref={rightPanel}
             index={2}
             onSelect={node => {
               selectedSide.current = 'right'

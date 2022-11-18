@@ -9,7 +9,7 @@ const handleChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
   console.log('Searched for something...')
 }
 
-const Search = (): JSX.Element => {
+const Search: React.FC = () => {
   return (
     <FormControl sx={{ m: 1, width: '25ch' }} variant='standard'>
       <InputLabel htmlFor='search-bookkmarks'>Search bookmarks</InputLabel>

@@ -10,13 +10,13 @@ interface RenameDialogProps {
 
 const titleRegEx = /[\w -.|[]()]/
 
-const RenameDialog = (props: RenameDialogProps): JSX.Element => {
-  const isRegularBookmark = props.node.url !== undefined && props.node.url.length > 0
+const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: RenameDialogProps) => {
+  const isRegularBookmark = node.url !== undefined && node.url.length > 0
 
-  const [title, setTitle] = useState<string>(props.node.title)
+  const [title, setTitle] = useState<string>(node.title)
   const [validTitle, setValidTitle] = useState<boolean>(true)
 
-  const [url, setUrl] = useState<string | undefined>(props.node.url)
+  const [url, setUrl] = useState<string | undefined>(node.url)
   // const [validUrl, setValidUrl] = useState<boolean>(true) // todo perhaps remove this
 
   const handleTitleValidation = (
@@ -33,7 +33,7 @@ const RenameDialog = (props: RenameDialogProps): JSX.Element => {
   }
 
   return (
-    <Dialog open={props.open} onClose={() => props.onClose(props.node)}>
+    <Dialog open={open} onClose={() => onClose(node)}>
       <DialogTitle>Rename bookmark</DialogTitle>
       <DialogContent>
         <TextField
@@ -67,8 +67,8 @@ const RenameDialog = (props: RenameDialogProps): JSX.Element => {
       <DialogActions>
         <Button
           onClick={() =>
-            props.onClose({
-              ...props.node,
+            onClose({
+              ...node,
               title,
               url,
             })
@@ -76,7 +76,7 @@ const RenameDialog = (props: RenameDialogProps): JSX.Element => {
         >
           Ok
         </Button>
-        <Button onClick={() => props.onClose(props.node)}>Cancel</Button>
+        <Button onClick={() => onClose(node)}>Cancel</Button>
       </DialogActions>
     </Dialog>
   )
