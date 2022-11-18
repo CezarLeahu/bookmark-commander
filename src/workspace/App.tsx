@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel from './folder-panel'
 import Search from './search'
@@ -25,6 +25,16 @@ const App = (): JSX.Element => {
     // todo update with update API
     forceRerender()
   }
+
+  const handleKeyPress = (event: KeyboardEvent): void => {
+    console.log(event.key)
+  }
+
+  useEffect(() => {
+    window.addEventListener('keypress', handleKeyPress)
+
+    return () => window.removeEventListener('keypress', handleKeyPress)
+  })
 
   return (
     <Container
@@ -71,13 +81,13 @@ const App = (): JSX.Element => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button disabled>F2 Rename</Button>
-          <Button disabled>F4 Edit</Button>
-          <Button disabled>F5 Copy</Button>
-          <Button disabled>F6 Move</Button>
-          <Button disabled>F7 New Folder</Button>
-          <Button disabled>F8 Delete</Button>
-          <Button disabled>F10 Exit</Button>
+          <Button disabled>Rename</Button>
+          <Button disabled>Edit</Button>
+          <Button disabled>Copy</Button>
+          <Button disabled>Move</Button>
+          <Button disabled>New Folder</Button>
+          <Button disabled>Delete</Button>
+          <Button disabled>Exit</Button>
         </ButtonGroup>
       </Box>
 
