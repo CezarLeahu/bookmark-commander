@@ -3,7 +3,7 @@ import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
-import EditDialog from './edit-dialog'
+import EditDialog from './dialogs/edit-dialog'
 import { update } from '../bookmarks/commands'
 
 const App: React.FC = () => {

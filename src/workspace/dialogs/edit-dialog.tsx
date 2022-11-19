@@ -1,4 +1,4 @@
-import { BTN } from '../bookmarks/types'
+import { BTN } from '../../bookmarks/types'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
 import { useState } from 'react'
 
