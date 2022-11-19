@@ -32,3 +32,11 @@ export const children = async (nodeID: string): Promise<BTN[]> => {
     ? childNodes
     : [{ title: '..', id: node.parentId }, ...childNodes]
 }
+
+export const getTopNodes = async (): Promise<BTN[]> => {
+  return await bookmarks.getChildren('0')
+}
+
+export const getNode = async (id: string): Promise<BTN> => {
+  return (await bookmarks.get(id))[0]
+}

@@ -1,4 +1,3 @@
-import bookmarks = chrome.bookmarks
 import {
   DataGrid,
   GridColDef,
@@ -7,7 +6,7 @@ import {
   GridCellEditCommitParams,
   useGridApiRef,
 } from '@mui/x-data-grid'
-import { children, parentPath } from '../bookmarks/queries'
+import { children, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
 import { useEffect, useImperativeHandle, useState, forwardRef } from 'react'
 import {
@@ -20,6 +19,7 @@ import {
   ButtonGroup,
   Button,
 } from '@mui/material'
+import { updateTitle } from '../bookmarks/commands'
 
 const columns: GridColDef[] = [
   {
@@ -56,7 +56,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const [error, setError] = useState<string>()
 
   useEffect(() => {
-    bookmarks.getChildren('0').then(
+    getTopNodes().then(
       r => setTopNodes(r),
       e => setError(e),
     )
@@ -66,8 +66,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const [currentNode, setCurrentNode] = useState<BTN>()
 
   useEffect(() => {
-    bookmarks.get(currentNodeID).then(
-      r => setCurrentNode(r[0]),
+    getNode(currentNodeID).then(
+      r => setCurrentNode(r),
       e => setError(e),
     )
   }, [topNodes, currentNodeID])
@@ -115,7 +115,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   }))
 
   const handleCellEdit = (params: GridCellEditCommitParams): void => {
-    console.log(params.value) // TODO call api
+    updateTitle(String(params.id), params.value)
+      .then()
+      .catch(e => setError(e))
   }
 
   return (

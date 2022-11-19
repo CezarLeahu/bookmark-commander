@@ -4,6 +4,7 @@ import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
 import RenameDialog from './rename-dialog'
+import { update } from '../bookmarks/commands'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
@@ -25,9 +26,9 @@ const App: React.FC = () => {
 
   const handleRenameDialogClose = (node: BTN): void => {
     setRenameDialogOpen(false)
-    // setLastSelectedValue(node) // todo check if this line is needed
-    console.log(node)
-    // todo update with update API
+    update(node)
+      .then()
+      .catch(e => setError(e))
     forceRerender()
   }
 
