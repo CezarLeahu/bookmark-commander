@@ -81,6 +81,7 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
+          <Button disabled>Create</Button>
           <Button
             disabled // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
             onClick={() =>

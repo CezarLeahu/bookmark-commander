@@ -1,29 +1,32 @@
-import { BTN } from '../../bookmarks/types'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
 import { useState } from 'react'
 
-interface EditDialogProps {
+interface CreateDialogProps {
   readonly open: boolean
-  readonly node: BTN
-  onClose: (node?: BTN) => void
+  readonly isDirectory: boolean
+  onConfirm: (title: string, url?: string) => void
+  onCancel: () => void
 }
 
-const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDialogProps) => {
-  console.log(`EditDialog - id: ${node.id}`)
+const CreateDialog: React.FC<CreateDialogProps> = ({
+  open,
+  isDirectory,
+  onConfirm,
+  onCancel,
+}: CreateDialogProps) => {
+  console.log('CreateDialog')
 
-  const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)
-
-  const [title, setTitle] = useState<string>(node.title)
+  const [title, setTitle] = useState<string>('')
   const [validTitle, setValidTitle] = useState<boolean>(true)
 
-  const [url, setUrl] = useState<string | undefined>(node.url)
+  const [url, setUrl] = useState<string | undefined>()
   const [validUrl, setValidUrl] = useState<boolean>(true)
 
   const handleTitleValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
     setTitle(e.target.value)
-    setValidTitle(isRegularBookmark || e.target.value.length > 0) // folders should have names
+    setValidTitle(!isDirectory || e.target.value.length > 0) // folders should have names
   }
   const handleUrlValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -33,9 +36,9 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
   }
 
   return (
-    <Dialog open={open} onClose={() => onClose()} aria-labelledby='dialog-title'>
+    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
       <DialogTitle id='dialog-title'>
-        {isRegularBookmark ? 'Edit bookmark' : 'Edit folder'}
+        {isDirectory ? 'Create folder' : 'Create bookmark'}
       </DialogTitle>
       <DialogContent>
         <TextField
@@ -50,7 +53,7 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
           onChange={handleTitleValidation}
           error={!validTitle}
         />
-        {isRegularBookmark ? (
+        {!isDirectory ? (
           <TextField
             id='url'
             margin='dense'
@@ -68,22 +71,11 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
         )}
       </DialogContent>
       <DialogActions>
-        <Button
-          disabled={!validTitle || !validUrl}
-          onClick={() =>
-            onClose({
-              ...node,
-              title,
-              url,
-            })
-          }
-        >
-          Ok
-        </Button>
-        <Button onClick={() => onClose()}>Cancel</Button>
+        <Button onClick={() => onConfirm(title, url)}>Ok</Button>
+        <Button onClick={onCancel}>Cancel</Button>
       </DialogActions>
     </Dialog>
   )
 }
 
-export default EditDialog
+export default CreateDialog
