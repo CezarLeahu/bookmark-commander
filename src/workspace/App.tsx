@@ -5,6 +5,8 @@ import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
 import EditDialog from './dialogs/edit-dialog'
 import { update } from '../bookmarks/commands'
+import { closeCurrentTab } from '../bookmarks/utils'
+import CreateDialog from './dialogs/create-dialog'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
@@ -22,16 +24,40 @@ const App: React.FC = () => {
   }
   const lastNode = lastSelectedNodes[selectedSide.current].current
 
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const isDirCreate = useRef<boolean>(false)
+  const handleCreateDialogConfirm = (title: string, url?: string): void => {
+    // todo
 
-  const handleEditDialogClose = (node: BTN | undefined): void => {
-    if (node !== undefined) {
-      update(node)
-        .then()
-        .catch(e => setError(e))
-    }
+    handleCreateDialogCancel()
+  }
+  const handleCreateDialogCancel = (): void => {
+    forceRerender()
+    setCreateDialogOpen(false)
+  }
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const handleEditDialogConfirm = (node: BTN): void => {
+    update(node)
+      .then()
+      .catch(e => setError(e))
+
+    handleEditDialogCancel()
+  }
+  const handleEditDialogCancel = (): void => {
     forceRerender()
     setEditDialogOpen(false)
+  }
+
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const handleConfirmDialogConfirm = (): void => {
+    // todo
+
+    handleConfirmDialogCancel()
+  }
+  const handleConfirmDialogCancel = (): void => {
+    forceRerender()
+    setConfirmDialogOpen(false)
   }
 
   return (
@@ -81,7 +107,7 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button disabled>Create</Button>
+          <Button onClick={() => setCreateDialogOpen(true)}>Create</Button>
           <Button
             disabled // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
             onClick={() =>
@@ -92,16 +118,50 @@ const App: React.FC = () => {
           >
             Rename
           </Button>
-          <Button onClick={() => setEditDialogOpen(true)}>Edit</Button>
+          <Button
+            onClick={() => {
+              isDirCreate.current = false
+              setEditDialogOpen(true)
+            }}
+          >
+            Edit
+          </Button>
           <Button disabled>Move</Button>
-          <Button disabled>New Folder</Button>
+          <Button disabled>Move Up ({'\u2191'})</Button>
+          <Button disabled>Move Down ({'\u2193'})</Button>
+          <Button disabled>Sort (ASC)</Button>
+          <Button disabled>Sort (DESC)</Button>
+          <Button
+            onClick={() => {
+              isDirCreate.current = true
+              setCreateDialogOpen(true)
+            }}
+          >
+            New Folder
+          </Button>
           <Button disabled>Delete</Button>
-          <Button disabled>Exit</Button>
+          <Button onClick={closeCurrentTab}>Exit</Button>
         </ButtonGroup>
       </Box>
 
+      {createDialogOpen ? (
+        <CreateDialog
+          open={createDialogOpen}
+          isDirectory={isDirCreate.current}
+          onConfirm={handleCreateDialogConfirm}
+          onCancel={handleCreateDialogCancel}
+        />
+      ) : (
+        <></>
+      )}
+
       {lastNode !== undefined && editDialogOpen ? (
-        <EditDialog open={editDialogOpen} node={lastNode} onClose={handleEditDialogClose} />
+        <EditDialog
+          open={editDialogOpen}
+          node={lastNode}
+          onConfirm={handleEditDialogConfirm}
+          onCancel={handleEditDialogCancel}
+        />
       ) : (
         <></>
       )}

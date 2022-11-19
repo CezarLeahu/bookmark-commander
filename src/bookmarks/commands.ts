@@ -11,6 +11,16 @@ export const update = async (node: BTN): Promise<void> => {
   await bookmarks.update(node.id, { title: node.title, url: node.url })
 }
 
+export const createBookmark = async (
+  parentId: string,
+  title: string,
+  url: string,
+  index?: number,
+): Promise<BTN> => {
+  console.log(`createBookmark(parentId: ${parentId}, title: ${title}, index: ${index ?? ''})`)
+  return await bookmarks.create({ parentId, title, url, index })
+}
+
 export const createDir = async (parentId: string, title: string, index?: number): Promise<BTN> => {
   console.log(`createDir(parentId: ${parentId}, title: ${title}, index: ${index ?? ''})`)
   return await bookmarks.create({ parentId, title, index })

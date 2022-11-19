@@ -5,10 +5,16 @@ import { useState } from 'react'
 interface EditDialogProps {
   readonly open: boolean
   readonly node: BTN
-  onClose: (node?: BTN) => void
+  onConfirm: (node: BTN) => void
+  onCancel: () => void
 }
 
-const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDialogProps) => {
+const EditDialog: React.FC<EditDialogProps> = ({
+  open,
+  node,
+  onConfirm,
+  onCancel,
+}: EditDialogProps) => {
   console.log(`EditDialog - id: ${node.id}`)
 
   const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)
@@ -33,7 +39,7 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
   }
 
   return (
-    <Dialog open={open} onClose={() => onClose()} aria-labelledby='dialog-title'>
+    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
       <DialogTitle id='dialog-title'>
         {isRegularBookmark ? 'Edit bookmark' : 'Edit folder'}
       </DialogTitle>
@@ -71,7 +77,7 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
         <Button
           disabled={!validTitle || !validUrl}
           onClick={() =>
-            onClose({
+            onConfirm({
               ...node,
               title,
               url,
@@ -80,7 +86,7 @@ const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDial
         >
           Ok
         </Button>
-        <Button onClick={() => onClose()}>Cancel</Button>
+        <Button onClick={onCancel}>Cancel</Button>
       </DialogActions>
     </Dialog>
   )
