@@ -24,12 +24,14 @@ const App: React.FC = () => {
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
 
-  const handleRenameDialogClose = (node: BTN): void => {
-    setRenameDialogOpen(false)
-    update(node)
-      .then()
-      .catch(e => setError(e))
+  const handleRenameDialogClose = (node: BTN | undefined): void => {
+    if (node !== undefined) {
+      update(node)
+        .then()
+        .catch(e => setError(e))
+    }
     forceRerender()
+    setRenameDialogOpen(false)
   }
 
   return (
@@ -58,7 +60,7 @@ const App: React.FC = () => {
             onSelect={node => {
               selectedSide.current = 'left'
               lastSelectedNodes.left.current = node
-              console.log('Selected left panel')
+              console.log(`Selected left panel - id ${node.id}`)
             }}
             ref={panelRefs.left}
           />
@@ -70,7 +72,7 @@ const App: React.FC = () => {
             onSelect={node => {
               selectedSide.current = 'right'
               lastSelectedNodes.right.current = node
-              console.log('Selected right panel')
+              console.log(`Selected right panel - id ${node.id}`)
             }}
             ref={panelRefs.right}
           />
@@ -80,6 +82,7 @@ const App: React.FC = () => {
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
           <Button
+            disabled // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
             onClick={() =>
               panelRefs[selectedSide.current].current?.renameCell(
                 lastSelectedNodes[selectedSide.current].current?.id,
@@ -88,7 +91,7 @@ const App: React.FC = () => {
           >
             Rename
           </Button>
-          <Button disabled>Edit</Button>
+          <Button onClick={() => setRenameDialogOpen(true)}>Edit</Button>
           <Button disabled>Copy</Button>
           <Button disabled>Move</Button>
           <Button disabled>New Folder</Button>
@@ -97,7 +100,7 @@ const App: React.FC = () => {
         </ButtonGroup>
       </Box>
 
-      {lastNode !== undefined ? (
+      {lastNode !== undefined && renameDialogOpen ? (
         <RenameDialog open={renameDialogOpen} node={lastNode} onClose={handleRenameDialogClose} />
       ) : (
         <></>

@@ -5,35 +5,35 @@ import { useState } from 'react'
 interface RenameDialogProps {
   readonly open: boolean
   readonly node: BTN
-  onClose: (node: BTN) => void
+  onClose: (node?: BTN) => void
 }
 
-const titleRegEx = /[\w -.|[]()]/
-
 const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: RenameDialogProps) => {
-  const isRegularBookmark = node.url !== undefined && node.url.length > 0
+  console.log(`RenameDialog - id: ${node.id}`)
+
+  const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)
 
   const [title, setTitle] = useState<string>(node.title)
   const [validTitle, setValidTitle] = useState<boolean>(true)
 
   const [url, setUrl] = useState<string | undefined>(node.url)
-  // const [validUrl, setValidUrl] = useState<boolean>(true) // todo perhaps remove this
+  const [validUrl, setValidUrl] = useState<boolean>(true) // todo perhaps remove this
 
   const handleTitleValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
     setTitle(e.target.value)
-    setValidTitle(titleRegEx.test(e.target.value))
+    setValidTitle(isRegularBookmark || e.target.value.length > 0) // folders should have names
   }
   const handleUrlValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
     setUrl(e.target.value)
-    // setValidUrl(e.target.value !== undefined && e.target.value.length > 0) // todo perhaps remove this
+    setValidUrl(e.target.value !== undefined && e.target.value.length > 0)
   }
 
   return (
-    <Dialog open={open} onClose={() => onClose(node)}>
+    <Dialog open={open} onClose={() => onClose()}>
       <DialogTitle>Rename bookmark</DialogTitle>
       <DialogContent>
         <TextField
@@ -66,6 +66,7 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: Rena
       </DialogContent>
       <DialogActions>
         <Button
+          disabled={!validTitle || !validUrl}
           onClick={() =>
             onClose({
               ...node,
@@ -76,7 +77,7 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: Rena
         >
           Ok
         </Button>
-        <Button onClick={() => onClose(node)}>Cancel</Button>
+        <Button onClick={() => onClose()}>Cancel</Button>
       </DialogActions>
     </Dialog>
   )

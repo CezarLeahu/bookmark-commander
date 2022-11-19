@@ -107,10 +107,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       if (id === undefined) {
         return
       }
-      // TODO this check shouldn't be needed in future MUI versions (post https://github.com/mui/mui-x/pull/6773)
-      if (apiRef?.current !== undefined) {
-        apiRef.current.startCellEditMode({ id, field: 'title' })
-      }
+      apiRef.current.startCellEditMode({ id, field: 'title' })
     },
   }))
 
