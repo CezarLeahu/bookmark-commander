@@ -5,6 +5,7 @@ import {
   GridRowId,
   GridCellEditCommitParams,
   useGridApiRef,
+  GridSelectionModel,
 } from '@mui/x-data-grid'
 import { children, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
@@ -41,6 +42,7 @@ const columns: GridColDef[] = [
 export interface FolderPanelProps {
   readonly index: number
   onSelect: (node: BTN) => void
+  onGridSelectionModelChange: (model: GridSelectionModel) => void
 }
 
 export interface FolderPanelHandle {
@@ -173,6 +175,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         onCellEditCommit={handleCellEdit}
+        onSelectionModelChange={props.onGridSelectionModelChange}
         sx={{
           flex: 1,
         }}

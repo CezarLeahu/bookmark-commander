@@ -7,6 +7,8 @@ import EditDialog from './dialogs/edit-dialog'
 import { update } from '../bookmarks/commands'
 import { closeCurrentTab } from '../bookmarks/utils'
 import CreateDialog from './dialogs/create-dialog'
+import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
+import { GridSelectionModel } from '@mui/x-data-grid'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
@@ -23,6 +25,10 @@ const App: React.FC = () => {
     right: useRef<BTN>(),
   }
   const lastNode = lastSelectedNodes[selectedSide.current].current
+  const gridSelectionModels = {
+    left: useRef<GridSelectionModel>(),
+    right: useRef<GridSelectionModel>(),
+  }
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const isDirCreate = useRef<boolean>(false)
@@ -88,6 +94,7 @@ const App: React.FC = () => {
               lastSelectedNodes.left.current = node
               console.log(`Selected left panel - id ${node.id}`)
             }}
+            onGridSelectionModelChange={model => (gridSelectionModels.left.current = model)}
             ref={panelRefs.left}
           />
         </Grid>
@@ -100,6 +107,7 @@ const App: React.FC = () => {
               lastSelectedNodes.right.current = node
               console.log(`Selected right panel - id ${node.id}`)
             }}
+            onGridSelectionModelChange={model => (gridSelectionModels.right.current = model)}
             ref={panelRefs.right}
           />
         </Grid>
@@ -161,6 +169,17 @@ const App: React.FC = () => {
           node={lastNode}
           onConfirm={handleEditDialogConfirm}
           onCancel={handleEditDialogCancel}
+        />
+      ) : (
+        <></>
+      )}
+
+      {lastNode !== undefined && confirmDialogOpen ? (
+        <DeleteConfirmationDialog
+          open={confirmDialogOpen}
+          nodes={}
+          onConfirm={handleConfirmDialogConfirm}
+          onCancel={handleConfirmDialogCancel}
         />
       ) : (
         <></>
