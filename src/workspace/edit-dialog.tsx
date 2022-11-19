@@ -2,14 +2,14 @@ import { BTN } from '../bookmarks/types'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
 import { useState } from 'react'
 
-interface RenameDialogProps {
+interface EditDialogProps {
   readonly open: boolean
   readonly node: BTN
   onClose: (node?: BTN) => void
 }
 
-const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: RenameDialogProps) => {
-  console.log(`RenameDialog - id: ${node.id}`)
+const EditDialog: React.FC<EditDialogProps> = ({ open, node, onClose }: EditDialogProps) => {
+  console.log(`EditDialog - id: ${node.id}`)
 
   const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)
 
@@ -34,7 +34,7 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: Rena
 
   return (
     <Dialog open={open} onClose={() => onClose()}>
-      <DialogTitle>Rename bookmark</DialogTitle>
+      <DialogTitle>Edit bookmark</DialogTitle>
       <DialogContent>
         <TextField
           id='name'
@@ -83,4 +83,4 @@ const RenameDialog: React.FC<RenameDialogProps> = ({ open, node, onClose }: Rena
   )
 }
 
-export default RenameDialog
+export default EditDialog

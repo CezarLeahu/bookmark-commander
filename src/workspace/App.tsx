@@ -3,7 +3,7 @@ import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN, Side } from '../bookmarks/types'
-import RenameDialog from './rename-dialog'
+import EditDialog from './edit-dialog'
 import { update } from '../bookmarks/commands'
 
 const App: React.FC = () => {
@@ -22,16 +22,16 @@ const App: React.FC = () => {
   }
   const lastNode = lastSelectedNodes[selectedSide.current].current
 
-  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
 
-  const handleRenameDialogClose = (node: BTN | undefined): void => {
+  const handleEditDialogClose = (node: BTN | undefined): void => {
     if (node !== undefined) {
       update(node)
         .then()
         .catch(e => setError(e))
     }
     forceRerender()
-    setRenameDialogOpen(false)
+    setEditDialogOpen(false)
   }
 
   return (
@@ -91,8 +91,7 @@ const App: React.FC = () => {
           >
             Rename
           </Button>
-          <Button onClick={() => setRenameDialogOpen(true)}>Edit</Button>
-          <Button disabled>Copy</Button>
+          <Button onClick={() => setEditDialogOpen(true)}>Edit</Button>
           <Button disabled>Move</Button>
           <Button disabled>New Folder</Button>
           <Button disabled>Delete</Button>
@@ -100,8 +99,8 @@ const App: React.FC = () => {
         </ButtonGroup>
       </Box>
 
-      {lastNode !== undefined && renameDialogOpen ? (
-        <RenameDialog open={renameDialogOpen} node={lastNode} onClose={handleRenameDialogClose} />
+      {lastNode !== undefined && editDialogOpen ? (
+        <EditDialog open={editDialogOpen} node={lastNode} onClose={handleEditDialogClose} />
       ) : (
         <></>
       )}
