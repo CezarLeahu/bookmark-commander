@@ -1,17 +1,27 @@
-import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getNode } from '../../bookmarks/queries'
 import { BTN } from '../../bookmarks/types'
 import { isDirectory } from '../../misc/utils'
 
-const dialogTitleAndMessage = async (nodeIds: string[]): Promise<string> => {
+const dialogTitleAndMessage = async (nodeIds: string[]): Promise<[string, string]> => {
   if (nodeIds.length !== 1) {
-    return `Delete ${nodeIds.length} items?`
+    return ['Delete items?', `Delete ${nodeIds.length} items?`]
   }
 
   const node: BTN = await getNode(nodeIds[0])
 
-  return `Delete the "${node.title}" ${isDirectory(node) ? 'folder' : 'bookmark'}?`
+  if (isDirectory(node)) {
+    return ['Delete folder?', `Delete the "${node.title}" folder?`]
+  }
+  return ['Delete bookmark?', `Delete the "${node.title}" bookmark?`]
 }
 
 interface DeleteConfirmationDialogProps {
@@ -27,17 +37,28 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
   onCancel,
 }: DeleteConfirmationDialogProps) => {
-  const [message, setMessages] = useState<string>('Delete items?')
+  const [[title, message], setMessages] = useState<[string, string]>([
+    'Delete items?',
+    'Delete items?',
+  ])
 
   useEffect(() => {
     dialogTitleAndMessage(nodeIds)
-      .then(m => setMessages(m))
+      .then(([t, m]) => setMessages([t, m]))
       .catch(e => console.log(e))
   }, [nodeIds])
 
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
-      <DialogTitle id='dialog-title'>{message}</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby='dialog-title'
+      aria-describedby='dialog-description'
+    >
+      <DialogTitle id='dialog-title'>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText id='dialog-description'>{message}</DialogContentText>
+      </DialogContent>
       <DialogActions>
         <Button onClick={onConfirm}>Yes</Button>
         <Button onClick={onCancel} autoFocus>

@@ -67,7 +67,7 @@ const App: React.FC = () => {
   }
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
-  const handleConfirmDialogConfirm = (): void => {
+  const handleDeleteDialogConfirm = (): void => {
     const ids: string[] = lastSelectedIds()
     if (ids.length === 0) {
       handleDialogClose()
@@ -191,7 +191,7 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastSelectedIds().length !== 1 && editDialogOpen ? (
+      {editDialogOpen ? (
         <EditDialog
           open={editDialogOpen}
           nodeId={String(selectionModels[selectedSide.current].state?.[0])}
@@ -202,11 +202,11 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastSelectedIds().length > 0 && confirmDialogOpen ? (
+      {confirmDialogOpen ? (
         <DeleteConfirmationDialog
           open={confirmDialogOpen}
           nodeIds={selectionModels[selectedSide.current].state?.map(e => String(e)) ?? []}
-          onConfirm={handleConfirmDialogConfirm}
+          onConfirm={handleDeleteDialogConfirm}
           onCancel={handleDialogClose}
         />
       ) : (
