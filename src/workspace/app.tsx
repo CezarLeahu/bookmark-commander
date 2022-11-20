@@ -8,10 +8,10 @@ import { createBookmark, createDir, removeAll, update } from '../bookmarks/comma
 import { closeCurrentTab } from '../misc/utils'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
-import { GridSelectionModel } from '@mui/x-data-grid'
+import { GridRowId } from '@mui/x-data-grid'
 import { containsNonEmptyDirectories } from '../bookmarks/queries'
 import { Side } from '../misc/types'
-import { usePairRef, usePairRefEmpty, usePairStateEmpty } from '../misc/hooks'
+import { usePairRef, usePairState } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
@@ -19,16 +19,21 @@ const App: React.FC = () => {
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
-  const lastSelectedNodes = usePairRefEmpty<BTN>()
   const currentNodeIds = usePairRef<string | undefined>('1', '2')
 
-  const selectionModels = usePairStateEmpty<GridSelectionModel>()
+  const selectionModels = usePairState<GridRowId[]>([], [])
+
+  const lastSelectedIds = (): string[] => {
+    return selectionModels[selectedSide.current].state
+      .filter(e => e !== undefined)
+      .map(e => String(e))
+  }
 
   const handleDialogClose = (): void => {
     setCreateDialogOpen(false)
     setEditDialogOpen(false)
     setConfirmDialogOpen(false)
-    // forceRerender() // todo probably not needed
+    forceRerender()
   }
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -63,7 +68,7 @@ const App: React.FC = () => {
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const handleConfirmDialogConfirm = (): void => {
-    const ids: string[] = selectionModels[selectedSide.current].current?.map(e => String(e)) ?? []
+    const ids: string[] = lastSelectedIds()
     if (ids.length === 0) {
       handleDialogClose()
       return
@@ -108,7 +113,6 @@ const App: React.FC = () => {
             updateCurrentNodeID={id => (currentNodeIds.left.current = id)}
             onSelect={node => {
               selectedSide.current = 'left'
-              lastSelectedNodes.left.current = node
               currentNodeIds.left.current = node.parentId
               console.log(`Selected left panel - id ${node.id}`)
             }}
@@ -122,7 +126,6 @@ const App: React.FC = () => {
             initialNodeID={currentNodeIds.right.current ?? '2'}
             onSelect={node => {
               selectedSide.current = 'right'
-              lastSelectedNodes.right.current = node
               console.log(`Selected right panel - id ${node.id}`)
             }}
             updateCurrentNodeID={id => (currentNodeIds.right.current = id)}
@@ -136,17 +139,17 @@ const App: React.FC = () => {
         <ButtonGroup variant='text' aria-label='Actions'>
           <Button onClick={() => setCreateDialogOpen(true)}>Create</Button>
           <Button
-            disabled // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
+            disabled
+            // disabled={lastSelectedIds().length !== 1}
+            // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
             onClick={() =>
-              panelRefs[selectedSide.current].current?.renameCell(
-                lastSelectedNodes[selectedSide.current].current?.id,
-              )
+              panelRefs[selectedSide.current].current?.renameCell(lastSelectedIds()[0])
             }
           >
             Rename
           </Button>
           <Button
-            disabled={lastSelectedNodes[selectedSide.current].current === undefined}
+            disabled={lastSelectedIds().length !== 1}
             onClick={() => {
               isDirCreate.current = false
               setEditDialogOpen(true)
@@ -169,7 +172,7 @@ const App: React.FC = () => {
           </Button>
           <Button
             onClick={() => setConfirmDialogOpen(true)}
-            disabled={(selectionModels[selectedSide.current].current?.length ?? 0) === 0}
+            disabled={lastSelectedIds().length === 0}
           >
             Delete
           </Button>
@@ -188,10 +191,10 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastSelectedNodes[selectedSide.current].current !== undefined && editDialogOpen ? (
+      {lastSelectedIds().length !== 1 && editDialogOpen ? (
         <EditDialog
           open={editDialogOpen}
-          node={lastSelectedNodes[selectedSide.current].current}
+          nodeId={String(selectionModels[selectedSide.current].state?.[0])}
           onConfirm={handleEditDialogConfirm}
           onCancel={handleDialogClose}
         />
@@ -199,10 +202,10 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastSelectedNodes[selectedSide.current].current !== undefined && confirmDialogOpen ? (
+      {lastSelectedIds().length > 0 && confirmDialogOpen ? (
         <DeleteConfirmationDialog
           open={confirmDialogOpen}
-          nodeIds={selectionModels[selectedSide.current].current?.map(e => String(e)) ?? []}
+          nodeIds={selectionModels[selectedSide.current].state?.map(e => String(e)) ?? []}
           onConfirm={handleConfirmDialogConfirm}
           onCancel={handleDialogClose}
         />

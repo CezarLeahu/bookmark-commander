@@ -2,11 +2,11 @@ import { Dispatch, MutableRefObject, SetStateAction, useRef, useState } from 're
 
 interface PairState<S> {
   left: {
-    current: S
+    state: S
     setState: Dispatch<SetStateAction<S>>
   }
   right: {
-    current: S
+    state: S
     setState: Dispatch<SetStateAction<S>>
   }
 }
@@ -17,11 +17,11 @@ export function usePairStateEmpty<S = undefined>(): PairState<S | undefined> {
 
   return {
     left: {
-      current: leftState,
+      state: leftState,
       setState: setLeftState,
     },
     right: {
-      current: rightState,
+      state: rightState,
       setState: setRightState,
     },
   }
@@ -33,11 +33,11 @@ export function usePairState<S>(initialLeft: S, initialRight: S): PairState<S> {
 
   return {
     left: {
-      current: leftState,
+      state: leftState,
       setState: setLeftState,
     },
     right: {
-      current: rightState,
+      state: rightState,
       setState: setRightState,
     },
   }

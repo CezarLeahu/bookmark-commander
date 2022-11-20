@@ -5,7 +5,6 @@ import {
   GridRowId,
   GridCellEditCommitParams,
   useGridApiRef,
-  GridSelectionModel,
 } from '@mui/x-data-grid'
 import { children, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
@@ -43,7 +42,7 @@ export interface FolderPanelProps {
   readonly initialNodeID: string
   updateCurrentNodeID: (id: string) => void
   onSelect: (node: BTN) => void
-  onSelectionModelChange: (model: GridSelectionModel) => void
+  onSelectionModelChange: (model: GridRowId[]) => void
 }
 
 export interface FolderPanelHandle {

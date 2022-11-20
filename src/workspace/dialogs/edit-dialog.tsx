@@ -1,39 +1,52 @@
 import { BTN } from '../../bookmarks/types'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { getNode } from '../../bookmarks/queries'
+import { isDirectory, isSimpleBookmark } from '../../misc/utils'
 
 interface EditDialogProps {
   readonly open: boolean
-  readonly node?: BTN
+  readonly nodeId?: string
   onConfirm: (node: BTN) => void
   onCancel: () => void
 }
 
 const EditDialog: React.FC<EditDialogProps> = ({
   open,
-  node,
+  nodeId,
   onConfirm,
   onCancel,
 }: EditDialogProps) => {
-  if (node === undefined) {
-    throw new Error('The "node" argument should never be undefined')
+  if (nodeId === undefined) {
+    throw new Error('The "nodeId" argument should never be undefined')
   }
 
-  console.log(`EditDialog - id: ${node.id}`)
+  console.log(`EditDialog - id: ${nodeId}`)
 
-  const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)
+  const [node, setNode] = useState<BTN>()
+  const [isDir, setIsDir] = useState(false)
 
-  const [title, setTitle] = useState<string>(node.title)
+  const [title, setTitle] = useState<string>('')
   const [validTitle, setValidTitle] = useState<boolean>(true)
+  const [url, setUrl] = useState<string | undefined>()
+  const [validUrl, setValidUrl] = useState<boolean>(isDir)
 
-  const [url, setUrl] = useState<string | undefined>(node.url)
-  const [validUrl, setValidUrl] = useState<boolean>(true)
+  useEffect(() => {
+    getNode(nodeId)
+      .then(n => {
+        setNode(n)
+        setTitle(n.title)
+        setUrl(n.url)
+        setIsDir(isDirectory(n))
+      })
+      .catch(e => console.log(e))
+  }, [nodeId])
 
   const handleTitleValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
     setTitle(e.target.value)
-    setValidTitle(isRegularBookmark || e.target.value.length > 0) // folders should have names
+    setValidTitle(!isDir || e.target.value.length > 0) // folders should have names
   }
   const handleUrlValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -44,9 +57,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
   return (
     <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
-      <DialogTitle id='dialog-title'>
-        {isRegularBookmark ? 'Edit bookmark' : 'Edit folder'}
-      </DialogTitle>
+      <DialogTitle id='dialog-title'>{isDir ? 'Edit folder' : 'Edit bookmark'}</DialogTitle>
       <DialogContent>
         <TextField
           id='name'
@@ -60,7 +71,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
           onChange={handleTitleValidation}
           error={!validTitle}
         />
-        {isRegularBookmark ? (
+        {!isDir ? (
           <TextField
             id='url'
             margin='dense'
@@ -79,8 +90,9 @@ const EditDialog: React.FC<EditDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button
-          disabled={!validTitle || !validUrl}
+          disabled={node === undefined || !validTitle || !validUrl}
           onClick={() =>
+            node !== undefined &&
             onConfirm({
               ...node,
               title,
