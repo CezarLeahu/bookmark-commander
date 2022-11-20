@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 interface EditDialogProps {
   readonly open: boolean
-  readonly node: BTN
+  readonly node?: BTN
   onConfirm: (node: BTN) => void
   onCancel: () => void
 }
@@ -15,6 +15,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
   onConfirm,
   onCancel,
 }: EditDialogProps) => {
+  if (node === undefined) {
+    throw new Error('The "node" argument should never be undefined')
+  }
+
   console.log(`EditDialog - id: ${node.id}`)
 
   const isRegularBookmark = node.url !== undefined && node.url.length > 0 // not a folder (directory)

@@ -40,8 +40,9 @@ const columns: GridColDef[] = [
 ]
 
 export interface FolderPanelProps {
-  readonly index: number
+  readonly index: string
   onSelect: (node: BTN) => void
+  onSwitchCurrentNodeId: (id: string) => void
   onGridSelectionModelChange: (model: GridSelectionModel) => void
 }
 
@@ -50,7 +51,7 @@ export interface FolderPanelHandle {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  { index, onSelect, onGridSelectionModelChange }: FolderPanelProps,
+  { index, onSelect, onSwitchCurrentNodeId, onGridSelectionModelChange }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
@@ -63,12 +64,15 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     )
   }, [])
 
-  const [currentNodeID, setCurrentNodeID] = useState<string>(String(index))
+  const [currentNodeID, setCurrentNodeID] = useState<string>(index)
   const [currentNode, setCurrentNode] = useState<BTN>()
 
   useEffect(() => {
     getNode(currentNodeID).then(
-      r => setCurrentNode(r),
+      r => {
+        setCurrentNode(r)
+        onSwitchCurrentNodeId(r.id)
+      },
       e => setError(e),
     )
   }, [topNodes, currentNodeID])

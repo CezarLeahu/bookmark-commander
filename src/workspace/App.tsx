@@ -9,7 +9,7 @@ import { closeCurrentTab } from '../bookmarks/utils'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
 import { GridSelectionModel } from '@mui/x-data-grid'
-import { containsNonEmptyDirectories, getNode } from '../bookmarks/queries'
+import { containsNonEmptyDirectories } from '../bookmarks/queries'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
@@ -25,7 +25,10 @@ const App: React.FC = () => {
     left: useRef<BTN>(),
     right: useRef<BTN>(),
   }
-  const lastNode = lastSelectedNodes[selectedSide.current].current
+  const currentNodeIds = {
+    left: useRef<string | undefined>('1'),
+    right: useRef<string | undefined>('2'),
+  }
   const gridSelectionModels = {
     left: useRef<GridSelectionModel>(),
     right: useRef<GridSelectionModel>(),
@@ -34,16 +37,22 @@ const App: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const isDirCreate = useRef<boolean>(false)
   const handleCreateDialogConfirm = (title: string, url?: string): void => {
-    // todo replace last selected with last current
-    // const parentId = lastNode ?? getNode('1')
+    const parentId = currentNodeIds[selectedSide.current].current
+    if (parentId === undefined) {
+      console.log('The current panel current node id is unknown (undefined).')
+      handleCreateDialogCancel()
+      return
+    }
 
-    // if (url !== undefined) {
-    // createBookmark(parentId, title, url)
-    // }
-
-    // createDir(parentId, title)
-
-    handleCreateDialogCancel()
+    if (url === undefined) {
+      createDir(parentId, title)
+        .then(() => handleCreateDialogCancel())
+        .catch(e => console.log(e))
+    } else {
+      createBookmark(parentId, title, url)
+        .then(() => handleCreateDialogCancel())
+        .catch(e => console.log(e))
+    }
   }
   const handleCreateDialogCancel = (): void => {
     forceRerender()
@@ -111,12 +120,14 @@ const App: React.FC = () => {
       <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
           <FolderPanel
-            index={1}
+            index={currentNodeIds.left.current ?? '1'}
             onSelect={node => {
               selectedSide.current = 'left'
               lastSelectedNodes.left.current = node
+              currentNodeIds.left.current = node.parentId
               console.log(`Selected left panel - id ${node.id}`)
             }}
+            onSwitchCurrentNodeId={id => (currentNodeIds.left.current = id)}
             onGridSelectionModelChange={model => (gridSelectionModels.left.current = model)}
             ref={panelRefs.left}
           />
@@ -124,12 +135,13 @@ const App: React.FC = () => {
 
         <Grid item xs={6}>
           <FolderPanel
-            index={2}
+            index={currentNodeIds.right.current ?? '2'}
             onSelect={node => {
               selectedSide.current = 'right'
               lastSelectedNodes.right.current = node
               console.log(`Selected right panel - id ${node.id}`)
             }}
+            onSwitchCurrentNodeId={id => (currentNodeIds.right.current = id)}
             onGridSelectionModelChange={model => (gridSelectionModels.right.current = model)}
             ref={panelRefs.right}
           />
@@ -191,10 +203,10 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastNode !== undefined && editDialogOpen ? (
+      {lastSelectedNodes[selectedSide.current].current !== undefined && editDialogOpen ? (
         <EditDialog
           open={editDialogOpen}
-          node={lastNode}
+          node={lastSelectedNodes[selectedSide.current].current}
           onConfirm={handleEditDialogConfirm}
           onCancel={handleEditDialogCancel}
         />
@@ -202,7 +214,7 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {lastNode !== undefined && confirmDialogOpen ? (
+      {lastSelectedNodes[selectedSide.current].current !== undefined && confirmDialogOpen ? (
         <DeleteConfirmationDialog
           open={confirmDialogOpen}
           nodeIds={gridSelectionModels[selectedSide.current].current?.map(e => String(e)) ?? []}
