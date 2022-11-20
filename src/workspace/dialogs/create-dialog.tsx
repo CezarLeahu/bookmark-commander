@@ -17,10 +17,10 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
   console.log('CreateDialog')
 
   const [title, setTitle] = useState<string>('')
-  const [validTitle, setValidTitle] = useState<boolean>(true)
+  const [validTitle, setValidTitle] = useState<boolean>(false)
 
   const [url, setUrl] = useState<string | undefined>()
-  const [validUrl, setValidUrl] = useState<boolean>(true)
+  const [validUrl, setValidUrl] = useState<boolean>(isDirectory)
 
   const handleTitleValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -51,6 +51,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
           variant='standard'
           value={title}
           onChange={handleTitleValidation}
+          required
           error={!validTitle}
         />
         {!isDirectory ? (

@@ -50,10 +50,9 @@ export interface FolderPanelHandle {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  props: FolderPanelProps,
+  { index, onSelect, onGridSelectionModelChange }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
-  const { index, onSelect } = props
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
 
@@ -175,11 +174,11 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         onCellEditCommit={handleCellEdit}
-        onSelectionModelChange={props.onGridSelectionModelChange}
+        onSelectionModelChange={onGridSelectionModelChange}
         sx={{
           flex: 1,
         }}
-        // rowReordering
+        // TODO rowReordering - by title (in the dialog)
       />
     </Container>
   )

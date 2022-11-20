@@ -6,14 +6,18 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { getNode } from '../../bookmarks/queries'
 import { BTN } from '../../bookmarks/types'
 import { isDirectory } from '../../bookmarks/utils'
 
-const dialogTitleAndMessage = (nodes: BTN[]): [string, string] => {
-  if (nodes.length > 1) {
-    return ['Delete entries?', `Delete ${nodes.length} items?`]
+const dialogTitleAndMessage = async (nodeIds: string[]): Promise<[string, string]> => {
+  if (nodeIds.length !== 1) {
+    return ['Delete entries?', `Delete ${nodeIds.length} items?`]
   }
-  const node = nodes[0]
+
+  const node: BTN = await getNode(nodeIds[0])
+
   if (isDirectory(node)) {
     return ['Delete folder?', `Delete the "${node.title}" folder?`]
   }
@@ -22,18 +26,27 @@ const dialogTitleAndMessage = (nodes: BTN[]): [string, string] => {
 
 interface DeleteConfirmationDialogProps {
   readonly open: boolean
-  readonly nodes: BTN[]
+  readonly nodeIds: string[]
   onConfirm: () => void
   onCancel: () => void
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   open,
-  nodes,
+  nodeIds,
   onConfirm,
   onCancel,
 }: DeleteConfirmationDialogProps) => {
-  const [title, message] = dialogTitleAndMessage(nodes)
+  const [[title, message], setMessages] = useState<[string, string]>([
+    'Delete entries?',
+    'Delete items?',
+  ])
+
+  useEffect(() => {
+    dialogTitleAndMessage(nodeIds)
+      .then(([t, m]) => setMessages([t, m]))
+      .catch(e => console.log(e))
+  }, [nodeIds])
 
   return (
     <Dialog
