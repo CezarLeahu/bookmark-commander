@@ -2,7 +2,7 @@ import { BTN } from '../../bookmarks/types'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getNode } from '../../bookmarks/queries'
-import { isDirectory, isSimpleBookmark } from '../../misc/utils'
+import { isDirectory } from '../../misc/utils'
 
 interface EditDialogProps {
   readonly open: boolean

@@ -28,6 +28,7 @@ const columns: GridColDef[] = [
     width: 250,
     editable: true,
     sortable: false,
+    hideable: false,
   },
   {
     field: 'url',
@@ -35,6 +36,7 @@ const columns: GridColDef[] = [
     flex: 1,
     editable: false,
     sortable: false,
+    hideable: false,
   },
 ]
 
@@ -177,7 +179,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         // apiRef={apiRef} // TODO enable when https://github.com/mui/mui-x/pull/6773 gets merged & tagged
         rows={rows}
         columns={columns}
-        autoPageSize
+        initialState={{ columns: { columnVisibilityModel: { __check__: false } } }}
         checkboxSelection
         density='compact'
         experimentalFeatures={{ newEditingApi: true }}
