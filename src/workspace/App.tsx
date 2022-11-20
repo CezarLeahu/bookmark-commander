@@ -2,36 +2,33 @@ import { useReducer, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
-import { BTN, Side } from '../bookmarks/types'
+import { BTN } from '../bookmarks/types'
 import EditDialog from './dialogs/edit-dialog'
 import { createBookmark, createDir, removeAll, update } from '../bookmarks/commands'
-import { closeCurrentTab } from '../bookmarks/utils'
+import { closeCurrentTab } from '../misc/utils'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
 import { GridSelectionModel } from '@mui/x-data-grid'
 import { containsNonEmptyDirectories } from '../bookmarks/queries'
+import { Side } from '../misc/types'
+import { usePairRef, usePairRefEmpty, usePairStateEmpty } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
   const [, forceRerender] = useReducer((x: number) => x + 1, 0)
 
-  const panelRefs = {
-    left: useRef<FolderPanelHandle | null>(null),
-    right: useRef<FolderPanelHandle | null>(null),
-  }
-
+  const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
-  const lastSelectedNodes = {
-    left: useRef<BTN>(),
-    right: useRef<BTN>(),
-  }
-  const currentNodeIds = {
-    left: useRef<string | undefined>('1'),
-    right: useRef<string | undefined>('2'),
-  }
-  const gridSelectionModels = {
-    left: useRef<GridSelectionModel>(),
-    right: useRef<GridSelectionModel>(),
+  const lastSelectedNodes = usePairRefEmpty<BTN>()
+  const currentNodeIds = usePairRef<string | undefined>('1', '2')
+
+  const selectionModels = usePairStateEmpty<GridSelectionModel>()
+
+  const handleDialogClose = (): void => {
+    setCreateDialogOpen(false)
+    setEditDialogOpen(false)
+    setConfirmDialogOpen(false)
+    // forceRerender() // todo probably not needed
   }
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -40,23 +37,19 @@ const App: React.FC = () => {
     const parentId = currentNodeIds[selectedSide.current].current
     if (parentId === undefined) {
       console.log('The current panel current node id is unknown (undefined).')
-      handleCreateDialogCancel()
+      handleDialogClose()
       return
     }
 
     if (url === undefined) {
       createDir(parentId, title)
-        .then(() => handleCreateDialogCancel())
+        .then(() => handleDialogClose())
         .catch(e => console.log(e))
     } else {
       createBookmark(parentId, title, url)
-        .then(() => handleCreateDialogCancel())
+        .then(() => handleDialogClose())
         .catch(e => console.log(e))
     }
-  }
-  const handleCreateDialogCancel = (): void => {
-    forceRerender()
-    setCreateDialogOpen(false)
   }
 
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -65,19 +58,14 @@ const App: React.FC = () => {
       .then()
       .catch(e => setError(e))
 
-    handleEditDialogCancel()
-  }
-  const handleEditDialogCancel = (): void => {
-    forceRerender()
-    setEditDialogOpen(false)
+    handleDialogClose()
   }
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const handleConfirmDialogConfirm = (): void => {
-    const ids: string[] =
-      gridSelectionModels[selectedSide.current].current?.map(e => String(e)) ?? []
+    const ids: string[] = selectionModels[selectedSide.current].current?.map(e => String(e)) ?? []
     if (ids.length === 0) {
-      handleConfirmDialogCancel()
+      handleDialogClose()
       return
     }
 
@@ -85,17 +73,13 @@ const App: React.FC = () => {
       .then(nonEmptyDirsExist => {
         if (nonEmptyDirsExist) {
           setError('Cannot delete non-empty folders!')
-          handleConfirmDialogCancel()
+          handleDialogClose()
           return
         }
         removeAll(ids).catch(e => console.log(e))
-        handleConfirmDialogCancel()
+        handleDialogClose()
       })
       .catch(e => console.log(e))
-  }
-  const handleConfirmDialogCancel = (): void => {
-    forceRerender()
-    setConfirmDialogOpen(false)
   }
 
   return (
@@ -120,29 +104,29 @@ const App: React.FC = () => {
       <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
           <FolderPanel
-            index={currentNodeIds.left.current ?? '1'}
+            initialNodeID={currentNodeIds.left.current ?? '1'}
+            updateCurrentNodeID={id => (currentNodeIds.left.current = id)}
             onSelect={node => {
               selectedSide.current = 'left'
               lastSelectedNodes.left.current = node
               currentNodeIds.left.current = node.parentId
               console.log(`Selected left panel - id ${node.id}`)
             }}
-            onSwitchCurrentNodeId={id => (currentNodeIds.left.current = id)}
-            onGridSelectionModelChange={model => (gridSelectionModels.left.current = model)}
+            onSelectionModelChange={model => selectionModels.left.setState(model)}
             ref={panelRefs.left}
           />
         </Grid>
 
         <Grid item xs={6}>
           <FolderPanel
-            index={currentNodeIds.right.current ?? '2'}
+            initialNodeID={currentNodeIds.right.current ?? '2'}
             onSelect={node => {
               selectedSide.current = 'right'
               lastSelectedNodes.right.current = node
               console.log(`Selected right panel - id ${node.id}`)
             }}
-            onSwitchCurrentNodeId={id => (currentNodeIds.right.current = id)}
-            onGridSelectionModelChange={model => (gridSelectionModels.right.current = model)}
+            updateCurrentNodeID={id => (currentNodeIds.right.current = id)}
+            onSelectionModelChange={model => selectionModels.right.setState(model)}
             ref={panelRefs.right}
           />
         </Grid>
@@ -162,6 +146,7 @@ const App: React.FC = () => {
             Rename
           </Button>
           <Button
+            disabled={lastSelectedNodes[selectedSide.current].current === undefined}
             onClick={() => {
               isDirCreate.current = false
               setEditDialogOpen(true)
@@ -184,7 +169,7 @@ const App: React.FC = () => {
           </Button>
           <Button
             onClick={() => setConfirmDialogOpen(true)}
-            disabled={(gridSelectionModels[selectedSide.current].current?.length ?? 0) === 0}
+            disabled={(selectionModels[selectedSide.current].current?.length ?? 0) === 0}
           >
             Delete
           </Button>
@@ -197,7 +182,7 @@ const App: React.FC = () => {
           open={createDialogOpen}
           isDirectory={isDirCreate.current}
           onConfirm={handleCreateDialogConfirm}
-          onCancel={handleCreateDialogCancel}
+          onCancel={handleDialogClose}
         />
       ) : (
         <></>
@@ -208,7 +193,7 @@ const App: React.FC = () => {
           open={editDialogOpen}
           node={lastSelectedNodes[selectedSide.current].current}
           onConfirm={handleEditDialogConfirm}
-          onCancel={handleEditDialogCancel}
+          onCancel={handleDialogClose}
         />
       ) : (
         <></>
@@ -217,9 +202,9 @@ const App: React.FC = () => {
       {lastSelectedNodes[selectedSide.current].current !== undefined && confirmDialogOpen ? (
         <DeleteConfirmationDialog
           open={confirmDialogOpen}
-          nodeIds={gridSelectionModels[selectedSide.current].current?.map(e => String(e)) ?? []}
+          nodeIds={selectionModels[selectedSide.current].current?.map(e => String(e)) ?? []}
           onConfirm={handleConfirmDialogConfirm}
-          onCancel={handleConfirmDialogCancel}
+          onCancel={handleDialogClose}
         />
       ) : (
         <></>

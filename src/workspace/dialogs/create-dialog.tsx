@@ -72,7 +72,9 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => onConfirm(title, url)}>Ok</Button>
+        <Button disabled={!validTitle || !validUrl} onClick={() => onConfirm(title, url)}>
+          Ok
+        </Button>
         <Button onClick={onCancel}>Cancel</Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,4 @@
-import { BTN } from './types'
+import { BTN } from '../bookmarks/types'
 
 export const isDirectory = (node: BTN): boolean => node.url === undefined
 

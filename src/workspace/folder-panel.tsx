@@ -40,10 +40,10 @@ const columns: GridColDef[] = [
 ]
 
 export interface FolderPanelProps {
-  readonly index: string
+  readonly initialNodeID: string
+  updateCurrentNodeID: (id: string) => void
   onSelect: (node: BTN) => void
-  onSwitchCurrentNodeId: (id: string) => void
-  onGridSelectionModelChange: (model: GridSelectionModel) => void
+  onSelectionModelChange: (model: GridSelectionModel) => void
 }
 
 export interface FolderPanelHandle {
@@ -51,7 +51,7 @@ export interface FolderPanelHandle {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  { index, onSelect, onSwitchCurrentNodeId, onGridSelectionModelChange }: FolderPanelProps,
+  { initialNodeID, updateCurrentNodeID, onSelect, onSelectionModelChange }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
@@ -64,18 +64,15 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     )
   }, [])
 
-  const [currentNodeID, setCurrentNodeID] = useState<string>(index)
+  const [currentNodeID, setCurrentNodeID] = useState<string>(initialNodeID)
   const [currentNode, setCurrentNode] = useState<BTN>()
 
   useEffect(() => {
     getNode(currentNodeID).then(
-      r => {
-        setCurrentNode(r)
-        onSwitchCurrentNodeId(r.id)
-      },
+      r => setCurrentNode(r),
       e => setError(e),
     )
-  }, [topNodes, currentNodeID])
+  }, [currentNodeID]) // todo [topNodes, currentNodeID] is topNode needed?
 
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
 
@@ -99,6 +96,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     switch (params.row.url) {
       case undefined: // folder
         setCurrentNodeID(String(params.id))
+        updateCurrentNodeID(String(params.id))
         break
       default: // actual bookmark
         chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
@@ -149,7 +147,10 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             <Button
               key={d.id}
               sx={{ textTransform: 'none' }}
-              onClick={() => setCurrentNodeID(d.id)}
+              onClick={() => {
+                setCurrentNodeID(d.id)
+                updateCurrentNodeID(d.id)
+              }}
             >
               {d.title}
             </Button>
@@ -159,7 +160,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       <Box>
         <Breadcrumbs aria-label='breadcrumb'>
           {breadcrumbs.map(d => (
-            <Link key={d.id} onClick={() => setCurrentNodeID(d.id)}>
+            <Link
+              key={d.id}
+              onClick={() => {
+                setCurrentNodeID(d.id)
+                updateCurrentNodeID(d.id)
+              }}
+            >
               {d.title}
             </Link>
           ))}
@@ -178,7 +185,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         onCellEditCommit={handleCellEdit}
-        onSelectionModelChange={onGridSelectionModelChange}
+        onSelectionModelChange={onSelectionModelChange}
         sx={{
           flex: 1,
         }}

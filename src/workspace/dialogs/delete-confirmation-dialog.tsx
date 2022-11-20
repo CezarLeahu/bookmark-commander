@@ -1,27 +1,17 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from '@mui/material'
+import { Button, Dialog, DialogActions, DialogTitle } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { getNode } from '../../bookmarks/queries'
 import { BTN } from '../../bookmarks/types'
-import { isDirectory } from '../../bookmarks/utils'
+import { isDirectory } from '../../misc/utils'
 
-const dialogTitleAndMessage = async (nodeIds: string[]): Promise<[string, string]> => {
+const dialogTitleAndMessage = async (nodeIds: string[]): Promise<string> => {
   if (nodeIds.length !== 1) {
-    return ['Delete entries?', `Delete ${nodeIds.length} items?`]
+    return `Delete ${nodeIds.length} items?`
   }
 
   const node: BTN = await getNode(nodeIds[0])
 
-  if (isDirectory(node)) {
-    return ['Delete folder?', `Delete the "${node.title}" folder?`]
-  }
-  return ['Delete bookmark?', `Delete the "${node.title}" bookmark?`]
+  return `Delete the "${node.title}" ${isDirectory(node) ? 'folder' : 'bookmark'}?`
 }
 
 interface DeleteConfirmationDialogProps {
@@ -37,28 +27,17 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
   onCancel,
 }: DeleteConfirmationDialogProps) => {
-  const [[title, message], setMessages] = useState<[string, string]>([
-    'Delete entries?',
-    'Delete items?',
-  ])
+  const [message, setMessages] = useState<string>('Delete items?')
 
   useEffect(() => {
     dialogTitleAndMessage(nodeIds)
-      .then(([t, m]) => setMessages([t, m]))
+      .then(m => setMessages(m))
       .catch(e => console.log(e))
   }, [nodeIds])
 
   return (
-    <Dialog
-      open={open}
-      onClose={onCancel}
-      aria-labelledby='dialog-title'
-      aria-describedby='dialog-description'
-    >
-      <DialogTitle id='dialog-title'>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText id='dialog-description'>{message}</DialogContentText>
-      </DialogContent>
+    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
+      <DialogTitle id='dialog-title'>{message}</DialogTitle>
       <DialogActions>
         <Button onClick={onConfirm}>Yes</Button>
         <Button onClick={onCancel} autoFocus>
