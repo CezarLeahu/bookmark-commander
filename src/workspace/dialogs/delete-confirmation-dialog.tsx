@@ -7,19 +7,28 @@ import {
   DialogTitle,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { getNode } from '../../bookmarks/queries'
+import { getNodes } from '../../bookmarks/queries'
 import { BTN } from '../../bookmarks/types'
-import { isDirectory } from '../../misc/utils'
+import { containsNonEmptyDirectories, isDirectory } from '../../misc/utils'
 
-const dialogTitleAndMessage = async (nodeIds: string[]): Promise<[string, string]> => {
-  if (nodeIds.length !== 1) {
-    return ['Delete items?', `Delete ${nodeIds.length} items?`]
+const dialogTitleAndMessage = (nodes: BTN[], nonEmptyDirs: boolean): [string, string] => {
+  if (nodes.length !== 1) {
+    return [
+      'Delete items?',
+      nonEmptyDirs
+        ? 'The selected items contain non-empty folders!'
+        : `Delete ${nodes.length} items?`,
+    ]
   }
 
-  const node: BTN = await getNode(nodeIds[0])
-
+  const node: BTN = nodes[0]
   if (isDirectory(node)) {
-    return ['Delete folder?', `Delete the "${node.title}" folder?`]
+    return [
+      'Delete folder?',
+      nonEmptyDirs
+        ? `The "${node.title}" folder is not empty!`
+        : `Delete the "${node.title}" folder?`,
+    ]
   }
   return ['Delete bookmark?', `Delete the "${node.title}" bookmark?`]
 }
@@ -41,10 +50,15 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
     'Delete items?',
     'Delete items?',
   ])
+  const [nonEmptyDirs, setNonEmptyDirs] = useState<boolean>(false)
 
   useEffect(() => {
-    dialogTitleAndMessage(nodeIds)
-      .then(([t, m]) => setMessages([t, m]))
+    getNodes(nodeIds)
+      .then(nodes => {
+        const nonEmptyDirs = containsNonEmptyDirectories(nodes)
+        setNonEmptyDirs(nonEmptyDirs)
+        setMessages(dialogTitleAndMessage(nodes, nonEmptyDirs))
+      })
       .catch(e => console.log(e))
   }, [nodeIds])
 
@@ -60,9 +74,12 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
         <DialogContentText id='dialog-description'>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onConfirm}>Yes</Button>
+        <Button onClick={onConfirm} disabled={nonEmptyDirs}>
+          Yes
+        </Button>
         <Button onClick={onCancel} autoFocus>
-          No
+          {' '}
+          No{' '}
         </Button>
       </DialogActions>
     </Dialog>

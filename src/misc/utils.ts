@@ -15,3 +15,14 @@ export const closeCurrentTab = (): void => {
     })
     .catch(e => console.log(e))
 }
+
+export const isNonEmptyDirectory = (node: BTN): boolean => {
+  return containsNonEmptyDirectories([node])
+}
+
+export const containsNonEmptyDirectories = (nodes: BTN[]): boolean => {
+  return (
+    nodes.find(e => e.url === undefined && e.children !== undefined && e.children.length > 0) !==
+    undefined
+  )
+}

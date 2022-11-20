@@ -44,6 +44,10 @@ export const getNode = async (id: string): Promise<BTN> => {
   return (await bookmarks.get(id))[0]
 }
 
+export const getNodes = async (ids: string[]): Promise<BTN[]> => {
+  return await bookmarks.get(ids)
+}
+
 export const isNonEmptyDirectory = async (id: string): Promise<boolean> => {
   return await containsNonEmptyDirectories([id])
 }

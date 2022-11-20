@@ -15,11 +15,11 @@ import { usePairRef, usePairState } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
-  const [, forceRerender] = useReducer((x: number) => x + 1, 0)
+  const [, forceRerender] = useReducer((x: number) => x + 1, 0) // todo try to remove this
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
-  const currentNodeIds = usePairRef<string | undefined>('1', '2')
+  const currentNodeIds = usePairState<string>('1', '2')
 
   const selectionModels = usePairState<GridRowId[]>([], [])
 
@@ -39,7 +39,7 @@ const App: React.FC = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const isDirCreate = useRef<boolean>(false)
   const handleCreateDialogConfirm = (title: string, url?: string): void => {
-    const parentId = currentNodeIds[selectedSide.current].current
+    const parentId = currentNodeIds[selectedSide.current].state
     if (parentId === undefined) {
       console.log('The current panel current node id is unknown (undefined).')
       handleDialogClose()
@@ -109,11 +109,10 @@ const App: React.FC = () => {
       <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
           <FolderPanel
-            initialNodeID={currentNodeIds.left.current ?? '1'}
-            updateCurrentNodeID={id => (currentNodeIds.left.current = id)}
+            currentNodeId={currentNodeIds.left.state}
+            setCurrentNodeId={currentNodeIds.left.setState}
             onSelect={node => {
               selectedSide.current = 'left'
-              currentNodeIds.left.current = node.parentId
               console.log(`Selected left panel - id ${node.id}`)
             }}
             onSelectionModelChange={model => selectionModels.left.setState(model)}
@@ -123,12 +122,12 @@ const App: React.FC = () => {
 
         <Grid item xs={6}>
           <FolderPanel
-            initialNodeID={currentNodeIds.right.current ?? '2'}
+            currentNodeId={currentNodeIds.right.state}
+            setCurrentNodeId={currentNodeIds.right.setState}
             onSelect={node => {
               selectedSide.current = 'right'
               console.log(`Selected right panel - id ${node.id}`)
             }}
-            updateCurrentNodeID={id => (currentNodeIds.right.current = id)}
             onSelectionModelChange={model => selectionModels.right.setState(model)}
             ref={panelRefs.right}
           />
