@@ -1,4 +1,4 @@
-import { useReducer, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
@@ -15,7 +15,8 @@ import { usePairRef, usePairState } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
-  const [, forceRerender] = useReducer((x: number) => x + 1, 0) // todo try to remove this
+  const [refreshContent, setRefreshContent] = useState({}) // todo try to remove this
+  const forceUpdate = useCallback(() => setRefreshContent({}), [])
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
@@ -33,7 +34,7 @@ const App: React.FC = () => {
     setCreateDialogOpen(false)
     setEditDialogOpen(false)
     setConfirmDialogOpen(false)
-    forceRerender()
+    forceUpdate()
   }
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -116,6 +117,7 @@ const App: React.FC = () => {
               console.log(`Selected left panel - id ${node.id}`)
             }}
             onSelectionModelChange={model => selectionModels.left.setState(model)}
+            refreshContent={refreshContent}
             ref={panelRefs.left}
           />
         </Grid>
@@ -129,6 +131,7 @@ const App: React.FC = () => {
               console.log(`Selected right panel - id ${node.id}`)
             }}
             onSelectionModelChange={model => selectionModels.right.setState(model)}
+            refreshContent={refreshContent}
             ref={panelRefs.right}
           />
         </Grid>

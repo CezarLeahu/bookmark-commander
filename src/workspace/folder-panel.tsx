@@ -26,7 +26,7 @@ const columns: GridColDef[] = [
     field: 'title',
     headerName: 'Title',
     width: 250,
-    editable: true,
+    editable: false, // change to 'true' if in-line renaming ever gets enabled
     sortable: false,
     hideable: false,
   },
@@ -45,6 +45,7 @@ export interface FolderPanelProps {
   setCurrentNodeId: (id: string) => void
   onSelect: (node: BTN) => void
   onSelectionModelChange: (model: GridRowId[]) => void
+  refreshContent: object
 }
 
 export interface FolderPanelHandle {
@@ -52,7 +53,13 @@ export interface FolderPanelHandle {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  { currentNodeId, setCurrentNodeId, onSelect, onSelectionModelChange }: FolderPanelProps,
+  {
+    currentNodeId,
+    setCurrentNodeId,
+    onSelect,
+    onSelectionModelChange,
+    refreshContent,
+  }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
@@ -90,7 +97,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       r => setRows(r),
       e => setError(e),
     )
-  }, [currentNodeId])
+  }, [currentNodeId, refreshContent])
 
   const handleCellDoubleClick = (params: GridCellParams): void => {
     switch (params.row.url) {

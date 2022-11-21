@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { getNodes } from '../../bookmarks/queries'
+import { getNodesWithImmediateChildren } from '../../bookmarks/queries'
 import { BTN } from '../../bookmarks/types'
 import { containsNonEmptyDirectories, isDirectory } from '../../misc/utils'
 
@@ -53,11 +53,11 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   const [nonEmptyDirs, setNonEmptyDirs] = useState<boolean>(false)
 
   useEffect(() => {
-    getNodes(nodeIds)
+    getNodesWithImmediateChildren(nodeIds)
       .then(nodes => {
-        const nonEmptyDirs = containsNonEmptyDirectories(nodes)
-        setNonEmptyDirs(nonEmptyDirs)
-        setMessages(dialogTitleAndMessage(nodes, nonEmptyDirs))
+        const hasEmptyDirs = containsNonEmptyDirectories(nodes)
+        setMessages(dialogTitleAndMessage(nodes, hasEmptyDirs))
+        setNonEmptyDirs(hasEmptyDirs)
       })
       .catch(e => console.log(e))
   }, [nodeIds])
@@ -78,8 +78,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
           Yes
         </Button>
         <Button onClick={onCancel} autoFocus>
-          {' '}
-          No{' '}
+          No
         </Button>
       </DialogActions>
     </Dialog>

@@ -48,12 +48,23 @@ export const getNodes = async (ids: string[]): Promise<BTN[]> => {
   return await bookmarks.get(ids)
 }
 
+export const getNodesWithImmediateChildren = async (ids: string[]): Promise<BTN[]> => {
+  const nodes = await bookmarks.get(ids)
+  const nodesWithChildren: BTN[] = await Promise.all(
+    nodes.map(async node => {
+      node.children = await bookmarks.getChildren(node.id)
+      return node
+    }),
+  )
+  return nodesWithChildren
+}
+
 export const isNonEmptyDirectory = async (id: string): Promise<boolean> => {
   return await containsNonEmptyDirectories([id])
 }
 
 export const containsNonEmptyDirectories = async (ids: string[]): Promise<boolean> => {
-  const nodes = await bookmarks.get(ids)
+  const nodes = await getNodesWithImmediateChildren(ids)
   return (
     nodes.find(e => e.url === undefined && e.children !== undefined && e.children.length > 0) !==
     undefined

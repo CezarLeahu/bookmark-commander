@@ -34,10 +34,13 @@ const EditDialog: React.FC<EditDialogProps> = ({
   useEffect(() => {
     getNode(nodeId)
       .then(n => {
+        console.log('edit dialog - useEffect - retrieve node from id')
         setNode(n)
-        setTitle(n.title)
-        setUrl(n.url)
         setIsDir(isDirectory(n))
+        setTitle(n.title)
+        setValidTitle(true)
+        setUrl(n.url)
+        setValidUrl(isDirectory(n))
       })
       .catch(e => console.log(e))
   }, [nodeId])
