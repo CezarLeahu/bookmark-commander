@@ -40,7 +40,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         setTitle(n.title)
         setValidTitle(true)
         setUrl(n.url)
-        setValidUrl(isDirectory(n))
+        setValidUrl(n.url === undefined || n.url.length > 0)
       })
       .catch(e => console.log(e))
   }, [nodeId])
@@ -58,8 +58,19 @@ const EditDialog: React.FC<EditDialogProps> = ({
     setValidUrl(e.target.value !== undefined && e.target.value.length > 0)
   }
 
+  const handleConfirm = (): void => {
+    if (node !== undefined && validTitle && validUrl) {
+      onConfirm({ ...node, title, url })
+    }
+  }
+
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby='dialog-title'
+      onKeyDown={e => e.key === 'Enter' && handleConfirm()}
+    >
       <DialogTitle id='dialog-title'>{isDir ? 'Edit folder' : 'Edit bookmark'}</DialogTitle>
       <DialogContent>
         <TextField
@@ -92,17 +103,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         )}
       </DialogContent>
       <DialogActions>
-        <Button
-          disabled={node === undefined || !validTitle || !validUrl}
-          onClick={() =>
-            node !== undefined &&
-            onConfirm({
-              ...node,
-              title,
-              url,
-            })
-          }
-        >
+        <Button disabled={node === undefined || !validTitle || !validUrl} onClick={handleConfirm}>
           Ok
         </Button>
         <Button onClick={onCancel}>Cancel</Button>

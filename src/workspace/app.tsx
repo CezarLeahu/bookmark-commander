@@ -4,7 +4,15 @@ import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN } from '../bookmarks/types'
 import EditDialog from './dialogs/edit-dialog'
-import { createBookmark, createDir, removeAll, update } from '../bookmarks/commands'
+import {
+  createBookmark,
+  createDir,
+  moveAll,
+  moveDown,
+  moveUp,
+  removeAll,
+  update,
+} from '../bookmarks/commands'
 import { closeCurrentTab } from '../misc/utils'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
@@ -30,15 +38,19 @@ const App: React.FC = () => {
       .map(e => String(e))
   }
 
-  const handleDialogClose = (): void => {
-    setCreateDialogOpen(false)
+  const handleDialogClose = (resetSelection?: boolean): void => {
+    setCreateBookmarkDialogOpen(false)
+    setCreateDirectoryDialogOpen(false)
     setEditDialogOpen(false)
     setConfirmDialogOpen(false)
-    forceUpdate()
+    if (resetSelection !== undefined && resetSelection) {
+      selectionModels[selectedSide.current].setState([])
+      forceUpdate()
+    }
   }
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const isDirCreate = useRef<boolean>(false)
+  const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
+  const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
   const handleCreateDialogConfirm = (title: string, url?: string): void => {
     const parentId = currentNodeIds[selectedSide.current].state
     if (parentId === undefined) {
@@ -49,11 +61,11 @@ const App: React.FC = () => {
 
     if (url === undefined) {
       createDir(parentId, title)
-        .then(() => handleDialogClose())
+        .then(() => handleDialogClose(true))
         .catch(e => console.log(e))
     } else {
       createBookmark(parentId, title, url)
-        .then(() => handleDialogClose())
+        .then(() => handleDialogClose(true))
         .catch(e => console.log(e))
     }
   }
@@ -64,7 +76,7 @@ const App: React.FC = () => {
       .then()
       .catch(e => setError(e))
 
-    handleDialogClose()
+    handleDialogClose(true)
   }
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
@@ -83,9 +95,50 @@ const App: React.FC = () => {
           return
         }
         removeAll(ids).catch(e => console.log(e))
-        handleDialogClose()
+        handleDialogClose(true)
       })
       .catch(e => console.log(e))
+  }
+
+  const handleMove = (): void => {
+    const nodeIds = lastSelectedIds()
+    if (nodeIds === undefined || nodeIds.length === 0) {
+      return
+    }
+
+    if (currentNodeIds.left.state === currentNodeIds.right.state) {
+      console.log('Source directory is the same as the target directory')
+    }
+
+    const otherSide: Side = selectedSide.current === 'left' ? 'right' : 'left'
+
+    moveAll(nodeIds, currentNodeIds[otherSide].state).catch(e => console.log(e))
+
+    handleDialogClose(true)
+    selectedSide.current = otherSide
+    selectionModels[selectedSide.current].setState(nodeIds)
+  }
+
+  const handleMoveUp = (): void => {
+    const nodeIds = lastSelectedIds()
+    if (nodeIds === undefined || nodeIds.length === 0) {
+      return
+    }
+    moveUp(nodeIds).catch(e => console.log(e))
+
+    handleDialogClose(true)
+    selectionModels[selectedSide.current].setState(nodeIds)
+  }
+
+  const handleMoveDown = (): void => {
+    const nodeIds = lastSelectedIds()
+    if (nodeIds === undefined || nodeIds.length === 0) {
+      return
+    }
+    moveDown(nodeIds).catch(e => console.log(e))
+
+    handleDialogClose(true)
+    selectionModels[selectedSide.current].setState(nodeIds)
   }
 
   return (
@@ -116,6 +169,7 @@ const App: React.FC = () => {
               selectedSide.current = 'left'
               console.log(`Selected left panel - id ${node.id}`)
             }}
+            selectionModel={selectionModels.left.state}
             onSelectionModelChange={model => selectionModels.left.setState(model)}
             refreshContent={refreshContent}
             ref={panelRefs.left}
@@ -130,6 +184,7 @@ const App: React.FC = () => {
               selectedSide.current = 'right'
               console.log(`Selected right panel - id ${node.id}`)
             }}
+            selectionModel={selectionModels.right.state}
             onSelectionModelChange={model => selectionModels.right.setState(model)}
             refreshContent={refreshContent}
             ref={panelRefs.right}
@@ -139,7 +194,9 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button onClick={() => setCreateDialogOpen(true)}>Create</Button>
+          <Button onClick={() => setCreateBookmarkDialogOpen(true)}>New</Button>
+
+          <Button onClick={() => setCreateDirectoryDialogOpen(true)}>New Folder</Button>
           <Button
             disabled
             // disabled={lastSelectedIds().length !== 1}
@@ -150,31 +207,27 @@ const App: React.FC = () => {
           >
             Rename
           </Button>
-          <Button
-            disabled={lastSelectedIds().length !== 1}
-            onClick={() => {
-              isDirCreate.current = false
-              setEditDialogOpen(true)
-            }}
-          >
+          <Button disabled={lastSelectedIds().length !== 1} onClick={() => setEditDialogOpen(true)}>
             Edit
           </Button>
-          <Button disabled>Move</Button>
-          <Button disabled>Move Up ({'\u2191'})</Button>
-          <Button disabled>Move Down ({'\u2193'})</Button>
-          <Button disabled>Sort (ASC)</Button>
-          <Button disabled>Sort (DESC)</Button>
           <Button
-            onClick={() => {
-              isDirCreate.current = true
-              setCreateDialogOpen(true)
-            }}
+            disabled={
+              currentNodeIds.left.state === currentNodeIds.right.state ||
+              lastSelectedIds().length === 0
+            }
+            onClick={handleMove}
           >
-            New Folder
+            Move
+          </Button>
+          <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveUp}>
+            Move Up ({'\u2191'})
+          </Button>
+          <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveDown}>
+            Move Down ({'\u2193'})
           </Button>
           <Button
-            onClick={() => setConfirmDialogOpen(true)}
             disabled={lastSelectedIds().length === 0}
+            onClick={() => setConfirmDialogOpen(true)}
           >
             Delete
           </Button>
@@ -182,12 +235,12 @@ const App: React.FC = () => {
         </ButtonGroup>
       </Box>
 
-      {createDialogOpen ? (
+      {createBookmarkDialogOpenB || createDirectoryDialogOpen ? (
         <CreateDialog
-          open={createDialogOpen}
-          isDirectory={isDirCreate.current}
+          open={createBookmarkDialogOpenB || createDirectoryDialogOpen}
+          isDirectory={createDirectoryDialogOpen}
           onConfirm={handleCreateDialogConfirm}
-          onCancel={handleDialogClose}
+          onCancel={() => handleDialogClose()}
         />
       ) : (
         <></>
@@ -198,7 +251,7 @@ const App: React.FC = () => {
           open={editDialogOpen}
           nodeId={String(selectionModels[selectedSide.current].state?.[0])}
           onConfirm={handleEditDialogConfirm}
-          onCancel={handleDialogClose}
+          onCancel={() => handleDialogClose()}
         />
       ) : (
         <></>
@@ -209,7 +262,7 @@ const App: React.FC = () => {
           open={confirmDialogOpen}
           nodeIds={selectionModels[selectedSide.current].state?.map(e => String(e)) ?? []}
           onConfirm={handleDeleteDialogConfirm}
-          onCancel={handleDialogClose}
+          onCancel={() => handleDialogClose()}
         />
       ) : (
         <></>

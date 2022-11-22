@@ -68,16 +68,21 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
       onClose={onCancel}
       aria-labelledby='dialog-title'
       aria-describedby='dialog-description'
+      onKeyDown={e => {
+        if (e.key === 'Enter' && !nonEmptyDirs) {
+          onConfirm()
+        }
+      }}
     >
       <DialogTitle id='dialog-title'>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText id='dialog-description'>{message}</DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onConfirm} disabled={nonEmptyDirs}>
+        <Button onClick={onConfirm} autoFocus={!nonEmptyDirs} disabled={nonEmptyDirs}>
           Yes
         </Button>
-        <Button onClick={onCancel} autoFocus>
+        <Button onClick={onCancel} autoFocus={nonEmptyDirs}>
           No
         </Button>
       </DialogActions>

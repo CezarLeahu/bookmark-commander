@@ -35,8 +35,19 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     setValidUrl(e.target.value !== undefined && e.target.value.length > 0)
   }
 
+  const handleConfirm = (): void => {
+    if (validTitle && validUrl) {
+      onConfirm(title, url)
+    }
+  }
+
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby='dialog-title'>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby='dialog-title'
+      onKeyDown={e => e.key === 'Enter' && handleConfirm()}
+    >
       <DialogTitle id='dialog-title'>
         {isDirectory ? 'Create folder' : 'Create bookmark'}
       </DialogTitle>
@@ -72,7 +83,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
         )}
       </DialogContent>
       <DialogActions>
-        <Button disabled={!validTitle || !validUrl} onClick={() => onConfirm(title, url)}>
+        <Button disabled={!validTitle || !validUrl} onClick={handleConfirm}>
           Ok
         </Button>
         <Button onClick={onCancel}>Cancel</Button>

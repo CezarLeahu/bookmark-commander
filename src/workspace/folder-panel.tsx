@@ -44,6 +44,7 @@ export interface FolderPanelProps {
   readonly currentNodeId: string
   setCurrentNodeId: (id: string) => void
   onSelect: (node: BTN) => void
+  selectionModel: GridRowId[]
   onSelectionModelChange: (model: GridRowId[]) => void
   refreshContent: object
 }
@@ -57,6 +58,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     currentNodeId,
     setCurrentNodeId,
     onSelect,
+    selectionModel,
     onSelectionModelChange,
     refreshContent,
   }: FolderPanelProps,
@@ -182,6 +184,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellClick={(params: GridCellParams): void => onSelect(params.row)}
         onCellDoubleClick={handleCellDoubleClick}
         onCellEditCommit={handleCellEdit}
+        selectionModel={selectionModel}
         onSelectionModelChange={onSelectionModelChange}
         sx={{
           flex: 1,
