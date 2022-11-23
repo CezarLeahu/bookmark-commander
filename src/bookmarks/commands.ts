@@ -78,7 +78,7 @@ export const moveDown = async (ids: string[]): Promise<boolean> => {
 
   const nodes = (await bookmarks.get(ids))
     .filter(n => n.index !== undefined)
-    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    .sort((a, b) => (b.index ?? 0) - (a.index ?? 0))
 
   const parentIds = nodes.filter(n => n.parentId !== undefined).map<string>(n => n.parentId ?? '0')
   if (new Set(parentIds).size > 1) {
@@ -87,14 +87,18 @@ export const moveDown = async (ids: string[]): Promise<boolean> => {
 
   const childrenInParent = await bookmarks.getChildren(parentIds[0])
 
-  if ((nodes.at(-1)?.index ?? 0) + 1 >= childrenInParent.length) {
+  if ((nodes[0].index ?? childrenInParent.length) + 1 >= childrenInParent.length) {
     console.log('moveDown(): reached the index limit')
     return false
   }
 
   for (const n of nodes) {
     if (n.index !== undefined) {
-      await bookmarks.move(childrenInParent[n.index + 1].id, { index: n.index })
+      const childBelow = childrenInParent[n.index + 1]
+      await bookmarks.move(childBelow.id, { index: n.index })
+
+      childrenInParent[n.index + 1] = childrenInParent[n.index]
+      childrenInParent[n.index] = childBelow
     }
   }
 

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
@@ -23,6 +23,8 @@ import { usePairRef, usePairState } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
+  const [refreshContent, setRefreshContent] = useState({})
+  const forceUpdate = useCallback(() => setRefreshContent({}), [])
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
@@ -46,7 +48,14 @@ const App: React.FC = () => {
       resetCurrentSelection()
     }
   }
-  const resetCurrentSelection = (): void => selectionModels[selectedSide.current].setState([])
+  const resetCurrentSelection = (): void => {
+    selectionModels[selectedSide.current].setState([])
+    const otherSide: Side = selectedSide.current === 'left' ? 'right' : 'left'
+    if (currentNodeIds[otherSide] === currentNodeIds[selectedSide.current]) {
+      selectionModels[otherSide].setState([])
+    }
+    forceUpdate()
+  }
 
   const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
   const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
@@ -127,7 +136,6 @@ const App: React.FC = () => {
     moveUp(nodeIds)
       .then(() => {
         handleDialogClose(true)
-        // todo setrows
         selectionModels[selectedSide.current].setState(nodeIds)
       })
       .catch(e => console.log(e))
@@ -141,7 +149,6 @@ const App: React.FC = () => {
     moveDown(nodeIds)
       .then(() => {
         handleDialogClose(true)
-        // todo setrows
         selectionModels[selectedSide.current].setState(nodeIds)
       })
       .catch(e => console.log(e))
@@ -177,6 +184,7 @@ const App: React.FC = () => {
             }}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
+            refreshContent={refreshContent}
             ref={panelRefs.left}
           />
         </Grid>
@@ -191,6 +199,7 @@ const App: React.FC = () => {
             }}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
+            refreshContent={refreshContent}
             ref={panelRefs.right}
           />
         </Grid>

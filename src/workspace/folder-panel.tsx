@@ -6,9 +6,9 @@ import {
   GridCellEditCommitParams,
   useGridApiRef,
 } from '@mui/x-data-grid'
-import { children, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
+import { childrenAndParent, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
-import { useEffect, useImperativeHandle, useState, forwardRef } from 'react'
+import { useEffect, useImperativeHandle, useState, forwardRef, useRef } from 'react'
 import {
   Alert,
   Container,
@@ -46,6 +46,7 @@ export interface FolderPanelProps {
   onSelect: (node: BTN) => void
   selectionModel: GridRowId[]
   setSelectionModel: (model: GridRowId[]) => void
+  refreshContent: object
 }
 
 export interface FolderPanelHandle {
@@ -59,6 +60,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     onSelect,
     selectionModel,
     setSelectionModel,
+    refreshContent,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -79,7 +81,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       r => setCurrentNode(r),
       e => setError(e),
     )
-  }, [currentNodeId]) // todo [topNodes, currentNodeId] is topNode needed?
+  }, [currentNodeId])
 
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
 
@@ -91,13 +93,17 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   }, [currentNode])
 
   const [rows, setRows] = useState<BTN[]>([])
+  const parentId = useRef<string>()
 
   useEffect(() => {
-    children(currentNodeId).then(
-      r => setRows(r),
+    childrenAndParent(currentNodeId).then(
+      ([r, pId]) => {
+        setRows(r)
+        parentId.current = pId
+      },
       e => setError(e),
     )
-  }, [currentNodeId, selectionModel])
+  }, [currentNodeId, refreshContent, selectionModel])
 
   const handleCellDoubleClick = (params: GridCellParams): void => {
     switch (params.row.url) {
@@ -184,6 +190,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellEditCommit={handleCellEdit}
         selectionModel={selectionModel}
         onSelectionModelChange={setSelectionModel}
+        isRowSelectable={p => p.id !== parentId.current}
+        isCellEditable={p => p.colDef.editable === true && p.id !== parentId.current}
+        disableColumnSelector
         sx={{
           flex: 1,
         }}

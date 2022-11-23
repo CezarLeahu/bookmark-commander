@@ -24,14 +24,16 @@ export const parentPath = async (node?: BTN): Promise<BTN[]> => {
   return parents
 }
 
-export const children = async (id: string): Promise<BTN[]> => {
+export const childrenAndParent = async (id: string): Promise<[BTN[], string | undefined]> => {
   const node = (await bookmarks.get(id))[0]
   if (node === undefined) {
     throw new Error('Node does not exist')
   }
   const children = await bookmarks.getChildren(id)
 
-  return node.parentId === undefined ? children : [{ title: '..', id: node.parentId }, ...children]
+  return node.parentId === undefined
+    ? [children, undefined]
+    : [[{ title: '..', id: node.parentId }, ...children], node.parentId]
 }
 
 export const getTopNodes = async (): Promise<BTN[]> => {
