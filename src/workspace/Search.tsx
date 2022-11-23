@@ -11,7 +11,7 @@ const handleChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
 
 const Search: React.FC = () => {
   return (
-    <FormControl sx={{ m: 1, width: '25ch' }} variant='standard'>
+    <FormControl sx={{ m: 1, width: '50ch' }} variant='standard'>
       <InputLabel htmlFor='search-bookkmarks'>Search bookmarks</InputLabel>
       <Input
         id='search-bookkmarks'

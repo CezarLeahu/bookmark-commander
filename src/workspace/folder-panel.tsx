@@ -43,6 +43,7 @@ const columns: GridColDef[] = [
 export interface FolderPanelProps {
   readonly currentNodeId: string
   setCurrentNodeId: (id: string) => void
+  selected: boolean
   onSelect: (node: BTN) => void
   selectionModel: GridRowId[]
   setSelectionModel: (model: GridRowId[]) => void
@@ -57,6 +58,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   {
     currentNodeId,
     setCurrentNodeId,
+    selected,
     onSelect,
     selectionModel,
     setSelectionModel,
@@ -177,27 +179,38 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         </Breadcrumbs>
       </Box>
 
-      <DataGrid
-        // apiRef={apiRef} // TODO enable when https://github.com/mui/mui-x/pull/6773 gets merged & tagged
-        rows={rows}
-        columns={columns}
-        initialState={{ columns: { columnVisibilityModel: { __check__: false } } }}
-        checkboxSelection
-        density='compact'
-        experimentalFeatures={{ newEditingApi: true }}
-        onCellClick={(params: GridCellParams): void => onSelect(params.row)}
-        onCellDoubleClick={handleCellDoubleClick}
-        onCellEditCommit={handleCellEdit}
-        selectionModel={selectionModel}
-        onSelectionModelChange={setSelectionModel}
-        isRowSelectable={p => p.id !== parentId.current}
-        isCellEditable={p => p.colDef.editable === true && p.id !== parentId.current}
-        disableColumnSelector
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
         sx={{
-          flex: 1,
+          border: 1,
+          borderColor: selected ? 'primary.main' : 'background.default',
+          height: '100%',
         }}
-        // TODO rowReordering - by title (in the dialog)
-      />
+      >
+        <DataGrid
+          // apiRef={apiRef} // TODO enable when https://github.com/mui/mui-x/pull/6773 gets merged & tagged
+          rows={rows}
+          columns={columns}
+          initialState={{ columns: { columnVisibilityModel: { __check__: false } } }}
+          checkboxSelection
+          density='compact'
+          experimentalFeatures={{ newEditingApi: true }}
+          onCellClick={(params: GridCellParams): void => onSelect(params.row)}
+          onCellDoubleClick={handleCellDoubleClick}
+          onCellEditCommit={handleCellEdit}
+          selectionModel={selectionModel}
+          onSelectionModelChange={setSelectionModel}
+          isRowSelectable={p => p.id !== parentId.current}
+          isCellEditable={p => p.colDef.editable === true && p.id !== parentId.current}
+          disableColumnSelector
+          sx={{
+            flex: 1,
+          }}
+          // TODO rowReordering - by title (in the dialog)
+        />
+      </Box>
     </Container>
   )
 }

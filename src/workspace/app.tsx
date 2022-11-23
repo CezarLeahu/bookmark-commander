@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
@@ -27,15 +27,15 @@ const App: React.FC = () => {
   const forceUpdate = useCallback(() => setRefreshContent({}), [])
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
-  const selectedSide = useRef<Side>('left')
+  const [selectedSide, setSelectedSide] = useState<Side>('left')
   const currentNodeIds = usePairState<string>('1', '2')
 
   const selectionModels = usePairState<GridRowId[]>([], [])
 
   const lastSelectedIds = (): string[] => {
-    return selectionModels[selectedSide.current].state
+    return selectionModels[selectedSide].state
       .filter(e => e !== undefined)
-      .filter(e => e !== currentNodeIds[selectedSide.current].state)
+      .filter(e => e !== currentNodeIds[selectedSide].state)
       .map(e => String(e))
   }
 
@@ -49,9 +49,9 @@ const App: React.FC = () => {
     }
   }
   const resetCurrentSelection = (): void => {
-    selectionModels[selectedSide.current].setState([])
-    const otherSide: Side = selectedSide.current === 'left' ? 'right' : 'left'
-    if (currentNodeIds[otherSide] === currentNodeIds[selectedSide.current]) {
+    selectionModels[selectedSide].setState([])
+    const otherSide: Side = selectedSide === 'left' ? 'right' : 'left'
+    if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
       selectionModels[otherSide].setState([])
     }
     forceUpdate()
@@ -60,7 +60,7 @@ const App: React.FC = () => {
   const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
   const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
   const handleCreateDialogConfirm = (title: string, url?: string): void => {
-    const parentId = currentNodeIds[selectedSide.current].state
+    const parentId = currentNodeIds[selectedSide].state
     if (parentId === undefined) {
       console.log('The current panel current node id is unknown (undefined).')
       handleDialogClose()
@@ -117,13 +117,13 @@ const App: React.FC = () => {
       console.log('Source directory is the same as the target directory')
     }
 
-    const otherSide: Side = selectedSide.current === 'left' ? 'right' : 'left'
+    const otherSide: Side = selectedSide === 'left' ? 'right' : 'left'
 
     moveAll(nodeIds, currentNodeIds[otherSide].state)
       .then(() => {
         resetCurrentSelection()
-        selectedSide.current = otherSide
-        selectionModels[selectedSide.current].setState(nodeIds)
+        selectionModels[otherSide].setState(nodeIds)
+        setSelectedSide(otherSide)
       })
       .catch(e => console.log(e))
   }
@@ -136,7 +136,7 @@ const App: React.FC = () => {
     moveUp(nodeIds)
       .then(() => {
         handleDialogClose(true)
-        selectionModels[selectedSide.current].setState(nodeIds)
+        selectionModels[selectedSide].setState(nodeIds)
       })
       .catch(e => console.log(e))
   }
@@ -149,7 +149,7 @@ const App: React.FC = () => {
     moveDown(nodeIds)
       .then(() => {
         handleDialogClose(true)
-        selectionModels[selectedSide.current].setState(nodeIds)
+        selectionModels[selectedSide].setState(nodeIds)
       })
       .catch(e => console.log(e))
   }
@@ -173,13 +173,14 @@ const App: React.FC = () => {
         <Search />
       </Box>
 
-      <Grid container spacing={0} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
-        <Grid item xs={6}>
+      <Grid container spacing={1} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
+        <Grid item xs={6} spacing={1}>
           <FolderPanel
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
+            selected={selectedSide === 'left'}
             onSelect={node => {
-              selectedSide.current = 'left'
+              setSelectedSide('left')
               console.log(`Selected left panel - id ${node.id}`)
             }}
             selectionModel={selectionModels.left.state}
@@ -189,12 +190,13 @@ const App: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={6}>
+        <Grid item xs={6} spacing={1}>
           <FolderPanel
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
+            selected={selectedSide === 'right'}
             onSelect={node => {
-              selectedSide.current = 'right'
+              setSelectedSide('right')
               console.log(`Selected right panel - id ${node.id}`)
             }}
             selectionModel={selectionModels.right.state}
@@ -214,9 +216,7 @@ const App: React.FC = () => {
             disabled
             // disabled={lastSelectedIds().length !== 1}
             // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
-            onClick={() =>
-              panelRefs[selectedSide.current].current?.renameCell(lastSelectedIds()[0])
-            }
+            onClick={() => panelRefs[selectedSide].current?.renameCell(lastSelectedIds()[0])}
           >
             Rename
           </Button>
@@ -262,7 +262,7 @@ const App: React.FC = () => {
       {editDialogOpen ? (
         <EditDialog
           open={editDialogOpen}
-          nodeId={String(selectionModels[selectedSide.current].state?.[0])}
+          nodeId={String(selectionModels[selectedSide].state?.[0])}
           onConfirm={handleEditDialogConfirm}
           onCancel={() => handleDialogClose()}
         />
@@ -273,7 +273,7 @@ const App: React.FC = () => {
       {confirmDialogOpen ? (
         <DeleteConfirmationDialog
           open={confirmDialogOpen}
-          nodeIds={selectionModels[selectedSide.current].state?.map(e => String(e)) ?? []}
+          nodeIds={selectionModels[selectedSide].state?.map(e => String(e)) ?? []}
           onConfirm={handleDeleteDialogConfirm}
           onCancel={() => handleDialogClose()}
         />
