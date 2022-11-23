@@ -66,22 +66,8 @@ export const moveUp = async (ids: string[]): Promise<boolean> => {
     return false
   }
 
-  const results: BTN[] = []
   for (const n of nodes) {
-    results.push(await bookmarks.move(n.id, { index: (n.index ?? 0) - 1 }))
-  }
-
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].id !== results[i].id) {
-      console.log(`moveUp() failed: order mismatch on id ${nodes[i].id}`)
-    }
-    if (nodes[i].index === results[i].index) {
-      console.log(
-        `moveUp() failed on id ${nodes[i].id} - index ${nodes[i].index ?? 0} not updated (title: ${
-          nodes[i].title
-        })}`,
-      )
-    }
+    await bookmarks.move(n.id, { index: (n.index ?? 0) - 1 })
   }
 
   return true
@@ -99,9 +85,7 @@ export const moveDown = async (ids: string[]): Promise<boolean> => {
     throw new Error('moveDown(): cannot move elements from multiple directories')
   }
 
-  const childrenInParent = (await bookmarks.getChildren(parentIds[0]))
-    .filter(n => n.index !== undefined)
-    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+  const childrenInParent = await bookmarks.getChildren(parentIds[0])
 
   if ((nodes.at(-1)?.index ?? 0) + 1 >= childrenInParent.length) {
     console.log('moveDown(): reached the index limit')
@@ -111,22 +95,6 @@ export const moveDown = async (ids: string[]): Promise<boolean> => {
   for (const n of nodes) {
     if (n.index !== undefined) {
       await bookmarks.move(childrenInParent[n.index + 1].id, { index: n.index })
-    }
-  }
-
-  const results: BTN[] = (await bookmarks.get(ids))
-    .filter(n => n.index !== undefined)
-    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
-  for (let i = 0; i < nodes.length; ++i) {
-    if (nodes[i].id !== results[i].id) {
-      console.log(`moveDown() failed: order mismatch on id ${nodes[i].id}`)
-    }
-    if (nodes[i].index === results[i].index) {
-      console.log(
-        `moveDown() failed on id ${nodes[i].id} - index ${
-          nodes[i].index ?? 0
-        } not updated (title: ${nodes[i].title})}`,
-      )
     }
   }
 

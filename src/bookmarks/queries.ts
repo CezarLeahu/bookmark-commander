@@ -29,11 +29,9 @@ export const children = async (id: string): Promise<BTN[]> => {
   if (node === undefined) {
     throw new Error('Node does not exist')
   }
-  const childNodes = await bookmarks.getChildren(id)
+  const children = await bookmarks.getChildren(id)
 
-  return node.parentId === undefined
-    ? childNodes
-    : [{ title: '..', id: node.parentId }, ...childNodes]
+  return node.parentId === undefined ? children : [{ title: '..', id: node.parentId }, ...children]
 }
 
 export const getTopNodes = async (): Promise<BTN[]> => {

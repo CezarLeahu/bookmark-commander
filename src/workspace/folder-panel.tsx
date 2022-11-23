@@ -45,8 +45,7 @@ export interface FolderPanelProps {
   setCurrentNodeId: (id: string) => void
   onSelect: (node: BTN) => void
   selectionModel: GridRowId[]
-  onSelectionModelChange: (model: GridRowId[]) => void
-  refreshContent: object
+  setSelectionModel: (model: GridRowId[]) => void
 }
 
 export interface FolderPanelHandle {
@@ -59,8 +58,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setCurrentNodeId,
     onSelect,
     selectionModel,
-    onSelectionModelChange,
-    refreshContent,
+    setSelectionModel,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -99,7 +97,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       r => setRows(r),
       e => setError(e),
     )
-  }, [currentNodeId, refreshContent])
+  }, [currentNodeId, selectionModel])
 
   const handleCellDoubleClick = (params: GridCellParams): void => {
     switch (params.row.url) {
@@ -124,7 +122,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleCellEdit = (params: GridCellEditCommitParams): void => {
     updateTitle(String(params.id), params.value)
-      .then()
+      .then(() => setSelectionModel([]))
       .catch(e => setError(e))
   }
 
@@ -185,7 +183,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         onCellDoubleClick={handleCellDoubleClick}
         onCellEditCommit={handleCellEdit}
         selectionModel={selectionModel}
-        onSelectionModelChange={onSelectionModelChange}
+        onSelectionModelChange={setSelectionModel}
         sx={{
           flex: 1,
         }}

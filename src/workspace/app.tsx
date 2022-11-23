@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
@@ -23,8 +23,6 @@ import { usePairRef, usePairState } from '../misc/hooks'
 
 const App: React.FC = () => {
   const [error, setError] = useState<string>()
-  const [refreshContent, setRefreshContent] = useState({}) // todo try to remove this
-  const forceUpdate = useCallback(() => setRefreshContent({}), [])
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const selectedSide = useRef<Side>('left')
@@ -35,6 +33,7 @@ const App: React.FC = () => {
   const lastSelectedIds = (): string[] => {
     return selectionModels[selectedSide.current].state
       .filter(e => e !== undefined)
+      .filter(e => e !== currentNodeIds[selectedSide.current].state)
       .map(e => String(e))
   }
 
@@ -44,10 +43,10 @@ const App: React.FC = () => {
     setEditDialogOpen(false)
     setConfirmDialogOpen(false)
     if (resetSelection !== undefined && resetSelection) {
-      selectionModels[selectedSide.current].setState([])
-      forceUpdate()
+      resetCurrentSelection()
     }
   }
+  const resetCurrentSelection = (): void => selectionModels[selectedSide.current].setState([])
 
   const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
   const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
@@ -62,21 +61,19 @@ const App: React.FC = () => {
     if (url === undefined) {
       createDir(parentId, title)
         .then(() => handleDialogClose(true))
-        .catch(e => console.log(e))
+        .catch(e => setError(e))
     } else {
       createBookmark(parentId, title, url)
         .then(() => handleDialogClose(true))
-        .catch(e => console.log(e))
+        .catch(e => setError(e))
     }
   }
 
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const handleEditDialogConfirm = (node: BTN): void => {
     update(node)
-      .then()
+      .then(() => handleDialogClose(true))
       .catch(e => setError(e))
-
-    handleDialogClose(true)
   }
 
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
@@ -94,8 +91,9 @@ const App: React.FC = () => {
           handleDialogClose()
           return
         }
-        removeAll(ids).catch(e => console.log(e))
-        handleDialogClose(true)
+        removeAll(ids)
+          .then(() => handleDialogClose(true))
+          .catch(e => console.log(e))
       })
       .catch(e => console.log(e))
   }
@@ -112,11 +110,13 @@ const App: React.FC = () => {
 
     const otherSide: Side = selectedSide.current === 'left' ? 'right' : 'left'
 
-    moveAll(nodeIds, currentNodeIds[otherSide].state).catch(e => console.log(e))
-
-    handleDialogClose(true)
-    selectedSide.current = otherSide
-    selectionModels[selectedSide.current].setState(nodeIds)
+    moveAll(nodeIds, currentNodeIds[otherSide].state)
+      .then(() => {
+        resetCurrentSelection()
+        selectedSide.current = otherSide
+        selectionModels[selectedSide.current].setState(nodeIds)
+      })
+      .catch(e => console.log(e))
   }
 
   const handleMoveUp = (): void => {
@@ -124,10 +124,13 @@ const App: React.FC = () => {
     if (nodeIds === undefined || nodeIds.length === 0) {
       return
     }
-    moveUp(nodeIds).catch(e => console.log(e))
-
-    handleDialogClose(true)
-    selectionModels[selectedSide.current].setState(nodeIds)
+    moveUp(nodeIds)
+      .then(() => {
+        handleDialogClose(true)
+        // todo setrows
+        selectionModels[selectedSide.current].setState(nodeIds)
+      })
+      .catch(e => console.log(e))
   }
 
   const handleMoveDown = (): void => {
@@ -135,10 +138,13 @@ const App: React.FC = () => {
     if (nodeIds === undefined || nodeIds.length === 0) {
       return
     }
-    moveDown(nodeIds).catch(e => console.log(e))
-
-    handleDialogClose(true)
-    selectionModels[selectedSide.current].setState(nodeIds)
+    moveDown(nodeIds)
+      .then(() => {
+        handleDialogClose(true)
+        // todo setrows
+        selectionModels[selectedSide.current].setState(nodeIds)
+      })
+      .catch(e => console.log(e))
   }
 
   return (
@@ -170,8 +176,7 @@ const App: React.FC = () => {
               console.log(`Selected left panel - id ${node.id}`)
             }}
             selectionModel={selectionModels.left.state}
-            onSelectionModelChange={model => selectionModels.left.setState(model)}
-            refreshContent={refreshContent}
+            setSelectionModel={selectionModels.left.setState}
             ref={panelRefs.left}
           />
         </Grid>
@@ -185,8 +190,7 @@ const App: React.FC = () => {
               console.log(`Selected right panel - id ${node.id}`)
             }}
             selectionModel={selectionModels.right.state}
-            onSelectionModelChange={model => selectionModels.right.setState(model)}
-            refreshContent={refreshContent}
+            setSelectionModel={selectionModels.right.setState}
             ref={panelRefs.right}
           />
         </Grid>
