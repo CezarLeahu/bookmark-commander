@@ -1,4 +1,4 @@
-import bookmarks = chrome.bookmarks
+import * as bookmarks from '../chrome-mocks/bookmarks'
 import { BTN } from './types'
 
 export const updateTitle = async (id: string, title: string): Promise<void> => {
