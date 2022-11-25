@@ -154,6 +154,11 @@ const App: React.FC = () => {
       .catch(e => console.log(e))
   }
 
+  const handleJumpTo = (node: BTN): void => {
+    console.log(`jump to directory ${node.parentId ?? '0'}`)
+    currentNodeIds[selectedSide].setState(node.parentId ?? '0')
+  }
+
   return (
     <Container
       maxWidth={false}
@@ -170,11 +175,11 @@ const App: React.FC = () => {
         )}
       </Box>
       <Box display='flex' justifyContent='center' alignItems='center'>
-        <Search />
+        <Search onJumpTo={handleJumpTo} />
       </Box>
 
-      <Grid container spacing={1} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
-        <Grid item xs={6} spacing={1}>
+      <Grid container spacing={0.5} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
+        <Grid item xs={6}>
           <FolderPanel
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
@@ -190,7 +195,7 @@ const App: React.FC = () => {
           />
         </Grid>
 
-        <Grid item xs={6} spacing={1}>
+        <Grid item xs={6}>
           <FolderPanel
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
