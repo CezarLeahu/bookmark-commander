@@ -72,5 +72,15 @@ export async function search(query: string): Promise<BTN[]> {
       id: '222',
       title: 'Rez 222',
     },
+    {
+      id: '333',
+      title: 'Rez 333',
+      url: 'https://rez.333.bla',
+    },
+    {
+      id: '444',
+      title: 'Rez 444',
+      url: 'https://rez.444.blu/foo/bar',
+    },
   ]
 }

@@ -157,6 +157,7 @@ const App: React.FC = () => {
   const handleJumpTo = (node: BTN): void => {
     console.log(`jump to directory ${node.parentId ?? '0'}`)
     currentNodeIds[selectedSide].setState(node.parentId ?? '0')
+    selectionModels[selectedSide].setState([node.id])
   }
 
   return (

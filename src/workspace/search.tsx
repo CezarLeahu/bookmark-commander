@@ -6,13 +6,19 @@ import {
   Input,
   ClickAwayListener,
   SxProps,
-  Popover,
-  Typography,
   Popper,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React, { ChangeEvent, FocusEvent, FocusEventHandler, useRef, useState } from 'react'
+import React, { ChangeEvent, FocusEvent, useRef, useState } from 'react'
 import { BTN } from '../bookmarks/types'
+import { search } from '../bookmarks/commands'
+import FolderIcon from '@mui/icons-material/Folder'
+import LinkIcon from '@mui/icons-material/Link'
 
 // todo remove this
 const styles: SxProps = {
@@ -37,21 +43,34 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
   const sid = open ? 'search-popper' : undefined
 
   const [searchValue, setSearchValue] = useState<string>('')
+  const [searchResults, setSearchResults] = useState<BTN[]>([])
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
     console.log('Searched for something...')
     setSearchValue(event.target.value)
-    // event.target.focus()
-    // todo actually call bookmark search api
-    setOpen(true)
+    handleSearch(event.target.value)
   }
   const handleFocus = (event: FocusEvent<HTMLInputElement>): void => {
     console.log('Focus on search...')
-    setOpen(true)
+    handleSearch(event.target.value)
+  }
+
+  const handleSearch = (val: string): void => {
+    if (val.length < 3) {
+      setOpen(false)
+      return
+    }
+    search(val)
+      .then(res => {
+        setSearchResults(res)
+        setOpen(true)
+      })
+      .catch(e => console.log(e))
   }
 
   const handleClose = (): void => {
     setOpen(false)
+    setSearchResults([])
   }
 
   return (
@@ -76,14 +95,22 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
         <Popper
           id={sid}
           open={open}
+          placement='bottom-start'
+          sx={styles}
           anchorEl={inputEl.current}
-          // onClose={handlePopupClose}
-          // anchorOrigin={{
-          // vertical: 'bottom',
-          // horizontal: 'left',
-          // }}
         >
-          <Typography sx={{ p: 2 }}>More content to be added to the Popup</Typography>
+          <Grid item xs={12} md={6}>
+            <List>
+              {searchResults.map(node => (
+                <ListItem key={node.id} onClick={() => onJumpTo(node)}>
+                  <ListItemIcon>
+                    {node.url === undefined ? <FolderIcon /> : <LinkIcon />}
+                  </ListItemIcon>
+                  <ListItemText primary={node.title} secondary={node.url ?? null} />
+                </ListItem>
+              ))}
+            </List>
+          </Grid>
         </Popper>
       </Box>
     </ClickAwayListener>
