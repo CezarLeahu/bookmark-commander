@@ -63,7 +63,7 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
     search(val)
       .then(res => {
         setSearchResults(res)
-        setOpen(true)
+        setOpen(res.length > 0)
       })
       .catch(e => console.log(e))
   }
@@ -71,6 +71,12 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
   const handleClose = (): void => {
     setOpen(false)
     setSearchResults([])
+  }
+
+  const handleJumpTo = (node: BTN): void => {
+    setOpen(false)
+    setSearchResults([])
+    onJumpTo(node)
   }
 
   return (
@@ -98,19 +104,35 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
           placement='bottom-start'
           sx={styles}
           anchorEl={inputEl.current}
+          disablePortal={true}
+          modifiers={[
+            {
+              name: 'preventOverflow',
+              enabled: true,
+              options: {
+                altAxis: true,
+                altBoundary: true,
+                tether: true,
+                rootBoundary: 'viewport',
+                padding: 8,
+              },
+            },
+          ]}
         >
-          <Grid item xs={12} md={6}>
-            <List>
-              {searchResults.map(node => (
-                <ListItem key={node.id} onClick={() => onJumpTo(node)}>
-                  <ListItemIcon>
-                    {node.url === undefined ? <FolderIcon /> : <LinkIcon />}
-                  </ListItemIcon>
-                  <ListItemText primary={node.title} secondary={node.url ?? null} />
-                </ListItem>
-              ))}
-            </List>
-          </Grid>
+          <Box minWidth='sm' width='sm' maxWidth='sm' maxHeight='sm'>
+            <Grid item xs={12} md={6}>
+              <List>
+                {searchResults.map(node => (
+                  <ListItem key={node.id} onClick={() => handleJumpTo(node)}>
+                    <ListItemIcon>
+                      {node.url === undefined ? <FolderIcon /> : <LinkIcon />}
+                    </ListItemIcon>
+                    <ListItemText primary={node.title} secondary={node.url ?? null} />
+                  </ListItem>
+                ))}
+              </List>
+            </Grid>
+          </Box>
         </Popper>
       </Box>
     </ClickAwayListener>
