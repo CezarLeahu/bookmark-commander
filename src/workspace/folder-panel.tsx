@@ -1,6 +1,6 @@
 import { childrenAndParent, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
-import { useEffect, useImperativeHandle, useState, forwardRef, useRef, useMemo } from 'react'
+import { useEffect, useState, forwardRef, useRef, useMemo } from 'react'
 import {
   Alert,
   Container,
@@ -11,10 +11,8 @@ import {
   ButtonGroup,
   Button,
 } from '@mui/material'
-import { updateTitle } from '../bookmarks/commands'
 import { AgGridReact } from 'ag-grid-react'
 import {
-  CellEditingStoppedEvent,
   ColDef,
   GetRowIdParams,
   RowDoubleClickedEvent,
@@ -134,22 +132,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setSelectionModel(event.api.getSelectedRows().map(n => n.id))
   }
 
-  useImperativeHandle(ref, () => ({
-    renameCell: (id: string | undefined) => {
-      if (id === undefined) {
-      }
-      // gridRef.current.api.startEditingCell({ rowIndex: id, colKey: 'title' })
-      // apiRef.current.startCellEditMode({ id, field: 'title' }) // TODO
-    },
-  }))
-
-  const handleCellEdit = (event: CellEditingStoppedEvent<BTN>): void => {
-    const node = event.data
-    updateTitle(String(node.id), event.newValue)
-      .then(() => setSelectionModel([]))
-      .catch(e => setError(e))
-  }
-
   const getRowId = useMemo(
     () =>
       (params: GetRowIdParams<BTN>): string =>
@@ -223,7 +205,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowClicked={handleRowClick}
             onRowDoubleClicked={handleRowDoubleClick}
             onSelectionChanged={handleSelectionChanged}
-            onCellEditingStopped={handleCellEdit}
             isRowSelectable={p => p.id !== parentId.current}
           />
         </Box>
