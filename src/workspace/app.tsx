@@ -16,7 +16,6 @@ import {
 import { closeCurrentTab } from '../misc/utils'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
-import { GridRowId } from '@mui/x-data-grid'
 import { containsNonEmptyDirectories } from '../bookmarks/queries'
 import { Side } from '../misc/types'
 import { usePairRef, usePairState } from '../misc/hooks'
@@ -30,7 +29,7 @@ const App: React.FC = () => {
   const [selectedSide, setSelectedSide] = useState<Side>('left')
   const currentNodeIds = usePairState<string>('1', '2')
 
-  const selectionModels = usePairState<GridRowId[]>([], [])
+  const selectionModels = usePairState<string[]>([], [])
 
   const lastSelectedIds = (): string[] => {
     return selectionModels[selectedSide].state

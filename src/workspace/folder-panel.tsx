@@ -1,14 +1,6 @@
-import {
-  DataGrid,
-  GridColDef,
-  GridCellParams,
-  GridRowId,
-  GridCellEditCommitParams,
-  useGridApiRef,
-} from '@mui/x-data-grid'
 import { childrenAndParent, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
-import { useEffect, useImperativeHandle, useState, forwardRef, useRef } from 'react'
+import { useEffect, useImperativeHandle, useState, forwardRef, useRef, useMemo } from 'react'
 import {
   Alert,
   Container,
@@ -20,23 +12,31 @@ import {
   Button,
 } from '@mui/material'
 import { updateTitle } from '../bookmarks/commands'
+import { AgGridReact } from 'ag-grid-react'
+import {
+  CellEditingStoppedEvent,
+  ColDef,
+  GetRowIdParams,
+  RowDoubleClickedEvent,
+  RowSelectedEvent,
+  SelectionChangedEvent,
+} from 'ag-grid-community'
+import 'ag-grid-community/dist/styles/ag-grid.css'
+import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
 
-const columns: GridColDef[] = [
+const columns: ColDef[] = [
   {
     field: 'title',
     headerName: 'Title',
+    filter: true,
     width: 250,
     editable: false, // change to 'true' if in-line renaming ever gets enabled
-    sortable: false,
-    hideable: false,
   },
   {
     field: 'url',
     headerName: 'URL',
+    filter: true,
     flex: 1,
-    editable: false,
-    sortable: false,
-    hideable: false,
   },
 ]
 
@@ -45,13 +45,13 @@ export interface FolderPanelProps {
   setCurrentNodeId: (id: string) => void
   selected: boolean
   onSelect: (node: BTN) => void
-  selectionModel: GridRowId[]
-  setSelectionModel: (model: GridRowId[]) => void
+  selectionModel: string[]
+  setSelectionModel: (model: string[]) => void
   refreshContent: object
 }
 
 export interface FolderPanelHandle {
-  renameCell: (id: GridRowId | undefined) => void
+  renameCell: (id: string | undefined) => void
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
@@ -68,6 +68,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 ) => {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
+
+  const gridRef = useRef<AgGridReact>(null)
 
   useEffect(() => {
     getTopNodes().then(
@@ -107,32 +109,53 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     )
   }, [currentNodeId, refreshContent, selectionModel])
 
-  const handleCellDoubleClick = (params: GridCellParams): void => {
-    switch (params.row.url) {
-      case undefined: // folder
-        setCurrentNodeId(String(params.id))
-        break
-      default: // actual bookmark
-        chrome.tabs.create({ url: params.row.url }).catch(e => setError(e))
+  const handleRowClick = (event: RowSelectedEvent<BTN>): void => {
+    const node = event.data
+    if (node !== undefined) {
+      onSelect(node)
     }
   }
 
-  const apiRef = useGridApiRef()
+  const handleRowDoubleClick = (event: RowDoubleClickedEvent<BTN>): void => {
+    const node = event.data
+    if (node === undefined) {
+      return
+    }
+    switch (node.url) {
+      case undefined: // folder
+        setCurrentNodeId(String(node.id))
+        break
+      default: // actual bookmark - open in new tab
+        chrome.tabs.create({ url: node.url }).catch(e => setError(e))
+    }
+  }
+
+  const handleSelectionChanged = (event: SelectionChangedEvent<BTN>): void => {
+    setSelectionModel(event.api.getSelectedRows().map(n => n.id))
+  }
 
   useImperativeHandle(ref, () => ({
-    renameCell: (id: GridRowId | undefined) => {
+    renameCell: (id: string | undefined) => {
       if (id === undefined) {
-        return
       }
-      apiRef.current.startCellEditMode({ id, field: 'title' })
+      // gridRef.current.api.startEditingCell({ rowIndex: id, colKey: 'title' })
+      // apiRef.current.startCellEditMode({ id, field: 'title' }) // TODO
     },
   }))
 
-  const handleCellEdit = (params: GridCellEditCommitParams): void => {
-    updateTitle(String(params.id), params.value)
+  const handleCellEdit = (event: CellEditingStoppedEvent<BTN>): void => {
+    const node = event.data
+    updateTitle(String(node.id), event.newValue)
       .then(() => setSelectionModel([]))
       .catch(e => setError(e))
   }
+
+  const getRowId = useMemo(
+    () =>
+      (params: GetRowIdParams<BTN>): string =>
+        params.data.id,
+    [],
+  )
 
   return (
     <Container
@@ -189,27 +212,21 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
           height: '100%',
         }}
       >
-        <DataGrid
-          // apiRef={apiRef} // TODO enable when https://github.com/mui/mui-x/pull/6773 gets merged & tagged
-          rows={rows}
-          columns={columns}
-          initialState={{ columns: { columnVisibilityModel: { __check__: false } } }}
-          checkboxSelection
-          density='compact'
-          experimentalFeatures={{ newEditingApi: true }}
-          onCellClick={(params: GridCellParams): void => onSelect(params.row)}
-          onCellDoubleClick={handleCellDoubleClick}
-          onCellEditCommit={handleCellEdit}
-          selectionModel={selectionModel}
-          onSelectionModelChange={setSelectionModel}
-          isRowSelectable={p => p.id !== parentId.current}
-          isCellEditable={p => p.colDef.editable === true && p.id !== parentId.current}
-          disableColumnSelector
-          sx={{
-            flex: 1,
-          }}
-          // TODO rowReordering - by title (in the dialog)
-        />
+        <Box className='ag-theme-alpine-dark' sx={{ width: '100%', height: '100%' }}>
+          <AgGridReact
+            ref={gridRef}
+            columnDefs={columns}
+            rowData={rows}
+            getRowId={getRowId}
+            animateRows
+            rowSelection='multiple'
+            onRowClicked={handleRowClick}
+            onRowDoubleClicked={handleRowDoubleClick}
+            onSelectionChanged={handleSelectionChanged}
+            onCellEditingStopped={handleCellEdit}
+            isRowSelectable={p => p.id !== parentId.current}
+          />
+        </Box>
       </Box>
     </Container>
   )
