@@ -1,6 +1,6 @@
 import { childrenAndParent, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
 import { BTN } from '../bookmarks/types'
-import { useEffect, useState, forwardRef, useRef, useMemo } from 'react'
+import { useEffect, useState, forwardRef, useRef, useMemo, useCallback } from 'react'
 import {
   Alert,
   Container,
@@ -16,6 +16,7 @@ import {
   ColDef,
   GetRowIdParams,
   RowDoubleClickedEvent,
+  RowDragLeaveEvent,
   RowSelectedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community'
@@ -29,12 +30,14 @@ const columns: ColDef[] = [
     filter: true,
     width: 250,
     editable: false, // change to 'true' if in-line renaming ever gets enabled
+    resizable: true,
   },
   {
     field: 'url',
     headerName: 'URL',
     filter: true,
     flex: 1,
+    resizable: true,
   },
 ]
 
@@ -138,6 +141,11 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         params.data.id,
     [],
   )
+  const handleRowDragEnd = useCallback((e: RowDragLeaveEvent) => {
+    console.log('onRowDragLeave', e)
+    // todo check drag end target is not a parent/ancestor of the current destination
+    // e.overIndex: -1 or e.overNode: undefined implies moving elements to the end of current directory
+  }, [])
 
   return (
     <Container
@@ -206,6 +214,11 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowDoubleClicked={handleRowDoubleClick}
             onSelectionChanged={handleSelectionChanged}
             isRowSelectable={p => p.id !== parentId.current}
+            rowDragEntireRow
+            rowDragManaged
+            rowDragMultiRow
+            suppressMoveWhenRowDragging
+            onRowDragEnd={handleRowDragEnd}
           />
         </Box>
       </Box>

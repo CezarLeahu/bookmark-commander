@@ -1,6 +1,7 @@
-// import * as bookmarks from '../chrome-mocks/bookmarks'
-import bookmarks = chrome.bookmarks
+import * as bookmarks from '../chrome-mocks/bookmarks'
+// import bookmarks = chrome.bookmarks
 import { BTN } from './types'
+import { parentPath } from './queries'
 
 export const updateTitle = async (id: string, title: string): Promise<void> => {
   console.log(`updateTitle(id: ${id}, title: ${title})`)
@@ -39,15 +40,49 @@ export const removeAll = async (ids: string[]): Promise<void> => {
 
 export const move = async (id: string, parentId?: string, index?: number): Promise<BTN> => {
   console.log(`move(id: ${id}, parentId: ${parentId ?? ''}, index: ${index ?? ''})`)
+
+  if (parentId !== undefined) {
+    await checkDestinationValid([id], parentId)
+  }
+
   return await bookmarks.move(id, { parentId, index })
 }
 
-export const moveAll = async (ids: string[], parentId: string): Promise<BTN[]> => {
-  console.log(`move(${ids.length} items, parentId: ${parentId})`)
-  if (ids.filter(id => id === parentId).length !== 0) {
-    throw new Error('Cannot move directory into itself')
+export const moveAll = async (ids: string[], parentId?: string, index?: number): Promise<BTN[]> => {
+  console.log(`move(${ids.length} items, parentId: ${parentId ?? ''}, index: ${index ?? ''})`)
+
+  if (parentId !== undefined) {
+    await checkDestinationValid(ids, parentId)
   }
-  return await Promise.all(ids.map(async id => await bookmarks.move(id, { parentId })))
+
+  return await Promise.all(ids.map(async id => await bookmarks.move(id, { parentId, index })))
+}
+
+const checkDestinationValid = async (ids: string[], targetId: string): Promise<void> => {
+  if (targetId === '0') {
+    throw new Error('Moving items into the root directory is not supported')
+  }
+
+  if (ids.filter(id => id === targetId).length !== 0) {
+    throw new Error('Target directory is same as the moved element')
+  }
+
+  const targetNode = (await bookmarks.get(targetId))[0]
+  if (targetNode.url === undefined) {
+    throw new Error('Target directory is not a directory')
+  }
+
+  const nodes = (await bookmarks.get(ids)).filter(n => n.url === undefined)
+  if (nodes.length === 0) {
+    // no directories - following checks not needed
+    return
+  }
+
+  const targetParentIds = new Set((await parentPath(targetNode)).map(n => n.id))
+
+  if (nodes.map(n => n.id).filter(id => targetParentIds.has(id)).length !== 0) {
+    throw new Error('Target directory is a child element')
+  }
 }
 
 export const moveUp = async (ids: string[]): Promise<boolean> => {
