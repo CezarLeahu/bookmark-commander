@@ -16,6 +16,131 @@ export interface BookmarkCreateArg {
   url?: string | undefined
 }
 
+const tree: BTN = {
+  id: '0',
+  title: 'root',
+  children: [
+    {
+      parentId: '0',
+      id: '1',
+      title: 'Bookmarks bar',
+      children: [
+        {
+          parentId: '1',
+          id: '4',
+          title: 'Folder A',
+        },
+        {
+          parentId: '1',
+          id: '5',
+          title: 'Folder B',
+        },
+        {
+          parentId: '1',
+          id: '6',
+          title: 'Folder C',
+        },
+        {
+          parentId: '1',
+          id: '7',
+          title: 'Link F',
+          url: 'https://link-f',
+        },
+        {
+          parentId: '1',
+          id: '8',
+          title: 'Link G',
+          url: 'https://link-g',
+        },
+        {
+          parentId: '1',
+          id: '9',
+          title: 'Link H',
+          url: 'https://link-h',
+        },
+      ],
+    },
+    {
+      parentId: '0',
+      id: '2',
+      title: 'Other bookmarks',
+      children: [
+        {
+          parentId: '2',
+          id: '10',
+          title: 'Folder D',
+        },
+        {
+          parentId: '2',
+          id: '11',
+          title: 'Folder E',
+        },
+        {
+          parentId: '2',
+          id: '12',
+          title: 'Link I',
+          url: 'https://link-i',
+        },
+        {
+          parentId: '2',
+          id: '13',
+          title: 'Link J',
+          url: 'https://link-j',
+        },
+        {
+          parentId: '2',
+          id: '14',
+          title: 'Link K',
+          url: 'https://link-k',
+        },
+        {
+          parentId: '2',
+          id: '15',
+          title: 'Link L',
+          url: 'https://link-l',
+        },
+        {
+          parentId: '2',
+          id: '16',
+          title: 'Link M',
+          url: 'https://link-m',
+        },
+        {
+          parentId: '2',
+          id: '17',
+          title: 'Link N',
+          url: 'https://link-n',
+        },
+        {
+          parentId: '2',
+          id: '18',
+          title: 'Link O',
+          url: 'https://link-o',
+        },
+      ],
+    },
+    {
+      parentId: '0',
+      id: '3',
+      title: 'Mobile bookmarks',
+      children: [],
+    },
+  ],
+}
+
+const buildMap = (): Map<string, BTN> => {
+  const map = new Map<string, BTN>([[tree.id, tree]])
+  tree.children?.forEach(n => map.set(n.id, n))
+  tree.children
+    ?.flatMap(n => n.children)
+    .filter(n => n !== undefined)
+    .forEach(n => n !== undefined && map.set(n.id, n))
+
+  return map
+}
+
+const treeElementsMap: Map<string, BTN> = buildMap()
+
 export async function update(id: string, changes: BookmarkChangesArg): Promise<BTN> {
   return { title: 'RandomTitle', id: '1234' }
 }
@@ -38,58 +163,18 @@ export async function move(id: string, destination: BookmarkDestinationArg): Pro
 export function get(id: string): Promise<BTN[]>
 export async function get(idList: string[]): Promise<BTN[]>
 export async function get(ids: string | string[]): Promise<BTN[]> {
-  return [
-    {
-      id: '11111',
-      title: 'Bookmark 11111',
-    },
-    {
-      id: '22222',
-      title: 'Bookmark 22222',
-    },
-  ]
+  if (Array.isArray(ids)) {
+    return ids
+      .filter(id => id !== undefined)
+      .map(id => treeElementsMap.get(id))
+      .filter(e => e !== undefined) as BTN[]
+  }
+  const node = treeElementsMap.get(ids)
+  return node !== undefined ? [node] : []
 }
 
 export async function getChildren(id: string): Promise<BTN[]> {
-  return [
-    {
-      id: '00',
-      title: 'Child 000',
-    },
-    {
-      id: '11',
-      title: 'Child 111',
-    },
-    {
-      id: '22',
-      title: 'Child 222',
-    },
-    {
-      id: '33',
-      title: 'Child 333',
-      url: 'https://333.to',
-    },
-    {
-      id: '44',
-      title: 'Child 444',
-      url: 'https://444.to',
-    },
-    {
-      id: '55',
-      title: 'Child 555',
-      url: 'https://555.to',
-    },
-    {
-      id: '66',
-      title: 'Child 666',
-      url: 'https://666.to',
-    },
-    {
-      id: '77',
-      title: 'Child 777',
-      url: 'https://777.to',
-    },
-  ]
+  return treeElementsMap.get(id)?.children ?? []
 }
 export async function search(query: string): Promise<BTN[]> {
   return [
