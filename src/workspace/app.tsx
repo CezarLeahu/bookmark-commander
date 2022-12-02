@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import { Alert, Container, Grid, Box, ButtonGroup, Button } from '@mui/material'
+import { Context, useCallback, useContext, useState } from 'react'
+import { Alert, Container, Grid, Box, ButtonGroup, Button, IconButton } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from './folder-panel'
 import Search from './search'
 import { BTN } from '../bookmarks/types'
@@ -19,8 +19,20 @@ import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
 import { containsNonEmptyDirectories } from '../bookmarks/queries'
 import { Side } from '../misc/types'
 import { usePairRef, usePairState } from '../misc/hooks'
+import { useTheme } from '@mui/material/styles'
+import Brightness7Icon from '@mui/icons-material/Brightness7'
+import Brightness4Icon from '@mui/icons-material/Brightness4'
 
-const App: React.FC = () => {
+interface AppProps {
+  colorModeContext: Context<{
+    toggleColorMode: () => void
+  }>
+}
+
+const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
+  const theme = useTheme()
+  const colorMode = useContext(colorModeContext)
+
   const [error, setError] = useState<string>()
   const [refreshContent, setRefreshContent] = useState({})
   const forceUpdate = useCallback(() => setRefreshContent({}), [])
@@ -176,6 +188,13 @@ const App: React.FC = () => {
       </Box>
       <Box display='flex' justifyContent='center' alignItems='center'>
         <Search onJumpTo={handleJumpTo} />
+        <IconButton
+          sx={{ ml: 1, justifySelf: 'right' }}
+          onClick={colorMode.toggleColorMode}
+          color='inherit'
+        >
+          {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+        </IconButton>
       </Box>
 
       <Grid container spacing={0.5} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>

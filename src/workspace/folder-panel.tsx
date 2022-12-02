@@ -13,20 +13,26 @@ import {
 } from '@mui/material'
 import { AgGridReact } from 'ag-grid-react'
 import {
+  CellClassParams,
   ColDef,
   GetRowIdParams,
+  GridApi,
   RowDoubleClickedEvent,
   RowDragEndEvent,
   RowDragLeaveEvent,
   RowDragMoveEvent,
+  RowNode,
   RowSelectedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community'
 import 'ag-grid-community/dist/styles/ag-grid.css'
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
+import { useTheme } from '@mui/material/styles'
+import './style.css'
 import { moveInfo, dropInfo } from '../misc/utils'
 
-const columns: ColDef[] = [
+const columnDefs: ColDef[] = [
   {
     field: 'title',
     headerName: 'Title',
@@ -34,6 +40,11 @@ const columns: ColDef[] = [
     width: 250,
     editable: false, // change to 'true' if in-line renaming ever gets enabled
     resizable: true,
+    cellClassRules: {
+      'hover-over': (params: CellClassParams<BTN>) => {
+        return params.node === potentialParent
+      },
+    },
   },
   {
     field: 'url',
@@ -41,6 +52,11 @@ const columns: ColDef[] = [
     filter: true,
     flex: 1,
     resizable: true,
+    cellClassRules: {
+      'hover-over': (params: CellClassParams<BTN>) => {
+        return params.node === potentialParent
+      },
+    },
   },
 ]
 
@@ -58,6 +74,29 @@ export interface FolderPanelHandle {
   renameCell: (id: string | undefined) => void
 }
 
+let potentialParent: RowNode<BTN> | undefined
+
+const resetPotentialParentAndRefresh = (api: GridApi): void => {
+  if (potentialParent === undefined) {
+    return
+  }
+  const rowsToRefresh = [potentialParent]
+  potentialParent = undefined
+  api.refreshCells({
+    rowNodes: rowsToRefresh,
+    force: true,
+  })
+}
+
+const setPotentialParentAndRefresh = (api: GridApi, node: RowNode<BTN>): void => {
+  const rowsToRefresh = [potentialParent, node].filter(n => n !== undefined) as Array<RowNode<BTN>>
+  potentialParent = node
+  api.refreshCells({
+    rowNodes: rowsToRefresh,
+    force: true,
+  })
+}
+
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
   {
     currentNodeId,
@@ -70,6 +109,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
+  const theme = useTheme()
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
 
@@ -148,35 +188,57 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const handleRowDragMove = useCallback(
     (e: RowDragMoveEvent<BTN>): void => {
       if (currentNodeId === '0' || e.node.childIndex === 0) {
+        resetPotentialParentAndRefresh(e.api)
         return
       }
       const movingNode = e.node
       const overNode = e.overNode
 
-      if (movingNode !== overNode) {
-        const info = moveInfo(e, rows.length)
+      if (movingNode === overNode) {
+        resetPotentialParentAndRefresh(e.api)
+        return
+      }
+      const info = moveInfo(e, rows.length)
 
-        if (info === undefined) {
-          return
-        }
+      if (info === undefined) {
+        resetPotentialParentAndRefresh(e.api)
+        return
+      }
 
-        gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
 
-        const node =
-          e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
+      const node: RowNode<BTN> | undefined =
+        e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
 
-        node?.setHighlighted(info.position)
+      if (node === undefined) {
+        resetPotentialParentAndRefresh(e.api)
+        return
+      }
+
+      node.setHighlighted(info.position)
+
+      if (info.position !== null) {
+        resetPotentialParentAndRefresh(e.api)
+        return
+      }
+
+      if (node !== potentialParent) {
+        setPotentialParentAndRefresh(e.api, node)
       }
     },
     [currentNodeId, rows],
   )
 
   const handleRowDragLeave = useCallback((e: RowDragLeaveEvent<BTN>) => {
+    resetPotentialParentAndRefresh(e.api)
+
     gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
   }, [])
 
   const handleRowDragEnd = useCallback(
     (e: RowDragEndEvent<BTN>) => {
+      resetPotentialParentAndRefresh(e.api)
+
       if (currentNodeId === '0' || e.node.childIndex === 0) {
         return
       }
@@ -246,10 +308,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
           height: '100%',
         }}
       >
-        <Box className='ag-theme-alpine-dark' sx={{ width: '100%', height: '100%' }}>
+        <Box
+          className={theme.palette.mode === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+          sx={{ width: '100%', height: '100%' }}
+        >
           <AgGridReact
             ref={gridRef}
-            columnDefs={columns}
+            columnDefs={columnDefs}
             rowData={rows}
             getRowId={getRowId}
             animateRows
