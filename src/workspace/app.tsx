@@ -42,7 +42,7 @@ const App: React.FC = () => {
     setCreateBookmarkDialogOpen(false)
     setCreateDirectoryDialogOpen(false)
     setEditDialogOpen(false)
-    setConfirmDialogOpen(false)
+    setDeleteDialogOpen(false)
     if (resetSelection !== undefined && resetSelection) {
       resetCurrentSelection()
     }
@@ -84,7 +84,7 @@ const App: React.FC = () => {
       .catch(e => setError(e))
   }
 
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const handleDeleteDialogConfirm = (): void => {
     const ids: string[] = lastSelectedIds()
     if (ids.length === 0) {
@@ -245,7 +245,7 @@ const App: React.FC = () => {
           </Button>
           <Button
             disabled={lastSelectedIds().length === 0}
-            onClick={() => setConfirmDialogOpen(true)}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             Delete
           </Button>
@@ -275,9 +275,9 @@ const App: React.FC = () => {
         <></>
       )}
 
-      {confirmDialogOpen ? (
+      {deleteDialogOpen ? (
         <DeleteConfirmationDialog
-          open={confirmDialogOpen}
+          open={deleteDialogOpen}
           nodeIds={selectionModels[selectedSide].state?.map(e => String(e)) ?? []}
           onConfirm={handleDeleteDialogConfirm}
           onCancel={() => handleDialogClose()}
