@@ -16,12 +16,15 @@ import {
   ColDef,
   GetRowIdParams,
   RowDoubleClickedEvent,
+  RowDragEndEvent,
   RowDragLeaveEvent,
+  RowDragMoveEvent,
   RowSelectedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community'
 import 'ag-grid-community/dist/styles/ag-grid.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
+import { moveInfo, dropInfo } from '../misc/utils'
 
 const columns: ColDef[] = [
   {
@@ -141,11 +144,56 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         params.data.id,
     [],
   )
-  const handleRowDragEnd = useCallback((e: RowDragLeaveEvent) => {
-    console.log('onRowDragLeave', e)
-    // todo check drag end target is not a parent/ancestor of the current destination
-    // e.overIndex: -1 or e.overNode: undefined implies moving elements to the end of current directory
+
+  const handleRowDragMove = useCallback(
+    (e: RowDragMoveEvent<BTN>): void => {
+      if (currentNodeId === '0') {
+        return
+      }
+      const movingNode = e.node
+      const overNode = e.overNode
+
+      if (movingNode !== overNode) {
+        const info = moveInfo(e, rows.length)
+
+        if (info === undefined) {
+          return
+        }
+
+        gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+
+        const node =
+          e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
+
+        node?.setHighlighted(info.position)
+      }
+
+      // gridRef.current?.api.setFocusedCell
+    },
+    [currentNodeId, rows],
+  )
+
+  const handleRowDragLeave = useCallback((e: RowDragLeaveEvent<BTN>) => {
+    gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
   }, [])
+
+  const handleRowDragEnd = useCallback(
+    (e: RowDragEndEvent<BTN>) => {
+      if (currentNodeId === '0') {
+        return
+      }
+
+      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+
+      const info = dropInfo(e, rows.length)
+      // console.log(`handleRowDragEnd(), dir: ${info?.isDir ?? ''}, index: ${info?.index ?? ''}`)
+      console.log('handleRowDragEnd()', info)
+
+      // todo check drag end target is not a parent/ancestor of the current destination
+      // todo handle the 0 (parent dir '..') index
+    },
+    [currentNodeId, rows],
+  )
 
   return (
     <Container
@@ -215,9 +263,10 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onSelectionChanged={handleSelectionChanged}
             isRowSelectable={p => p.id !== parentId.current}
             rowDragEntireRow
-            rowDragManaged
             rowDragMultiRow
             suppressMoveWhenRowDragging
+            onRowDragMove={handleRowDragMove}
+            onRowDragLeave={handleRowDragLeave}
             onRowDragEnd={handleRowDragEnd}
           />
         </Box>
