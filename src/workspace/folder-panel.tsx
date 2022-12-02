@@ -147,7 +147,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleRowDragMove = useCallback(
     (e: RowDragMoveEvent<BTN>): void => {
-      if (currentNodeId === '0') {
+      if (currentNodeId === '0' || e.node.childIndex === 0) {
         return
       }
       const movingNode = e.node
@@ -167,8 +167,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
         node?.setHighlighted(info.position)
       }
-
-      // gridRef.current?.api.setFocusedCell
     },
     [currentNodeId, rows],
   )
@@ -179,18 +177,16 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleRowDragEnd = useCallback(
     (e: RowDragEndEvent<BTN>) => {
-      if (currentNodeId === '0') {
+      if (currentNodeId === '0' || e.node.childIndex === 0) {
         return
       }
 
       gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
 
       const info = dropInfo(e, rows.length)
-      // console.log(`handleRowDragEnd(), dir: ${info?.isDir ?? ''}, index: ${info?.index ?? ''}`)
       console.log('handleRowDragEnd()', info)
 
       // todo check drag end target is not a parent/ancestor of the current destination
-      // todo handle the 0 (parent dir '..') index
     },
     [currentNodeId, rows],
   )
