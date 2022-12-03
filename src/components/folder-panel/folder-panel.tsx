@@ -13,16 +13,14 @@ import {
   Link,
   Typography,
 } from '@mui/material'
-import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
-import { dropInfo, moveInfo } from '../../services/utils/dnd'
 import { folderPanelMetadata, useRowIdMemo } from './metadata'
-import { forwardRef, useCallback, useRef } from 'react'
+import { forwardRef, useRef } from 'react'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { moveAll } from '../../services/bookmarks/commands'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
+import { useRowDropZoneEvents } from './dnd-handlers'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
@@ -69,94 +67,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setError,
   )
 
-  const handleRowDragMove = useCallback(
-    (e: RowDragMoveEvent<BTN>): void => {
-      if (currentNodeId === '0' || e.node.childIndex === 0) {
-        meta.resetPotentialParentAndRefresh(e.api)
-        return
-      }
-
-      if (e.nodes.filter(n => n === e.overNode).length !== 0) {
-        meta.resetPotentialParentAndRefresh(e.api)
-        return
-      }
-
-      const info = moveInfo(e, rows.length)
-      if (info === undefined) {
-        meta.resetPotentialParentAndRefresh(e.api)
-        return
-      }
-
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
-
-      const node: RowNode<BTN> | undefined =
-        e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
-
-      if (node === undefined) {
-        meta.resetPotentialParentAndRefresh(e.api)
-        return
-      }
-
-      node.setHighlighted(info.position)
-
-      if (info.position !== null) {
-        meta.resetPotentialParentAndRefresh(e.api)
-        return
-      }
-
-      if (node !== meta.potentialParent) {
-        meta.setPotentialParentAndRefresh(e.api, node)
-      }
-    },
-    [currentNodeId, rows],
-  )
-
-  const handleRowDragLeave = useCallback((e: RowDragLeaveEvent<BTN>) => {
-    meta.resetPotentialParentAndRefresh(e.api)
-    gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
-  }, [])
-
-  const handleRowDragEnd = useCallback(
-    (e: RowDragEndEvent<BTN>) => {
-      meta.resetPotentialParentAndRefresh(e.api)
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
-
-      if (currentNodeId === '0' || e.node.childIndex === 0) {
-        return
-      }
-
-      if (e.nodes.filter(n => n === e.overNode).length !== 0) {
-        return
-      }
-
-      const info = dropInfo(e, rows.length)
-      if (info === undefined) {
-        return
-      }
-
-      if (info.isDir && e.overNode === undefined) {
-        console.log('Target node not available')
-        return
-      }
-
-      console.log('handleRowDragEnd()', info)
-
-      const parentId: string | undefined = info.isDir
-        ? e.overNode?.data?.id ?? undefined
-        : undefined
-
-      const ids = e.nodes.map(n => n.data?.id ?? undefined).filter(e => e !== undefined) as string[]
-      const directionUp: boolean =
-        info.index !== undefined &&
-        e.nodes.filter(n => n.childIndex < (info.index ?? 0) + 1).length === 0 // todo check if the target dir is the current dir (when enabling the second dnd zone)
-      moveAll(directionUp ? ids.reverse() : ids, parentId, info.index)
-        .then(() => {
-          console.log('Moved elements')
-          forceUpdate()
-        })
-        .catch(e => console.log(e))
-    },
-    [currentNodeId, rows, forceUpdate],
+  const { onDragging, onDragLeave, onDragStop } = useRowDropZoneEvents(
+    meta,
+    currentNodeId,
+    forceUpdate,
+    gridRef,
+    rows,
   )
 
   return (
@@ -232,9 +148,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging
-            onRowDragMove={handleRowDragMove}
-            onRowDragLeave={handleRowDragLeave}
-            onRowDragEnd={handleRowDragEnd}
+            onRowDragMove={onDragging}
+            onRowDragLeave={onDragLeave}
+            onRowDragEnd={onDragStop}
           />
         </Box>
       </Box>

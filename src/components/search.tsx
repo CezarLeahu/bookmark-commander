@@ -19,6 +19,7 @@ import { BTN } from '../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import LinkIcon from '@mui/icons-material/Link'
 import SearchIcon from '@mui/icons-material/Search'
+import { isDirectory } from '../services/utils/utils'
 import { search } from '../services/bookmarks/commands'
 
 // todo remove this
@@ -125,9 +126,7 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
               <List>
                 {searchResults.map(node => (
                   <ListItem key={node.id} onClick={() => handleJumpTo(node)}>
-                    <ListItemIcon>
-                      {node.url === undefined ? <FolderIcon /> : <LinkIcon />}
-                    </ListItemIcon>
+                    <ListItemIcon>{isDirectory(node) ? <FolderIcon /> : <LinkIcon />}</ListItemIcon>
                     <ListItemText primary={node.title} secondary={node.url ?? null} />
                   </ListItem>
                 ))}

@@ -3,7 +3,7 @@ import { CellClassParams, ColDef, GetRowIdParams, GridApi, RowNode } from 'ag-gr
 import { BTN } from '../../services/bookmarks/types'
 import { useMemo } from 'react'
 
-interface FolderPanelMetadata {
+export interface FolderPanelMetadata {
   potentialParent: RowNode<BTN> | undefined
   columnDefs: ColDef[]
   resetPotentialParentAndRefresh: (api: GridApi) => void
