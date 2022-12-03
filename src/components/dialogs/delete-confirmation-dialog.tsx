@@ -6,10 +6,11 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import { containsNonEmptyDirectories, isDirectory } from '../../services/utils/utils'
 import { useEffect, useState } from 'react'
-import { getNodesWithImmediateChildren } from '../../bookmarks/queries'
-import { BTN } from '../../bookmarks/types'
-import { containsNonEmptyDirectories, isDirectory } from '../../misc/utils'
+
+import { BTN } from '../../services/bookmarks/types'
+import { getNodesWithImmediateChildren } from '../../services/bookmarks/queries'
 
 const dialogTitleAndMessage = (nodes: BTN[], nonEmptyDirs: boolean): [string, string] => {
   if (nodes.length !== 1) {

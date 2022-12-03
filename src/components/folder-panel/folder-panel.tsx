@@ -1,17 +1,18 @@
-import { childrenAndParent, getNode, getTopNodes, parentPath } from '../bookmarks/queries'
-import { BTN } from '../bookmarks/types'
-import { useEffect, useState, forwardRef, useRef, useMemo, useCallback } from 'react'
+import 'ag-grid-community/dist/styles/ag-grid.css'
+import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
+import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
+import '../../styles/style.css'
+
 import {
   Alert,
-  Container,
   Box,
+  Breadcrumbs,
+  Button,
+  ButtonGroup,
+  Container,
   Link,
   Typography,
-  Breadcrumbs,
-  ButtonGroup,
-  Button,
 } from '@mui/material'
-import { AgGridReact } from 'ag-grid-react'
 import {
   CellClassParams,
   ColDef,
@@ -25,13 +26,19 @@ import {
   RowSelectedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community'
-import 'ag-grid-community/dist/styles/ag-grid.css'
-import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
-import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
+import {
+  childrenAndParent,
+  getNode,
+  getTopNodes,
+  parentPath,
+} from '../../services/bookmarks/queries'
+import { dropInfo, moveInfo } from '../../services/utils/dnd'
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { AgGridReact } from 'ag-grid-react'
+import { BTN } from '../../services/bookmarks/types'
+import { moveAll } from '../../services/bookmarks/commands'
 import { useTheme } from '@mui/material/styles'
-import './style.css'
-import { moveInfo, dropInfo } from '../misc/utils'
-import { moveAll } from '../bookmarks/commands'
 
 const columnDefs: ColDef[] = [
   {

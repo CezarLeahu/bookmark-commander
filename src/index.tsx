@@ -4,7 +4,7 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import ThemedApp from './themedApp'
+import ThemedApp from './components/themedApp'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 

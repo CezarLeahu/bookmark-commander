@@ -1,9 +1,6 @@
+import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import { Context, useCallback, useContext, useState } from 'react'
-import { Alert, Container, Grid, Box, ButtonGroup, Button, IconButton } from '@mui/material'
-import FolderPanel, { FolderPanelHandle } from './folder-panel'
-import Search from './search'
-import { BTN } from '../bookmarks/types'
-import EditDialog from './dialogs/edit-dialog'
+import FolderPanel, { FolderPanelHandle } from './folder-panel/folder-panel'
 import {
   createBookmark,
   createDir,
@@ -12,16 +9,20 @@ import {
   moveUp,
   removeAll,
   update,
-} from '../bookmarks/commands'
-import { closeCurrentTab } from '../misc/utils'
+} from '../services/bookmarks/commands'
+import { usePairRef, usePairState } from '../services/utils/hooks'
+
+import { BTN } from '../services/bookmarks/types'
+import Brightness4Icon from '@mui/icons-material/Brightness4'
+import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from './dialogs/create-dialog'
 import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
-import { containsNonEmptyDirectories } from '../bookmarks/queries'
-import { Side } from '../misc/types'
-import { usePairRef, usePairState } from '../misc/hooks'
+import EditDialog from './dialogs/edit-dialog'
+import Search from './search'
+import { Side } from '../services/utils/types'
+import { closeCurrentTab } from '../services/utils/utils'
+import { containsNonEmptyDirectories } from '../services/bookmarks/queries'
 import { useTheme } from '@mui/material/styles'
-import Brightness7Icon from '@mui/icons-material/Brightness7'
-import Brightness4Icon from '@mui/icons-material/Brightness4'
 
 interface AppProps {
   colorModeContext: Context<{

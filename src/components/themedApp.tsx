@@ -1,7 +1,8 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import App from './workspace/app'
-import CssBaseline from '@mui/material/CssBaseline'
 import { createContext, useMemo, useState } from 'react'
+
+import App from './app'
+import CssBaseline from '@mui/material/CssBaseline'
 
 const ColorModeContext = createContext<{
   toggleColorMode: () => void

@@ -1,8 +1,9 @@
-import { BTN } from '../../bookmarks/types'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { getNode } from '../../bookmarks/queries'
-import { isDirectory } from '../../misc/utils'
+
+import { BTN } from '../../services/bookmarks/types'
+import { getNode } from '../../services/bookmarks/queries'
+import { isDirectory } from '../../services/utils/utils'
 
 interface EditDialogProps {
   readonly open: boolean

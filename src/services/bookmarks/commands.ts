@@ -1,5 +1,5 @@
-// import * as bookmarks from '../chrome-mocks/bookmarks'
-import bookmarks = chrome.bookmarks
+import * as bookmarks from '../mocks/bookmarks'
+// import bookmarks = chrome.bookmarks
 import { BTN } from './types'
 import { parentPath } from './queries'
 
