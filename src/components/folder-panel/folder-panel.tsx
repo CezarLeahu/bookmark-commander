@@ -14,7 +14,6 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  GetRowIdParams,
   RowDoubleClickedEvent,
   RowDragEndEvent,
   RowDragLeaveEvent,
@@ -30,12 +29,13 @@ import {
   parentPath,
 } from '../../services/bookmarks/queries'
 import { dropInfo, moveInfo } from '../../services/utils/dnd'
-import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
 import { folderPanelMetadata } from './metadata'
 import { moveAll } from '../../services/bookmarks/commands'
+import { useRowIdMemo } from './hooks'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
@@ -69,10 +69,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
+  const getRowId = useRowIdMemo()
+  const gridRef = useRef<AgGridReact>(null)
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
-
-  const gridRef = useRef<AgGridReact>(null)
+  const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
+  const [rows, setRows] = useState<BTN[]>([])
+  const parentId = useRef<string>()
 
   useEffect(() => {
     getTopNodes().then(
@@ -90,17 +93,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     )
   }, [currentNodeId])
 
-  const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
-
   useEffect(() => {
     parentPath(currentNode).then(
       r => setBreadcrumbs(r),
       e => setError(e),
     )
   }, [currentNode])
-
-  const [rows, setRows] = useState<BTN[]>([])
-  const parentId = useRef<string>()
 
   useEffect(() => {
     childrenAndParent(currentNodeId).then(
@@ -136,13 +134,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const handleSelectionChanged = (event: SelectionChangedEvent<BTN>): void => {
     setSelectionModel(event.api.getSelectedRows().map(n => n.id))
   }
-
-  const getRowId = useMemo(
-    () =>
-      (params: GetRowIdParams<BTN>): string =>
-        params.data.id,
-    [],
-  )
 
   const handleRowDragMove = useCallback(
     (e: RowDragMoveEvent<BTN>): void => {
