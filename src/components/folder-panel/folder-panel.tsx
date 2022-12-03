@@ -14,10 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  CellClassParams,
-  ColDef,
   GetRowIdParams,
-  GridApi,
   RowDoubleClickedEvent,
   RowDragEndEvent,
   RowDragLeaveEvent,
@@ -37,36 +34,11 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'r
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
+import { folderPanelMetadata } from './metadata'
 import { moveAll } from '../../services/bookmarks/commands'
 import { useTheme } from '@mui/material/styles'
 
-const columnDefs: ColDef[] = [
-  {
-    field: 'title',
-    headerName: 'Title',
-    filter: true,
-    width: 250,
-    editable: false, // change to 'true' if in-line renaming ever gets enabled
-    resizable: true,
-    cellClassRules: {
-      'hover-over': (params: CellClassParams<BTN>) => {
-        return params.node === potentialParent
-      },
-    },
-  },
-  {
-    field: 'url',
-    headerName: 'URL',
-    filter: true,
-    flex: 1,
-    resizable: true,
-    cellClassRules: {
-      'hover-over': (params: CellClassParams<BTN>) => {
-        return params.node === potentialParent
-      },
-    },
-  },
-]
+const meta = folderPanelMetadata()
 
 export interface FolderPanelProps {
   readonly currentNodeId: string
@@ -81,29 +53,6 @@ export interface FolderPanelProps {
 
 export interface FolderPanelHandle {
   renameCell: (id: string | undefined) => void
-}
-
-let potentialParent: RowNode<BTN> | undefined
-
-const resetPotentialParentAndRefresh = (api: GridApi): void => {
-  if (potentialParent === undefined) {
-    return
-  }
-  const rowsToRefresh = [potentialParent]
-  potentialParent = undefined
-  api.refreshCells({
-    rowNodes: rowsToRefresh,
-    force: true,
-  })
-}
-
-const setPotentialParentAndRefresh = (api: GridApi, node: RowNode<BTN>): void => {
-  const rowsToRefresh = [potentialParent, node].filter(n => n !== undefined) as Array<RowNode<BTN>>
-  potentialParent = node
-  api.refreshCells({
-    rowNodes: rowsToRefresh,
-    force: true,
-  })
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
@@ -198,18 +147,18 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const handleRowDragMove = useCallback(
     (e: RowDragMoveEvent<BTN>): void => {
       if (currentNodeId === '0' || e.node.childIndex === 0) {
-        resetPotentialParentAndRefresh(e.api)
+        meta.resetPotentialParentAndRefresh(e.api)
         return
       }
 
       if (e.nodes.filter(n => n === e.overNode).length !== 0) {
-        resetPotentialParentAndRefresh(e.api)
+        meta.resetPotentialParentAndRefresh(e.api)
         return
       }
 
       const info = moveInfo(e, rows.length)
       if (info === undefined) {
-        resetPotentialParentAndRefresh(e.api)
+        meta.resetPotentialParentAndRefresh(e.api)
         return
       }
 
@@ -219,32 +168,32 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
 
       if (node === undefined) {
-        resetPotentialParentAndRefresh(e.api)
+        meta.resetPotentialParentAndRefresh(e.api)
         return
       }
 
       node.setHighlighted(info.position)
 
       if (info.position !== null) {
-        resetPotentialParentAndRefresh(e.api)
+        meta.resetPotentialParentAndRefresh(e.api)
         return
       }
 
-      if (node !== potentialParent) {
-        setPotentialParentAndRefresh(e.api, node)
+      if (node !== meta.potentialParent) {
+        meta.setPotentialParentAndRefresh(e.api, node)
       }
     },
     [currentNodeId, rows],
   )
 
   const handleRowDragLeave = useCallback((e: RowDragLeaveEvent<BTN>) => {
-    resetPotentialParentAndRefresh(e.api)
+    meta.resetPotentialParentAndRefresh(e.api)
     gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
   }, [])
 
   const handleRowDragEnd = useCallback(
     (e: RowDragEndEvent<BTN>) => {
-      resetPotentialParentAndRefresh(e.api)
+      meta.resetPotentialParentAndRefresh(e.api)
       gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
 
       if (currentNodeId === '0' || e.node.childIndex === 0) {
@@ -346,7 +295,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         >
           <AgGridReact
             ref={gridRef}
-            columnDefs={columnDefs}
+            columnDefs={meta.columnDefs}
             rowData={rows}
             getRowId={getRowId}
             animateRows
