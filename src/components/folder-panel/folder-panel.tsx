@@ -13,15 +13,7 @@ import {
   Link,
   Typography,
 } from '@mui/material'
-import {
-  RowDoubleClickedEvent,
-  RowDragEndEvent,
-  RowDragLeaveEvent,
-  RowDragMoveEvent,
-  RowNode,
-  RowSelectedEvent,
-  SelectionChangedEvent,
-} from 'ag-grid-community'
+import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
 import { dropInfo, moveInfo } from '../../services/utils/dnd'
 import { folderPanelMetadata, useRowIdMemo } from './metadata'
 import { forwardRef, useCallback, useRef } from 'react'
@@ -29,6 +21,7 @@ import { forwardRef, useCallback, useRef } from 'react'
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
 import { moveAll } from '../../services/bookmarks/commands'
+import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
 import { useTheme } from '@mui/material/styles'
 
@@ -69,30 +62,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
     useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
 
-  const handleRowClick = (event: RowSelectedEvent<BTN>): void => {
-    const node = event.data
-    if (node !== undefined) {
-      onSelect(node)
-    }
-  }
-
-  const handleRowDoubleClick = (event: RowDoubleClickedEvent<BTN>): void => {
-    const node = event.data
-    if (node === undefined) {
-      return
-    }
-    switch (node.url) {
-      case undefined: // folder
-        setCurrentNodeId(String(node.id))
-        break
-      default: // actual bookmark - open in new tab
-        chrome.tabs.create({ url: node.url }).catch(e => setError(e))
-    }
-  }
-
-  const handleSelectionChanged = (event: SelectionChangedEvent<BTN>): void => {
-    setSelectionModel(event.api.getSelectedRows().map(n => n.id))
-  }
+  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } = useClickHandlers(
+    onSelect,
+    setCurrentNodeId,
+    setSelectionModel,
+    setError,
+  )
 
   const handleRowDragMove = useCallback(
     (e: RowDragMoveEvent<BTN>): void => {
