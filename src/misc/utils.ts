@@ -103,13 +103,13 @@ export const dropInfo = (
   if (e.overIndex === 0) {
     return {
       isDir: false,
-      index: 1,
+      index: 0,
     }
   }
   if (e.overIndex < 0) {
     return {
       isDir: false,
-      index: totalRowCount,
+      index: totalRowCount - 1,
     }
   }
 
@@ -127,7 +127,7 @@ export const dropInfo = (
   if (isSimpleBookmark(bookmarkNode)) {
     return {
       isDir: false,
-      index: pixelPositionInRow < rowHeight / 2 ? e.overIndex : e.overIndex + 1,
+      index: pixelPositionInRow < rowHeight / 2 ? e.overIndex - 1 : e.overIndex,
     }
   }
 
@@ -136,13 +136,13 @@ export const dropInfo = (
   if (pixelPositionInRow < rowHeight / 4) {
     return {
       isDir: false,
-      index: e.overIndex,
+      index: e.overIndex - 1,
     }
   }
   if (pixelPositionInRow > (rowHeight / 4) * 3) {
     return {
       isDir: false,
-      index: e.overIndex + 1,
+      index: e.overIndex,
     }
   }
   return {

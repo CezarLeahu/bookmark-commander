@@ -210,6 +210,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
             refreshContent={refreshContent}
+            forceUpdate={forceUpdate}
             ref={panelRefs.left}
           />
         </Grid>
@@ -226,6 +227,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
             refreshContent={refreshContent}
+            forceUpdate={forceUpdate}
             ref={panelRefs.right}
           />
         </Grid>
@@ -246,6 +248,16 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
           </Button>
           <Button disabled={lastSelectedIds().length !== 1} onClick={() => setEditDialogOpen(true)}>
             Edit
+          </Button>
+          <Button
+            disabled={currentNodeIds.left.state === currentNodeIds.right.state}
+            onClick={() =>
+              currentNodeIds[selectedSide === 'left' ? 'right' : 'left'].setState(
+                currentNodeIds[selectedSide].state,
+              )
+            }
+          >
+            Mirror (=)
           </Button>
           <Button
             disabled={

@@ -31,6 +31,7 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
 import { useTheme } from '@mui/material/styles'
 import './style.css'
 import { moveInfo, dropInfo } from '../misc/utils'
+import { moveAll } from '../bookmarks/commands'
 
 const columnDefs: ColDef[] = [
   {
@@ -68,6 +69,7 @@ export interface FolderPanelProps {
   selectionModel: string[]
   setSelectionModel: (model: string[]) => void
   refreshContent: object
+  forceUpdate: () => void
 }
 
 export interface FolderPanelHandle {
@@ -106,6 +108,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     selectionModel,
     setSelectionModel,
     refreshContent,
+    forceUpdate,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -191,15 +194,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         resetPotentialParentAndRefresh(e.api)
         return
       }
-      const movingNode = e.node
-      const overNode = e.overNode
 
-      if (movingNode === overNode) {
+      if (e.nodes.filter(n => n === e.overNode).length !== 0) {
         resetPotentialParentAndRefresh(e.api)
         return
       }
-      const info = moveInfo(e, rows.length)
 
+      const info = moveInfo(e, rows.length)
       if (info === undefined) {
         resetPotentialParentAndRefresh(e.api)
         return
@@ -231,26 +232,50 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleRowDragLeave = useCallback((e: RowDragLeaveEvent<BTN>) => {
     resetPotentialParentAndRefresh(e.api)
-
     gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
   }, [])
 
   const handleRowDragEnd = useCallback(
     (e: RowDragEndEvent<BTN>) => {
       resetPotentialParentAndRefresh(e.api)
+      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
 
       if (currentNodeId === '0' || e.node.childIndex === 0) {
         return
       }
 
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+      if (e.nodes.filter(n => n === e.overNode).length !== 0) {
+        return
+      }
 
       const info = dropInfo(e, rows.length)
+      if (info === undefined) {
+        return
+      }
+
+      if (info.isDir && e.overNode === undefined) {
+        console.log('Target node not available')
+        return
+      }
+
       console.log('handleRowDragEnd()', info)
 
-      // todo check drag end target is not a parent/ancestor of the current destination
+      const parentId: string | undefined = info.isDir
+        ? e.overNode?.data?.id ?? undefined
+        : undefined
+
+      const ids = e.nodes.map(n => n.data?.id ?? undefined).filter(e => e !== undefined) as string[]
+      const directionUp: boolean =
+        info.index !== undefined &&
+        e.nodes.filter(n => n.childIndex < (info.index ?? 0) + 1).length === 0 // todo check if the target dir is the current dir (when enabling the second dnd zone)
+      moveAll(directionUp ? ids.reverse() : ids, parentId, info.index)
+        .then(() => {
+          console.log('Moved elements')
+          forceUpdate()
+        })
+        .catch(e => console.log(e))
     },
-    [currentNodeId, rows],
+    [currentNodeId, rows, forceUpdate],
   )
 
   return (

@@ -1,5 +1,5 @@
-import * as bookmarks from '../chrome-mocks/bookmarks'
-// import bookmarks = chrome.bookmarks
+// import * as bookmarks from '../chrome-mocks/bookmarks'
+import bookmarks = chrome.bookmarks
 import { BTN } from './types'
 import { parentPath } from './queries'
 
@@ -56,6 +56,11 @@ export const moveAll = async (ids: string[], parentId?: string, index?: number):
   }
 
   return await Promise.all(ids.map(async id => await bookmarks.move(id, { parentId, index })))
+  // const res: BTN[] = []
+  // for (const id of ids) {
+  //   res.push(await bookmarks.move(id, { parentId, index }))
+  // }
+  // return res
 }
 
 const checkDestinationValid = async (ids: string[], targetId: string): Promise<void> => {
@@ -68,7 +73,7 @@ const checkDestinationValid = async (ids: string[], targetId: string): Promise<v
   }
 
   const targetNode = (await bookmarks.get(targetId))[0]
-  if (targetNode.url === undefined) {
+  if (targetNode.url !== undefined) {
     throw new Error('Target directory is not a directory')
   }
 
