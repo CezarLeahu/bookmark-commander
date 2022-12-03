@@ -22,20 +22,14 @@ import {
   RowSelectedEvent,
   SelectionChangedEvent,
 } from 'ag-grid-community'
-import {
-  childrenAndParent,
-  getNode,
-  getTopNodes,
-  parentPath,
-} from '../../services/bookmarks/queries'
 import { dropInfo, moveInfo } from '../../services/utils/dnd'
-import { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
+import { folderPanelMetadata, useRowIdMemo } from './metadata'
+import { forwardRef, useCallback, useRef } from 'react'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { folderPanelMetadata } from './metadata'
 import { moveAll } from '../../services/bookmarks/commands'
-import { useRowIdMemo } from './hooks'
+import { useFolderActiveContent } from './content'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
@@ -71,44 +65,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const theme = useTheme()
   const getRowId = useRowIdMemo()
   const gridRef = useRef<AgGridReact>(null)
-  const [topNodes, setTopNodes] = useState<BTN[]>([])
-  const [error, setError] = useState<string>()
-  const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
-  const [rows, setRows] = useState<BTN[]>([])
-  const parentId = useRef<string>()
 
-  useEffect(() => {
-    getTopNodes().then(
-      r => setTopNodes(r),
-      e => setError(e),
-    )
-  }, [])
-
-  const [currentNode, setCurrentNode] = useState<BTN>()
-
-  useEffect(() => {
-    getNode(currentNodeId).then(
-      r => setCurrentNode(r),
-      e => setError(e),
-    )
-  }, [currentNodeId])
-
-  useEffect(() => {
-    parentPath(currentNode).then(
-      r => setBreadcrumbs(r),
-      e => setError(e),
-    )
-  }, [currentNode])
-
-  useEffect(() => {
-    childrenAndParent(currentNodeId).then(
-      ([r, pId]) => {
-        setRows(r)
-        parentId.current = pId
-      },
-      e => setError(e),
-    )
-  }, [currentNodeId, refreshContent, selectionModel])
+  const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
+    useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
 
   const handleRowClick = (event: RowSelectedEvent<BTN>): void => {
     const node = event.data

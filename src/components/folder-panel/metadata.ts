@@ -1,6 +1,7 @@
-import { CellClassParams, ColDef, GridApi, RowNode } from 'ag-grid-community'
+import { CellClassParams, ColDef, GetRowIdParams, GridApi, RowNode } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
+import { useMemo } from 'react'
 
 interface FolderPanelMetadata {
   potentialParent: RowNode<BTN> | undefined
@@ -67,4 +68,13 @@ export const folderPanelMetadata = (): FolderPanelMetadata => {
       })
     },
   }
+}
+
+export function useRowIdMemo(): (params: GetRowIdParams<BTN>) => string {
+  return useMemo(
+    () =>
+      (params: GetRowIdParams<BTN>): string =>
+        params.data.id,
+    [],
+  )
 }
