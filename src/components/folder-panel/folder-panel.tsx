@@ -18,6 +18,7 @@ import { forwardRef, useRef } from 'react'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
+import { GridReadyEvent } from 'ag-grid-community'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
 import { useRowDropZoneEvents } from './dnd-handlers'
@@ -30,6 +31,7 @@ export interface FolderPanelProps {
   setCurrentNodeId: (id: string) => void
   selected: boolean
   onSelect: (node?: BTN) => void
+  onGridReady: (params: GridReadyEvent) => void
   selectionModel: string[]
   setSelectionModel: (model: string[]) => void
   refreshContent: object
@@ -46,6 +48,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setCurrentNodeId,
     selected,
     onSelect,
+    onGridReady,
     selectionModel,
     setSelectionModel,
     refreshContent,
@@ -158,6 +161,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
               onRowDragMove={onDragging}
               onRowDragLeave={onDragLeave}
               onRowDragEnd={onDragStop}
+              onGridReady={onGridReady}
             />
           </Box>
         </Box>

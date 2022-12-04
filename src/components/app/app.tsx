@@ -1,6 +1,7 @@
 import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import { Context, useCallback, useContext, useState } from 'react'
 import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
+import { Side, other } from '../../services/utils/types'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -10,10 +11,10 @@ import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import Search from '../search/search'
-import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/utils/utils'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
+import { useDndBetweenGrids } from './grid-dnd-handlers'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './move-handlers'
 import { useTheme } from '@mui/material/styles'
@@ -47,7 +48,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
   const resetCurrentSelection = useCallback((): void => {
     selectionModels[selectedSide].setState([])
-    const otherSide: Side = selectedSide === 'left' ? 'right' : 'left'
+    const otherSide: Side = other(selectedSide)
     if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
       selectionModels[otherSide].setState([])
     }
@@ -101,6 +102,8 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     selectionModels[selectedSide].setState([node.id])
   }
 
+  const { handleGridReadyLeft, handleGridReadyRight } = useDndBetweenGrids()
+
   return (
     <Container
       maxWidth={false}
@@ -137,6 +140,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
               setSelectedSide('left')
               console.log(`Selected left panel - id ${node?.id ?? ''}`)
             }}
+            onGridReady={handleGridReadyLeft}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
             refreshContent={refreshContent}
@@ -154,6 +158,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
               setSelectedSide('right')
               console.log(`Selected right panel - id ${node?.id ?? ''}`)
             }}
+            onGridReady={handleGridReadyRight}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
             refreshContent={refreshContent}
