@@ -1,19 +1,20 @@
 import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import { Context, useCallback, useContext, useState } from 'react'
 import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
-import { createBookmark, createDir, removeAll, update } from '../../services/bookmarks/commands'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
-import DeleteConfirmationDialog from '../dialogs/delete-confirmation-dialog'
+import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import Search from '../search/search'
 import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/utils/utils'
-import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
+import { useCreateDialogState } from '../dialogs/create-dialog-hook'
+import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
+import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './move-handlers'
 import { useTheme } from '@mui/material/styles'
 
@@ -53,68 +54,36 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     forceUpdate()
   }, [selectionModels, selectedSide, currentNodeIds, forceUpdate])
 
-  const handleDialogClose = useCallback(
-    (resetSelection?: boolean): void => {
-      setCreateBookmarkDialogOpen(false)
-      setCreateDirectoryDialogOpen(false)
-      setEditDialogOpen(false)
-      setDeleteDialogOpen(false)
-      if (resetSelection !== undefined && resetSelection) {
-        resetCurrentSelection()
-      }
-    },
-    [resetCurrentSelection],
-  )
+  const {
+    createBookmarkDialogOpen,
+    createDirectoryDialogOpen,
+    handleCreateBookmarkDialogOpen,
+    handleCreateDirectoryDialogOpen,
+    handleCreateDialogConfirm,
+    handleCreateDialogClose,
+  } = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection, setError)
 
-  const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
-  const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
-  const handleCreateDialogConfirm = (title: string, url?: string): void => {
-    const parentId = currentNodeIds[selectedSide].state
-    if (parentId === undefined) {
-      console.log('The current panel current node id is unknown (undefined).')
-      handleDialogClose()
-      return
-    }
+  const { editDialogOpen, handleEditDialogOpen, handleEditDialogConfirm, handleEditDialogClose } =
+    useEditDialogState(resetCurrentSelection, setError)
 
-    if (url === undefined) {
-      createDir(parentId, title)
-        .then(() => handleDialogClose(true))
-        .catch(e => setError(e))
-    } else {
-      createBookmark(parentId, title, url)
-        .then(() => handleDialogClose(true))
-        .catch(e => setError(e))
-    }
-  }
+  const {
+    deleteDialogOpen,
+    handleDeleteDialogOpen,
+    handleDeleteDialogConfirm,
+    handleDeleteDialogClose,
+  } = useDeleteDialogState(lastSelectedIds, resetCurrentSelection, setError)
 
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const handleEditDialogConfirm = (node: BTN): void => {
-    update(node)
-      .then(() => handleDialogClose(true))
-      .catch(e => setError(e))
-  }
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const handleDeleteDialogConfirm = (): void => {
-    const ids: string[] = lastSelectedIds()
-    if (ids.length === 0) {
-      handleDialogClose()
-      return
-    }
-
-    containsNonEmptyDirectories(ids)
-      .then(nonEmptyDirsExist => {
-        if (nonEmptyDirsExist) {
-          setError('Cannot delete non-empty folders!')
-          handleDialogClose()
-          return
-        }
-        removeAll(ids)
-          .then(() => handleDialogClose(true))
-          .catch(e => console.log(e))
-      })
-      .catch(e => console.log(e))
-  }
+  const closeAllDialogs = useCallback((): void => {
+    handleCreateDialogClose()
+    handleEditDialogClose()
+    handleDeleteDialogClose()
+    resetCurrentSelection()
+  }, [
+    handleCreateDialogClose,
+    handleEditDialogClose,
+    handleDeleteDialogClose,
+    resetCurrentSelection,
+  ])
 
   const { handleMove, handleMoveUp, handleMoveDown } = useMoveHandlers(
     selectedSide,
@@ -123,7 +92,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     selectionModels,
     lastSelectedIds,
     resetCurrentSelection,
-    handleDialogClose,
+    closeAllDialogs,
   )
 
   const handleJumpTo = (node: BTN): void => {
@@ -196,9 +165,9 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button onClick={() => setCreateBookmarkDialogOpen(true)}>New</Button>
+          <Button onClick={handleCreateBookmarkDialogOpen}>New</Button>
 
-          <Button onClick={() => setCreateDirectoryDialogOpen(true)}>New Folder</Button>
+          <Button onClick={handleCreateDirectoryDialogOpen}>New Folder</Button>
           <Button
             disabled
             // disabled={lastSelectedIds().length !== 1}
@@ -207,7 +176,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
           >
             Rename
           </Button>
-          <Button disabled={lastSelectedIds().length !== 1} onClick={() => setEditDialogOpen(true)}>
+          <Button disabled={lastSelectedIds().length !== 1} onClick={handleEditDialogOpen}>
             Edit
           </Button>
           <Button
@@ -235,22 +204,19 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
           <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveDown}>
             Move Down ({'\u2193'})
           </Button>
-          <Button
-            disabled={lastSelectedIds().length === 0}
-            onClick={() => setDeleteDialogOpen(true)}
-          >
+          <Button disabled={lastSelectedIds().length === 0} onClick={handleDeleteDialogOpen}>
             Delete
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>
         </ButtonGroup>
       </Box>
 
-      {createBookmarkDialogOpenB || createDirectoryDialogOpen ? (
+      {createBookmarkDialogOpen || createDirectoryDialogOpen ? (
         <CreateDialog
-          open={createBookmarkDialogOpenB || createDirectoryDialogOpen}
+          open={createBookmarkDialogOpen || createDirectoryDialogOpen}
           isDirectory={createDirectoryDialogOpen}
           onConfirm={handleCreateDialogConfirm}
-          onCancel={() => handleDialogClose()}
+          onCancel={handleCreateDialogClose}
         />
       ) : (
         <></>
@@ -261,7 +227,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
           open={editDialogOpen}
           nodeId={String(selectionModels[selectedSide].state?.[0])}
           onConfirm={handleEditDialogConfirm}
-          onCancel={() => handleDialogClose()}
+          onCancel={handleEditDialogClose}
         />
       ) : (
         <></>
@@ -272,7 +238,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
           open={deleteDialogOpen}
           nodeIds={selectionModels[selectedSide].state?.map(e => String(e)) ?? []}
           onConfirm={handleDeleteDialogConfirm}
-          onCancel={() => handleDialogClose()}
+          onCancel={handleDeleteDialogClose}
         />
       ) : (
         <></>

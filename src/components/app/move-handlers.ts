@@ -17,7 +17,7 @@ export function useMoveHandlers(
   selectionModels: PairState<string[]>,
   lastSelectedIds: () => string[],
   resetCurrentSelection: () => void,
-  handleDialogClose: (resetSelection?: boolean) => void,
+  closeAllDialogs: () => void,
 ): MoveHandlers {
   const handleMove = (): void => {
     const nodeIds = lastSelectedIds()
@@ -47,7 +47,7 @@ export function useMoveHandlers(
     }
     moveUp(nodeIds)
       .then(() => {
-        handleDialogClose(true)
+        closeAllDialogs()
         selectionModels[selectedSide].setState(nodeIds)
       })
       .catch(e => console.log(e))
@@ -60,7 +60,7 @@ export function useMoveHandlers(
     }
     moveDown(nodeIds)
       .then(() => {
-        handleDialogClose(true)
+        closeAllDialogs()
         selectionModels[selectedSide].setState(nodeIds)
       })
       .catch(e => console.log(e))
