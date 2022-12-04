@@ -13,15 +13,20 @@ import {
   Link,
   Typography,
 } from '@mui/material'
+import {
+  GridReadyEvent,
+  RowDragEndEvent,
+  RowDragLeaveEvent,
+  RowDragMoveEvent,
+} from 'ag-grid-community'
 import { folderPanelMetadata, useRowIdMemo } from './metadata'
+import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './dnd-handlers'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { GridReadyEvent } from 'ag-grid-community'
 import { forwardRef } from 'react'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
-import { useRowDropZoneEvents } from './dnd-handlers'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
@@ -67,13 +72,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setCurrentNodeId,
     setSelectionModel,
     setError,
-  )
-
-  const { onDragging, onDragLeave, onDragStop } = useRowDropZoneEvents(
-    meta,
-    currentNodeId,
-    forceUpdate,
-    rows,
   )
 
   const handleGridReady = (params: GridReadyEvent): void => {
@@ -153,9 +151,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging
-            onRowDragMove={onDragging}
-            onRowDragLeave={onDragLeave}
-            onRowDragEnd={onDragStop}
+            onRowDragMove={(e: RowDragMoveEvent<BTN>) =>
+              handleRowDragMove(e, meta, currentNodeId, rows)
+            }
+            onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
+            onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
+              handleRowDragEnd(e, meta, currentNodeId, rows, forceUpdate)
+            }
             onGridReady={handleGridReady}
           />
         </Box>
