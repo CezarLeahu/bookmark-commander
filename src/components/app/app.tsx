@@ -1,15 +1,7 @@
 import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import { Context, useCallback, useContext, useState } from 'react'
 import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
-import {
-  createBookmark,
-  createDir,
-  moveAll,
-  moveDown,
-  moveUp,
-  removeAll,
-  update,
-} from '../../services/bookmarks/commands'
+import { createBookmark, createDir, removeAll, update } from '../../services/bookmarks/commands'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -22,6 +14,7 @@ import Search from '../search/search'
 import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/utils/utils'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
+import { useMoveHandlers } from './move-handlers'
 import { useTheme } from '@mui/material/styles'
 
 interface AppProps {
@@ -44,30 +37,34 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
   const selectionModels = usePairState<string[]>([], [])
 
-  const lastSelectedIds = (): string[] => {
+  const lastSelectedIds = useCallback((): string[] => {
     return selectionModels[selectedSide].state
       .filter(e => e !== undefined)
       .filter(e => e !== currentNodeIds[selectedSide].state)
       .map(e => String(e))
-  }
+  }, [selectionModels, selectedSide, currentNodeIds])
 
-  const handleDialogClose = (resetSelection?: boolean): void => {
-    setCreateBookmarkDialogOpen(false)
-    setCreateDirectoryDialogOpen(false)
-    setEditDialogOpen(false)
-    setDeleteDialogOpen(false)
-    if (resetSelection !== undefined && resetSelection) {
-      resetCurrentSelection()
-    }
-  }
-  const resetCurrentSelection = (): void => {
+  const resetCurrentSelection = useCallback((): void => {
     selectionModels[selectedSide].setState([])
     const otherSide: Side = selectedSide === 'left' ? 'right' : 'left'
     if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
       selectionModels[otherSide].setState([])
     }
     forceUpdate()
-  }
+  }, [selectionModels, selectedSide, currentNodeIds, forceUpdate])
+
+  const handleDialogClose = useCallback(
+    (resetSelection?: boolean): void => {
+      setCreateBookmarkDialogOpen(false)
+      setCreateDirectoryDialogOpen(false)
+      setEditDialogOpen(false)
+      setDeleteDialogOpen(false)
+      if (resetSelection !== undefined && resetSelection) {
+        resetCurrentSelection()
+      }
+    },
+    [resetCurrentSelection],
+  )
 
   const [createBookmarkDialogOpenB, setCreateBookmarkDialogOpen] = useState(false)
   const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
@@ -119,52 +116,15 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
       .catch(e => console.log(e))
   }
 
-  const handleMove = (): void => {
-    const nodeIds = lastSelectedIds()
-    if (nodeIds === undefined || nodeIds.length === 0) {
-      return
-    }
-
-    if (currentNodeIds.left.state === currentNodeIds.right.state) {
-      console.log('Source directory is the same as the target directory')
-    }
-
-    const otherSide: Side = selectedSide === 'left' ? 'right' : 'left'
-
-    moveAll(nodeIds, currentNodeIds[otherSide].state)
-      .then(() => {
-        resetCurrentSelection()
-        selectionModels[otherSide].setState(nodeIds)
-        setSelectedSide(otherSide)
-      })
-      .catch(e => console.log(e))
-  }
-
-  const handleMoveUp = (): void => {
-    const nodeIds = lastSelectedIds()
-    if (nodeIds === undefined || nodeIds.length === 0) {
-      return
-    }
-    moveUp(nodeIds)
-      .then(() => {
-        handleDialogClose(true)
-        selectionModels[selectedSide].setState(nodeIds)
-      })
-      .catch(e => console.log(e))
-  }
-
-  const handleMoveDown = (): void => {
-    const nodeIds = lastSelectedIds()
-    if (nodeIds === undefined || nodeIds.length === 0) {
-      return
-    }
-    moveDown(nodeIds)
-      .then(() => {
-        handleDialogClose(true)
-        selectionModels[selectedSide].setState(nodeIds)
-      })
-      .catch(e => console.log(e))
-  }
+  const { handleMove, handleMoveUp, handleMoveDown } = useMoveHandlers(
+    selectedSide,
+    setSelectedSide,
+    currentNodeIds,
+    selectionModels,
+    lastSelectedIds,
+    resetCurrentSelection,
+    handleDialogClose,
+  )
 
   const handleJumpTo = (node: BTN): void => {
     console.log(`jump to directory ${node.parentId ?? '0'}`)

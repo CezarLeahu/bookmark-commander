@@ -1,6 +1,6 @@
 import { Dispatch, MutableRefObject, SetStateAction, useRef, useState } from 'react'
 
-interface PairState<S> {
+export interface PairState<S> {
   left: {
     state: S
     setState: Dispatch<SetStateAction<S>>
@@ -43,7 +43,7 @@ export function usePairState<S>(initialLeft: S, initialRight: S): PairState<S> {
   }
 }
 
-interface PairRef<T> {
+export interface PairRef<T> {
   left: MutableRefObject<T>
   right: MutableRefObject<T>
 }
