@@ -1,5 +1,10 @@
 import { Dispatch, SetStateAction, useCallback } from 'react'
-import { RowDoubleClickedEvent, RowSelectedEvent, SelectionChangedEvent } from 'ag-grid-community'
+import {
+  GridApi,
+  RowDoubleClickedEvent,
+  RowSelectedEvent,
+  SelectionChangedEvent,
+} from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
 
@@ -9,13 +14,16 @@ interface ClickHandlers {
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
 
   handleSelectionChanged: (event: SelectionChangedEvent<BTN>) => void
+
+  handleMouseUpOnEmptySpace: () => void
 }
 
 export function useClickHandlers(
-  onSelect: (node: BTN) => void,
+  onSelect: (node?: BTN) => void,
   setCurrentNodeId: (id: string) => void,
   setSelectionModel: (model: string[]) => void,
   setError: Dispatch<SetStateAction<string | undefined>>,
+  api?: GridApi,
 ): ClickHandlers {
   return {
     handleRowClick: useCallback(
@@ -51,5 +59,14 @@ export function useClickHandlers(
       },
       [setSelectionModel],
     ),
+
+    handleMouseUpOnEmptySpace: useCallback((): void => {
+      if (api === undefined) {
+        return
+      }
+      setSelectionModel([])
+      onSelect()
+      api.deselectAll()
+    }, [onSelect, setSelectionModel, api]),
   }
 }

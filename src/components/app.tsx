@@ -206,7 +206,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
             selected={selectedSide === 'left'}
             onSelect={node => {
               setSelectedSide('left')
-              console.log(`Selected left panel - id ${node.id}`)
+              console.log(`Selected left panel - id ${node?.id ?? ''}`)
             }}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
@@ -223,7 +223,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
             selected={selectedSide === 'right'}
             onSelect={node => {
               setSelectedSide('right')
-              console.log(`Selected right panel - id ${node.id}`)
+              console.log(`Selected right panel - id ${node?.id ?? ''}`)
             }}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
