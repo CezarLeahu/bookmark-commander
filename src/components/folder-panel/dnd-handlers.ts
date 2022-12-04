@@ -1,7 +1,6 @@
 import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
 import { dropInfo, moveInfo } from './utils'
 
-import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelMetadata } from './metadata'
 import { RowDropZoneEvents } from 'ag-grid-community/dist/lib/gridBodyComp/rowDragFeature'
@@ -12,7 +11,6 @@ export function useRowDropZoneEvents(
   meta: FolderPanelMetadata,
   currentNodeId: string,
   forceUpdate: () => void,
-  gridRef: React.RefObject<AgGridReact>,
   rows: chrome.bookmarks.BookmarkTreeNode[],
 ): RowDropZoneEvents {
   const handleRowDragMove = useCallback(
@@ -33,10 +31,10 @@ export function useRowDropZoneEvents(
         return
       }
 
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+      e.api.forEachNode(n => n.setHighlighted(null))
 
       const node: RowNode<BTN> | undefined =
-        e.overNode ?? gridRef.current?.api.getRowNode(rows[info.highlightedRowIndex].id)
+        e.overNode ?? e.api.getRowNode(rows[info.highlightedRowIndex].id)
 
       if (node === undefined) {
         meta.resetPotentialParentAndRefresh(e.api)
@@ -54,21 +52,21 @@ export function useRowDropZoneEvents(
         meta.setPotentialParentAndRefresh(e.api, node)
       }
     },
-    [meta, gridRef, currentNodeId, rows],
+    [meta, currentNodeId, rows],
   )
 
   const handleRowDragLeave = useCallback(
     (e: RowDragLeaveEvent<BTN>) => {
       meta.resetPotentialParentAndRefresh(e.api)
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+      e.api.forEachNode(n => n.setHighlighted(null))
     },
-    [meta, gridRef],
+    [meta],
   )
 
   const handleRowDragEnd = useCallback(
     (e: RowDragEndEvent<BTN>) => {
       meta.resetPotentialParentAndRefresh(e.api)
-      gridRef.current?.api.forEachNode(n => n.setHighlighted(null))
+      e.api.forEachNode(n => n.setHighlighted(null))
 
       if (currentNodeId === '0' || e.node.childIndex === 0) {
         return
@@ -105,7 +103,7 @@ export function useRowDropZoneEvents(
         })
         .catch(e => console.log(e))
     },
-    [meta, gridRef, currentNodeId, rows, forceUpdate],
+    [meta, currentNodeId, rows, forceUpdate],
   )
 
   return {

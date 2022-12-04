@@ -14,11 +14,11 @@ import {
   Typography,
 } from '@mui/material'
 import { folderPanelMetadata, useRowIdMemo } from './metadata'
-import { forwardRef, useRef } from 'react'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
 import { GridReadyEvent } from 'ag-grid-community'
+import { forwardRef } from 'react'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
 import { useRowDropZoneEvents } from './dnd-handlers'
@@ -58,7 +58,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 ) => {
   const theme = useTheme()
   const getRowId = useRowIdMemo()
-  const gridRef = useRef<AgGridReact>(null)
 
   const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
     useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
@@ -68,16 +67,18 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setCurrentNodeId,
     setSelectionModel,
     setError,
-    gridRef.current?.api,
   )
 
   const { onDragging, onDragLeave, onDragStop } = useRowDropZoneEvents(
     meta,
     currentNodeId,
     forceUpdate,
-    gridRef,
     rows,
   )
+
+  const handleGridReady = (params: GridReadyEvent): void => {
+    onGridReady(params)
+  }
 
   return (
     <Container
@@ -140,7 +141,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
           sx={{ width: '100%', height: '100%' }}
         >
           <AgGridReact
-            ref={gridRef}
             columnDefs={meta.columnDefs}
             rowData={rows}
             getRowId={getRowId}
@@ -156,7 +156,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowDragMove={onDragging}
             onRowDragLeave={onDragLeave}
             onRowDragEnd={onDragStop}
-            onGridReady={onGridReady}
+            onGridReady={handleGridReady}
           />
         </Box>
       </Box>
