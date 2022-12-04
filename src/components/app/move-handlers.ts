@@ -28,6 +28,7 @@ export function useMoveHandlers(
 
       if (currentNodeIds.left.state === currentNodeIds.right.state) {
         console.log('Source directory is the same as the target directory')
+        return
       }
 
       const otherSide: Side = other(selectedSide)
