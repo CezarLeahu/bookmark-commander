@@ -1,7 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { createContext, useMemo, useState } from 'react'
 
-import App from './app'
+import App from './app/app'
 import CssBaseline from '@mui/material/CssBaseline'
 
 const ColorModeContext = createContext<{

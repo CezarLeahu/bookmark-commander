@@ -1,6 +1,6 @@
 import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import { Context, useCallback, useContext, useState } from 'react'
-import FolderPanel, { FolderPanelHandle } from './folder-panel/folder-panel'
+import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
 import {
   createBookmark,
   createDir,
@@ -9,19 +9,19 @@ import {
   moveUp,
   removeAll,
   update,
-} from '../services/bookmarks/commands'
-import { usePairRef, usePairState } from '../services/utils/hooks'
+} from '../../services/bookmarks/commands'
+import { usePairRef, usePairState } from '../../services/utils/hooks'
 
-import { BTN } from '../services/bookmarks/types'
+import { BTN } from '../../services/bookmarks/types'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
-import CreateDialog from './dialogs/create-dialog'
-import DeleteConfirmationDialog from './dialogs/delete-confirmation-dialog'
-import EditDialog from './dialogs/edit-dialog'
-import Search from './search'
-import { Side } from '../services/utils/types'
-import { closeCurrentTab } from '../services/utils/utils'
-import { containsNonEmptyDirectories } from '../services/bookmarks/queries'
+import CreateDialog from '../dialogs/create-dialog'
+import DeleteConfirmationDialog from '../dialogs/delete-confirmation-dialog'
+import EditDialog from '../dialogs/edit-dialog'
+import Search from '../search/search'
+import { Side } from '../../services/utils/types'
+import { closeCurrentTab } from '../../services/utils/utils'
+import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { useTheme } from '@mui/material/styles'
 
 interface AppProps {

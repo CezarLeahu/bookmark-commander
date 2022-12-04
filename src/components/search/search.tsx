@@ -15,12 +15,12 @@ import {
 } from '@mui/material'
 import React, { ChangeEvent, FocusEvent, useRef, useState } from 'react'
 
-import { BTN } from '../services/bookmarks/types'
+import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import LinkIcon from '@mui/icons-material/Link'
 import SearchIcon from '@mui/icons-material/Search'
-import { isDirectory } from '../services/utils/utils'
-import { search } from '../services/bookmarks/commands'
+import { isDirectory } from '../../services/utils/utils'
+import { search } from '../../services/bookmarks/commands'
 
 // todo remove this
 const styles: SxProps = {
