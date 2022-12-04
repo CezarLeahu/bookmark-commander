@@ -63,12 +63,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
     useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
 
-  const {
-    handleRowClick,
-    handleRowDoubleClick,
-    handleSelectionChanged,
-    handleMouseUpOnEmptySpace,
-  } = useClickHandlers(
+  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } = useClickHandlers(
     onSelect,
     setCurrentNodeId,
     setSelectionModel,
@@ -96,76 +91,76 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         flexDirection: 'column',
       }}
     >
-      <div style={{ flex: 1 }} onMouseUp={handleMouseUpOnEmptySpace}>
-        <Box>
-          {error !== undefined ? (
-            <Alert severity='error' onClose={() => setError(undefined)}>
-              {error}
-            </Alert>
-          ) : (
-            <></>
-          )}
-        </Box>
-        <Box display='flex' justifyContent='center' alignItems='center'>
-          <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
-            {topNodes.map(d => (
-              <Button
-                key={d.id}
-                sx={{ textTransform: 'none' }}
-                onClick={() => setCurrentNodeId(d.id)}
-              >
-                {d.title}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </Box>
-        <Box>
-          <Breadcrumbs aria-label='breadcrumb'>
-            {breadcrumbs.map(d => (
-              <Link key={d.id} onClick={() => setCurrentNodeId(d.id)}>
-                {d.title}
-              </Link>
-            ))}
-            <Typography color='text.primary'>{currentNode?.title}</Typography>
-          </Breadcrumbs>
-        </Box>
+      {/* <div style={{ flex: 1 }} onMouseUp={handleMouseUpOnEmptySpace}> */}
+      <Box>
+        {error !== undefined ? (
+          <Alert severity='error' onClose={() => setError(undefined)}>
+            {error}
+          </Alert>
+        ) : (
+          <></>
+        )}
+      </Box>
+      <Box display='flex' justifyContent='center' alignItems='center'>
+        <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
+          {topNodes.map(d => (
+            <Button
+              key={d.id}
+              sx={{ textTransform: 'none' }}
+              onClick={() => setCurrentNodeId(d.id)}
+            >
+              {d.title}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </Box>
+      <Box>
+        <Breadcrumbs aria-label='breadcrumb'>
+          {breadcrumbs.map(d => (
+            <Link key={d.id} onClick={() => setCurrentNodeId(d.id)}>
+              {d.title}
+            </Link>
+          ))}
+          <Typography color='text.primary'>{currentNode?.title}</Typography>
+        </Breadcrumbs>
+      </Box>
 
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+        sx={{
+          border: 1,
+          borderColor: selected ? 'primary.main' : 'background.default',
+          height: '100%',
+        }}
+      >
         <Box
-          display='flex'
-          justifyContent='center'
-          alignItems='center'
-          sx={{
-            border: 1,
-            borderColor: selected ? 'primary.main' : 'background.default',
-            height: '100%',
-          }}
+          className={theme.palette.mode === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
+          sx={{ width: '100%', height: '100%' }}
         >
-          <Box
-            className={theme.palette.mode === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
-            sx={{ width: '100%', height: '100%' }}
-          >
-            <AgGridReact
-              ref={gridRef}
-              columnDefs={meta.columnDefs}
-              rowData={rows}
-              getRowId={getRowId}
-              animateRows
-              rowSelection='multiple'
-              onRowClicked={handleRowClick}
-              onRowDoubleClicked={handleRowDoubleClick}
-              onSelectionChanged={handleSelectionChanged}
-              isRowSelectable={p => p.id !== parentId.current}
-              rowDragEntireRow
-              rowDragMultiRow
-              suppressMoveWhenRowDragging
-              onRowDragMove={onDragging}
-              onRowDragLeave={onDragLeave}
-              onRowDragEnd={onDragStop}
-              onGridReady={onGridReady}
-            />
-          </Box>
+          <AgGridReact
+            ref={gridRef}
+            columnDefs={meta.columnDefs}
+            rowData={rows}
+            getRowId={getRowId}
+            animateRows
+            rowSelection='multiple'
+            onRowClicked={handleRowClick}
+            onRowDoubleClicked={handleRowDoubleClick}
+            onSelectionChanged={handleSelectionChanged}
+            isRowSelectable={p => p.id !== parentId.current}
+            rowDragEntireRow
+            rowDragMultiRow
+            suppressMoveWhenRowDragging
+            onRowDragMove={onDragging}
+            onRowDragLeave={onDragLeave}
+            onRowDragEnd={onDragStop}
+            onGridReady={onGridReady}
+          />
         </Box>
-      </div>
+      </Box>
+      {/* </div> */}
     </Container>
   )
 }

@@ -64,6 +64,7 @@ export function useClickHandlers(
       if (api === undefined) {
         return
       }
+      // TODO this doesn't work properly - it disables multiple select
       setSelectionModel([])
       onSelect()
       api.deselectAll()
