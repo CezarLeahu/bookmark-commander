@@ -26,3 +26,9 @@ export const containsNonEmptyDirectories = (nodes: BTN[]): boolean => {
     undefined
   )
 }
+
+export const getFaviconUrl = (url: string): string => {
+  return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(
+    url,
+  )}&size=16`
+}

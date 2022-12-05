@@ -1,16 +1,20 @@
+import { getFaviconUrl, isDirectory } from '../../services/utils/utils'
+
 import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import { ICellRendererParams } from 'ag-grid-community'
-import LinkIcon from '@mui/icons-material/Link'
-import { isDirectory } from '../../services/utils/utils'
 
 export const titleCellRenderer = (params: ICellRendererParams<BTN, string>): JSX.Element => {
   return (
     <div onMouseUp={e => middleClickHandle(params.data?.url, e)}>
       {params.data !== undefined && isDirectory(params.data) ? (
-        <FolderIcon fontSize='small' sx={{ verticalAlign: 'middle', paddingRight: '10px' }} />
+        <FolderIcon sx={{ verticalAlign: 'middle', paddingRight: '8px', outerHeight: '16' }} />
       ) : (
-        <LinkIcon fontSize='small' sx={{ verticalAlign: 'middle', paddingRight: '10px' }} />
+        <img
+          src={getFaviconUrl(params.data?.url ?? '')}
+          height='16'
+          style={{ verticalAlign: 'middle', paddingRight: '10px' }}
+        />
       )}
       <span className='filename'>{params.value}</span>
     </div>
