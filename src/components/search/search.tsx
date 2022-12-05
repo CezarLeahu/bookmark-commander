@@ -11,7 +11,6 @@ import {
   ListItemIcon,
   ListItemText,
   Popper,
-  SxProps,
 } from '@mui/material'
 import React, { ChangeEvent, FocusEvent, useRef, useState } from 'react'
 
@@ -21,18 +20,6 @@ import LinkIcon from '@mui/icons-material/Link'
 import SearchIcon from '@mui/icons-material/Search'
 import { isDirectory } from '../../services/utils/utils'
 import { search } from '../../services/bookmarks/commands'
-
-// todo remove this
-const styles: SxProps = {
-  position: 'absolute',
-  top: 28,
-  right: 0,
-  left: 0,
-  zIndex: 1,
-  border: '1px solid',
-  p: 1,
-  bgcolor: 'background.paper',
-}
 
 export interface SearchProps {
   onJumpTo: (node: BTN) => void
@@ -104,7 +91,17 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
           id={sid}
           open={open}
           placement='bottom-start'
-          sx={styles}
+          sx={{
+            position: 'absolute',
+            top: 28,
+            right: 0,
+            left: 0,
+            zIndex: 1,
+            border: '1px solid',
+            p: 1,
+            bgcolor: 'background.paper',
+            width: '100%',
+          }}
           anchorEl={inputEl.current}
           disablePortal={true}
           modifiers={[
@@ -123,10 +120,26 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
         >
           <Box minWidth='sm' width='sm' maxWidth='sm' maxHeight='sm'>
             <Grid item xs={12} md={6}>
-              <List>
+              <List
+                sx={{
+                  width: '100%',
+                  maxWidth: '50ch',
+                  bgcolor: 'background.paper',
+                  position: 'relative',
+                  overflow: 'auto',
+                  maxHeight: 800,
+                  '& ul': { padding: 0 },
+                }}
+              >
                 {searchResults.map(node => (
                   <ListItem key={node.id} onClick={() => handleJumpTo(node)}>
-                    <ListItemIcon>{isDirectory(node) ? <FolderIcon /> : <LinkIcon />}</ListItemIcon>
+                    <ListItemIcon>
+                      {isDirectory(node) ? (
+                        <FolderIcon fontSize='small' />
+                      ) : (
+                        <LinkIcon fontSize='small' />
+                      )}
+                    </ListItemIcon>
                     <ListItemText primary={node.title} secondary={node.url ?? null} />
                   </ListItem>
                 ))}

@@ -11,8 +11,18 @@ export const handleRowDragMove = (
   currentNodeId: string,
   rows: chrome.bookmarks.BookmarkTreeNode[],
 ): void => {
-  if (currentNodeId === '0' || e.node.childIndex === 0) {
-    meta.resetPotentialParentAndRefresh(e.api)
+  // if current panel is in the root dir: skip (not supported) // todo enable for DND
+  if (currentNodeId === '0') {
+    return
+  }
+
+  // if any of the draged rows are the '..' (parent dir) row: skip
+  if (e.nodes.filter(n => n.childIndex === 0).length > 0) {
+    return
+  }
+
+  // if the dragged rows are immediatelly under the root
+  if (e.node.data?.parentId === '0') {
     return
   }
 
@@ -72,6 +82,11 @@ export const handleRowDragEnd = (
 
   // if any of the draged rows are the '..' (parent dir) row: skip
   if (e.nodes.filter(n => n.childIndex === 0).length > 0) {
+    return
+  }
+
+  // if the dragged rows are immediatelly under the root
+  if (e.node.data?.parentId === '0') {
     return
   }
 
