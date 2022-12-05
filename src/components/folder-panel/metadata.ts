@@ -1,7 +1,7 @@
 import { CellClassParams, ColDef, GetRowIdParams, GridApi, RowNode } from 'ag-grid-community'
+import { titleCellRenderer, urlCellRenderer } from './cell-renderers'
 
 import { BTN } from '../../services/bookmarks/types'
-import { titleCellRenderer } from './cell-renderers'
 import { useMemo } from 'react'
 
 export interface FolderPanelMetadata {
@@ -35,6 +35,7 @@ export const folderPanelMetadata = (): FolderPanelMetadata => {
       filter: true,
       flex: 1,
       resizable: true,
+      cellRenderer: urlCellRenderer,
       cellClassRules: {
         'hover-over': (params: CellClassParams<BTN>) => {
           return params.node === potentialParent
