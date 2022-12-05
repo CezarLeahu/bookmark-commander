@@ -96,11 +96,14 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     closeAllDialogs,
   )
 
-  const handleJumpTo = (node: BTN): void => {
-    console.log(`jump to directory ${node.parentId ?? '0'}`)
-    currentNodeIds[selectedSide].setState(node.parentId ?? '0')
-    selectionModels[selectedSide].setState([node.id])
-  }
+  const handleJumpTo = useCallback(
+    (node: BTN): void => {
+      console.log(`jump to directory ${node.parentId ?? '0'}`)
+      currentNodeIds[selectedSide].setState(node.parentId ?? '0')
+      selectionModels[selectedSide].setState([node.id])
+    },
+    [currentNodeIds, selectionModels, selectedSide],
+  )
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDndBetweenGrids()
 

@@ -14,17 +14,18 @@ import {
   Typography,
 } from '@mui/material'
 import {
+  GridApi,
   GridReadyEvent,
   RowDragEndEvent,
   RowDragLeaveEvent,
   RowDragMoveEvent,
 } from 'ag-grid-community'
 import { folderPanelMetadata, useRowIdMemo } from './metadata'
+import { forwardRef, useEffect, useRef } from 'react'
 import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './dnd-handlers'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { forwardRef } from 'react'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
 import { useTheme } from '@mui/material/styles'
@@ -33,14 +34,14 @@ const meta = folderPanelMetadata()
 
 export interface FolderPanelProps {
   readonly currentNodeId: string
-  setCurrentNodeId: (id: string) => void
-  selected: boolean
-  onSelect: (node?: BTN) => void
-  onGridReady: (params: GridReadyEvent) => void
-  selectionModel: string[]
-  setSelectionModel: (model: string[]) => void
-  refreshContent: object
-  forceUpdate: () => void
+  readonly setCurrentNodeId: (id: string) => void
+  readonly selected: boolean
+  readonly onSelect: (node?: BTN) => void
+  readonly onGridReady: (params: GridReadyEvent) => void
+  readonly selectionModel: string[]
+  readonly setSelectionModel: (model: string[]) => void
+  readonly refreshContent: object
+  readonly forceUpdate: () => void
 }
 
 export interface FolderPanelHandle {
@@ -63,6 +64,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 ) => {
   const theme = useTheme()
   const getRowId = useRowIdMemo()
+  const gridApi = useRef<GridApi<BTN>>()
 
   const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
     useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
@@ -74,7 +76,23 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setError,
   )
 
+  useEffect(() => {
+    if (gridApi.current === undefined) {
+      return
+    }
+    if (selectionModel.length === 0) {
+      gridApi.current.deselectAll()
+      return
+    }
+    const ids = new Set<string>(selectionModel)
+    gridApi.current.forEachNode(n =>
+      n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
+    )
+    // gridApi.current.redrawRows()
+  }, [currentNodeId, rows, selectionModel])
+
   const handleGridReady = (params: GridReadyEvent): void => {
+    gridApi.current = params.api
     onGridReady(params)
   }
 

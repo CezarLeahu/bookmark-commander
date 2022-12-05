@@ -13,12 +13,11 @@ import {
   Popper,
 } from '@mui/material'
 import React, { ChangeEvent, FocusEvent, useRef, useState } from 'react'
+import { getFaviconUrl, isDirectory } from '../../services/utils/utils'
 
 import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
-import LinkIcon from '@mui/icons-material/Link'
 import SearchIcon from '@mui/icons-material/Search'
-import { isDirectory } from '../../services/utils/utils'
 import { search } from '../../services/bookmarks/commands'
 
 export interface SearchProps {
@@ -133,11 +132,18 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
               >
                 {searchResults.map(node => (
                   <ListItem key={node.id} onClick={() => handleJumpTo(node)}>
-                    <ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: '30px' }}>
                       {isDirectory(node) ? (
-                        <FolderIcon fontSize='small' />
+                        <FolderIcon
+                          fontSize='small'
+                          sx={{ verticalAlign: 'middle', outerHeight: '16' }}
+                        />
                       ) : (
-                        <LinkIcon fontSize='small' />
+                        <img
+                          src={getFaviconUrl(node.url ?? '')}
+                          height='16'
+                          style={{ verticalAlign: 'middle', paddingLeft: '2px' }}
+                        />
                       )}
                     </ListItemIcon>
                     <ListItemText primary={node.title} secondary={node.url ?? null} />

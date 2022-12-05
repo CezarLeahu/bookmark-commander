@@ -30,6 +30,6 @@ const middleClickHandle = (
   event?: React.MouseEvent<HTMLSpanElement, MouseEvent>,
 ): void => {
   if (url !== undefined && event?.type === 'mouseup' && event.nativeEvent.which === 2) {
-    chrome.tabs.create({ url }).catch(e => console.log(e))
+    chrome.tabs.create({ url, active: false }).catch(e => console.log(e))
   }
 }
