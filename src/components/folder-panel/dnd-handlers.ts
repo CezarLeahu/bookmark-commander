@@ -29,23 +29,23 @@ export const handleRowDragMove = (
 
   e.api.forEachNode(n => n.setHighlighted(null))
 
-  const node: RowNode<BTN> | undefined =
+  const overNode: RowNode<BTN> | undefined =
     e.overNode ?? e.api.getRowNode(rows[info.highlightedRowIndex].id)
 
-  if (node === undefined) {
+  if (overNode === undefined) {
     meta.resetPotentialParentAndRefresh(e.api)
     return
   }
 
-  node.setHighlighted(info.position)
+  overNode.setHighlighted(info.position)
 
   if (info.position !== null) {
     meta.resetPotentialParentAndRefresh(e.api)
     return
   }
 
-  if (node !== meta.potentialParent) {
-    meta.setPotentialParentAndRefresh(e.api, node)
+  if (overNode !== meta.potentialParent) {
+    meta.setPotentialParentAndRefresh(e.api, overNode)
   }
 }
 
@@ -59,40 +59,88 @@ export const handleRowDragEnd = (
   meta: FolderPanelMetadata,
   currentNodeId: string,
   rows: chrome.bookmarks.BookmarkTreeNode[],
+  setSelectionModel: (model: string[]) => void,
   forceUpdate: () => void,
 ): void => {
   meta.resetPotentialParentAndRefresh(e.api)
   e.api.forEachNode(n => n.setHighlighted(null))
 
-  if (currentNodeId === '0' || e.node.childIndex === 0) {
+  // if current panel is in the root dir: skip (not supported) // todo enable for DND
+  if (currentNodeId === '0') {
     return
   }
 
+  // if any of the draged rows are the '..' (parent dir) row: skip
+  if (e.nodes.filter(n => n.childIndex === 0).length > 0) {
+    return
+  }
+
+  // if moving rows over themselves: skip
   if (e.nodes.filter(n => n === e.overNode).length !== 0) {
     return
   }
 
-  const info = dropInfo(e, rows.length)
-  if (info === undefined) {
+  // if e.node is missing, there's nothing to move
+  if (e.node === undefined || e.node.data === undefined) {
     return
   }
 
-  if (info.isDir && e.overNode === undefined) {
-    console.log('Target node not available')
-    return
-  }
-
-  console.log('handleRowDragEnd()', info)
-
-  const parentId: string | undefined = info.isDir ? e.overNode?.data?.id ?? undefined : undefined
-
+  const nodeData: BTN = e.node.data
   const ids = e.nodes.map(n => n.data?.id ?? undefined).filter(e => e !== undefined) as string[]
-  const directionUp: boolean =
-    info.index !== undefined &&
-    e.nodes.filter(n => n.childIndex < (info.index ?? 0) + 1).length === 0 // todo check if the target dir is the current dir (when enabling the second dnd zone)
-  moveAll(directionUp ? ids.reverse() : ids, parentId, info.index)
+
+  const { dropIntoDir, dropAtIndex } = dropInfo(e, rows.length)
+
+  // when moving items into a child folder...
+  if (dropIntoDir) {
+    const targetDir = e.overNode?.data
+    // if target node not found: skip
+    if (targetDir === undefined) {
+      console.log('Target node not available')
+      return
+    }
+
+    // if source items location is the same as the target directory, skip
+    if (targetDir.id === nodeData.parentId) {
+      console.log('The source and target directories are the same')
+      return
+    }
+
+    // if any of the draged items (dirs) are the same as the target dir, skip
+    if (ids.filter(id => id === targetDir.id).length > 0) {
+      console.log('A directory cannot be moved into itself')
+      return
+    }
+
+    moveAll(ids, targetDir.id)
+      .then(() => {
+        console.log('Moved elements (into child dir)')
+        forceUpdate()
+      })
+      .catch(e => console.log(e))
+    return
+  }
+
+  // when moving item into the same directory...
+  if (currentNodeId === nodeData.parentId) {
+    const directionUp: boolean =
+      dropAtIndex !== undefined &&
+      e.nodes.filter(n => n.childIndex < (dropAtIndex ?? 0) + 1).length === 0
+
+    moveAll(directionUp ? ids.reverse() : ids, undefined, dropAtIndex)
+      .then(() => {
+        console.log('Moved elements (same directory)')
+        setSelectionModel(ids)
+        forceUpdate()
+      })
+      .catch(e => console.log(e))
+    return
+  }
+
+  // when moving item into a different directory...
+  moveAll(ids.reverse(), currentNodeId, dropAtIndex)
     .then(() => {
-      console.log('Moved elements')
+      console.log('Moved elements (into dir)')
+      setSelectionModel(ids)
       forceUpdate()
     })
     .catch(e => console.log(e))

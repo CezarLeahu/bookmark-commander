@@ -156,7 +156,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             }
             onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
             onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
-              handleRowDragEnd(e, meta, currentNodeId, rows, forceUpdate)
+              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, forceUpdate)
             }
             onGridReady={handleGridReady}
           />

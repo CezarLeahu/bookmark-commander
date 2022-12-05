@@ -14,7 +14,8 @@ export function useDndBetweenGrids(): DndBetweenGrids {
 
   useEffect(() => {
     if (gridApis.left.state !== undefined && gridApis.right.state !== undefined) {
-      console.log('We can enable DND')
+      gridApis.left.state.addRowDropZone(gridApis.right.state.getRowDropZoneParams())
+      gridApis.right.state.addRowDropZone(gridApis.left.state.getRowDropZoneParams())
     }
   }, [gridApis.left.state, gridApis.right.state])
 

@@ -64,45 +64,42 @@ const rowHighlightPosition = (e: RowDragMoveEvent<BTN>): RowHighlightPosition | 
 }
 
 interface DndDropInfo {
-  isDir: boolean
-  index?: number
+  dropIntoDir: boolean
+  dropAtIndex?: number
 }
 
-export const dropInfo = (
-  e: RowDragLeaveEvent<BTN>,
-  totalRowCount: number,
-): DndDropInfo | undefined => {
+export const dropInfo = (e: RowDragLeaveEvent<BTN>, totalRowCount: number): DndDropInfo => {
   if (totalRowCount <= 0) {
-    return undefined
+    throw new Error('Invalid moveInfo() call: totalRowCount <= 0')
   }
   if (e.overIndex === 0) {
     return {
-      isDir: false,
-      index: 0,
+      dropIntoDir: false,
+      dropAtIndex: 0,
     }
   }
   if (e.overIndex < 0) {
     return {
-      isDir: false,
-      index: totalRowCount - 1,
+      dropIntoDir: false,
+      dropAtIndex: totalRowCount - 1,
     }
   }
 
   const rowHeight = e.overNode?.rowHeight ?? undefined
   if (rowHeight === undefined) {
-    return undefined
+    throw new Error('moveInfo() error: failed to get the row height')
   }
 
   const bookmarkNode = e.overNode?.data ?? undefined
   if (bookmarkNode === undefined) {
-    return undefined
+    throw new Error('moveInfo() error: failed to get the row BTN data')
   }
 
   const pixelPositionInRow = e.y % rowHeight
   if (isSimpleBookmark(bookmarkNode)) {
     return {
-      isDir: false,
-      index: pixelPositionInRow < rowHeight / 2 ? e.overIndex - 1 : e.overIndex,
+      dropIntoDir: false,
+      dropAtIndex: pixelPositionInRow < rowHeight / 2 ? e.overIndex - 1 : e.overIndex,
     }
   }
 
@@ -110,17 +107,17 @@ export const dropInfo = (
 
   if (pixelPositionInRow < rowHeight / 4) {
     return {
-      isDir: false,
-      index: e.overIndex - 1,
+      dropIntoDir: false,
+      dropAtIndex: e.overIndex - 1,
     }
   }
   if (pixelPositionInRow > (rowHeight / 4) * 3) {
     return {
-      isDir: false,
-      index: e.overIndex,
+      dropIntoDir: false,
+      dropAtIndex: e.overIndex,
     }
   }
   return {
-    isDir: true,
+    dropIntoDir: true,
   }
 }

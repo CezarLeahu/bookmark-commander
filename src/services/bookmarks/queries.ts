@@ -1,5 +1,6 @@
-import * as bookmarks from '../mocks/bookmarks'
-// import bookmarks = chrome.bookmarks
+// import * as bookmarks from '../mocks/bookmarks'
+import bookmarks = chrome.bookmarks
+
 import { BTN } from './types'
 
 export const parent = async (node: BTN): Promise<BTN> => {
