@@ -12,6 +12,7 @@ interface DeleteDialogState {
 
 export function useDeleteDialogState(
   lastSelectedIds: () => string[],
+  updateCurrentNodesIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
   setError: Dispatch<SetStateAction<string | undefined>>,
 ): DeleteDialogState {
@@ -26,6 +27,7 @@ export function useDeleteDialogState(
         setDeleteDialogOpen(false)
         return
       }
+      updateCurrentNodesIfNeeded(ids)
 
       containsNonEmptyDirectories(ids)
         .then(nonEmptyDirsExist => {
@@ -42,7 +44,7 @@ export function useDeleteDialogState(
             .catch(e => console.log(e))
         })
         .catch(e => console.log(e))
-    }, [lastSelectedIds, resetCurrentSelection, setError]),
+    }, [lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection, setError]),
 
     handleDeleteDialogClose: useCallback((): void => setDeleteDialogOpen(false), []),
   }

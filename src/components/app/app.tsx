@@ -12,6 +12,7 @@ import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/utils/utils'
+import { getNode } from '../../services/bookmarks/queries'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDndBetweenGrids } from './grid-dnd-handlers'
@@ -55,6 +56,34 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     forceUpdate()
   }, [selectionModels, selectedSide, currentNodeIds, forceUpdate])
 
+  const updateCurrentNodesIfNeeded = useCallback(
+    (idsToBeDeleted: string[]): void => {
+      if (idsToBeDeleted.length === 0) {
+        return
+      }
+
+      const ids = new Set<string>(idsToBeDeleted)
+      const otherSide: Side = other(selectedSide)
+
+      const checkSide = (side: Side): void => {
+        if (ids.has(currentNodeIds[side].state)) {
+          getNode(currentNodeIds[side].state)
+            .then(n => {
+              currentNodeIds[side].setState(n.parentId ?? '0')
+            })
+            .catch(e => {
+              console.log(e)
+              currentNodeIds[side].setState('0')
+            })
+        }
+      }
+
+      checkSide(otherSide)
+      checkSide(selectedSide)
+    },
+    [currentNodeIds, selectedSide],
+  )
+
   const {
     createBookmarkDialogOpen,
     createDirectoryDialogOpen,
@@ -72,7 +101,12 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     handleDeleteDialogOpen,
     handleDeleteDialogConfirm,
     handleDeleteDialogClose,
-  } = useDeleteDialogState(lastSelectedIds, resetCurrentSelection, setError)
+  } = useDeleteDialogState(
+    lastSelectedIds,
+    updateCurrentNodesIfNeeded,
+    resetCurrentSelection,
+    setError,
+  )
 
   const closeAllDialogs = useCallback((): void => {
     handleCreateDialogClose()

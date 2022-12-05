@@ -1,29 +1,26 @@
 # Backlog
 
-- Handle Drag-n-drop between panels
+- open ALL the selected items on Middle Click
+- add a panel history (latst 10 locations), handle back&forward - Handle MOUSE4 & MOUSE5 events (back and forward)
+- handle Delete key
+- handle Shift+Delete
+- handle Tab key
+- handle Ctrl+A key (or command)
+- handle Enter key (on single select of Dir row)
+- add context menu's
+
+- fix Select row on searching
+- add scroll to row when searching 
 
 - Copy & Paste events
-
 - Handle navigation inside DataGrids
   - events: up, down, Enter, Backspace, Delete, Tab
 
+- handle cell edit on delayed second click?
+
 - Deselect rows after Edit dialog
 
-- Handle row re-ordering
-
-  - it's available in the mui pro version
-  - we might need to re-implement everything... (from the base table & all)
-
-- Handle MOUSE4 & MOUSE5 events (back and forward)
-  - need to add history
-
-- Allow in-line renaming - POSTPONED till MUI gets new functionality
-
-  - editable flag re-enabled for the title field
-  - action&/focus for rename
-  - handle edit on Submmit/Enter
-
-  * forceRerender ? (probably not be needed here)
+- Disable row re-ordering
 
 - [Extension] Check if tabs permissions are needed
 - [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
@@ -31,6 +28,8 @@
 - [Extension] Actually publish the extension
 
 ## Done
+- Handle Drag-n-drop between panels
+
 - Handle Drag-and-drop in the same panel
 
 - Enhance code with 'useCallback' & 'useMemo' hooks - especially on some of the dialogs
@@ -64,14 +63,9 @@
   - side = useRef<Side>(left)
   - pass callback to children: updateSelectedSide(side) :void { currentSide.current = side }, have the children call this on any DataGrid select
 
-## Scrapped
-
 - Use the currently-selected side as the target for opening up _Directory_ search results
 
-- Capture keys (F2-10)
+## Scrapped
+
+- Capture F keys (F2-10)
   - can't easily grab F keys, not a good ideea anyway -> ideea scrapped
-
-- Copy Functionality - Ah, skip this one
-
-  - implement this last
-
