@@ -10,6 +10,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
+import { FolderPanelContextProvider } from '../folder-panel/folder-panel-context'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/utils/utils'
 import { getNode } from '../../services/bookmarks/queries'
@@ -169,39 +170,45 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
       <Grid container spacing={0.5} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
-          <FolderPanel
-            currentNodeId={currentNodeIds.left.state}
-            setCurrentNodeId={currentNodeIds.left.setState}
-            selected={selectedSide === 'left'}
-            onSelect={node => {
-              setSelectedSide('left')
-              console.log(`Selected left panel - id ${node?.id ?? ''}`)
+          <FolderPanelContextProvider
+            value={{
+              currentNodeId: currentNodeIds.left.state,
+              setCurrentNodeId: currentNodeIds.left.setState,
+              selected: selectedSide === 'left',
+              onSelect: node => {
+                setSelectedSide('left')
+                console.log(`Selected left panel - id ${node?.id ?? ''}`)
+              },
+              onGridReady: handleGridReadyLeft,
+              selectionModel: selectionModels.left.state,
+              setSelectionModel: selectionModels.left.setState,
+              refreshContent,
+              forceUpdate,
             }}
-            onGridReady={handleGridReadyLeft}
-            selectionModel={selectionModels.left.state}
-            setSelectionModel={selectionModels.left.setState}
-            refreshContent={refreshContent}
-            forceUpdate={forceUpdate}
-            ref={panelRefs.left}
-          />
+          >
+            <FolderPanel ref={panelRefs.left} />
+          </FolderPanelContextProvider>
         </Grid>
 
         <Grid item xs={6}>
-          <FolderPanel
-            currentNodeId={currentNodeIds.right.state}
-            setCurrentNodeId={currentNodeIds.right.setState}
-            selected={selectedSide === 'right'}
-            onSelect={node => {
-              setSelectedSide('right')
-              console.log(`Selected right panel - id ${node?.id ?? ''}`)
+          <FolderPanelContextProvider
+            value={{
+              currentNodeId: currentNodeIds.right.state,
+              setCurrentNodeId: currentNodeIds.right.setState,
+              selected: selectedSide === 'right',
+              onSelect: node => {
+                setSelectedSide('right')
+                console.log(`Selected right panel - id ${node?.id ?? ''}`)
+              },
+              onGridReady: handleGridReadyRight,
+              selectionModel: selectionModels.right.state,
+              setSelectionModel: selectionModels.right.setState,
+              refreshContent,
+              forceUpdate,
             }}
-            onGridReady={handleGridReadyRight}
-            selectionModel={selectionModels.right.state}
-            setSelectionModel={selectionModels.right.setState}
-            refreshContent={refreshContent}
-            forceUpdate={forceUpdate}
-            ref={panelRefs.right}
-          />
+          >
+            <FolderPanel ref={panelRefs.right} />
+          </FolderPanelContextProvider>
         </Grid>
       </Grid>
 

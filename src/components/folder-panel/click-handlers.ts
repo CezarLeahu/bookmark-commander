@@ -7,6 +7,7 @@ import {
 } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
+import { useFolderPanelContext } from './folder-panel-context'
 
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
@@ -19,12 +20,11 @@ interface ClickHandlers {
 }
 
 export function useClickHandlers(
-  onSelect: (node?: BTN) => void,
-  setCurrentNodeId: (id: string) => void,
-  setSelectionModel: (model: string[]) => void,
   setError: Dispatch<SetStateAction<string | undefined>>,
   api?: GridApi,
 ): ClickHandlers {
+  const { onSelect, setCurrentNodeId, setSelectionModel } = useFolderPanelContext()
+
   return {
     handleRowClick: useCallback(
       (event: RowSelectedEvent<BTN>): void => {

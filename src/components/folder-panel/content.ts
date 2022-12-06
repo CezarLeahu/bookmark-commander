@@ -7,6 +7,7 @@ import {
 } from '../../services/bookmarks/queries'
 
 import { BTN } from '../../services/bookmarks/types'
+import { useFolderPanelContext } from './folder-panel-context'
 
 interface FolderActiveContent {
   topNodes: BTN[]
@@ -18,11 +19,9 @@ interface FolderActiveContent {
   parentId: React.MutableRefObject<string | undefined>
 }
 
-export function useFolderActiveContent(
-  currentNodeId: string,
-  selectionModel: string[],
-  refreshContent: object,
-): FolderActiveContent {
+export function useFolderActiveContent(): FolderActiveContent {
+  const { currentNodeId, selectionModel, refreshContent } = useFolderPanelContext()
+
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [error, setError] = useState<string>()
   const [currentNode, setCurrentNode] = useState<BTN>()

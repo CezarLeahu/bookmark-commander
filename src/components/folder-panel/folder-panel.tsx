@@ -28,53 +28,38 @@ import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
 import { useClickHandlers } from './click-handlers'
 import { useFolderActiveContent } from './content'
+import { useFolderPanelContext } from './folder-panel-context'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
-
-export interface FolderPanelProps {
-  readonly currentNodeId: string
-  readonly setCurrentNodeId: (id: string) => void
-  readonly selected: boolean
-  readonly onSelect: (node?: BTN) => void
-  readonly onGridReady: (params: GridReadyEvent) => void
-  readonly selectionModel: string[]
-  readonly setSelectionModel: (model: string[]) => void
-  readonly refreshContent: object
-  readonly forceUpdate: () => void
-}
 
 export interface FolderPanelHandle {
   renameCell: (id: string | undefined) => void
 }
 
-const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  {
+const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle> = (
+  props,
+  ref: React.ForwardedRef<FolderPanelHandle>,
+) => {
+  const {
     currentNodeId,
     setCurrentNodeId,
     selected,
-    onSelect,
     onGridReady,
     selectionModel,
     setSelectionModel,
-    refreshContent,
     forceUpdate,
-  }: FolderPanelProps,
-  ref: React.ForwardedRef<FolderPanelHandle>,
-) => {
+  } = useFolderPanelContext()
+
   const theme = useTheme()
   const getRowId = useRowIdMemo()
   const gridApi = useRef<GridApi<BTN>>()
 
   const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
-    useFolderActiveContent(currentNodeId, selectionModel, refreshContent)
+    useFolderActiveContent()
 
-  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } = useClickHandlers(
-    onSelect,
-    setCurrentNodeId,
-    setSelectionModel,
-    setError,
-  )
+  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } =
+    useClickHandlers(setError)
 
   useEffect(() => {
     if (gridApi.current === undefined) {
@@ -88,7 +73,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     gridApi.current.forEachNode(n =>
       n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
     )
-    // gridApi.current.redrawRows()
   }, [currentNodeId, rows, selectionModel])
 
   const handleGridReady = (params: GridReadyEvent): void => {
