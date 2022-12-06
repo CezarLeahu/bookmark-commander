@@ -13,11 +13,12 @@ import {
   Popper,
 } from '@mui/material'
 import React, { ChangeEvent, FocusEvent, useRef, useState } from 'react'
-import { getFaviconUrl, isDirectory } from '../../services/utils/utils'
 
 import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import SearchIcon from '@mui/icons-material/Search'
+import { getFaviconUrl } from '../../services/favicons/favicons'
+import { isDirectory } from '../../services/utils/utils'
 import { search } from '../../services/bookmarks/commands'
 
 export interface SearchProps {

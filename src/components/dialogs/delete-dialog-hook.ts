@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
@@ -14,7 +14,6 @@ export function useDeleteDialogState(
   lastSelectedIds: () => string[],
   updateCurrentNodesIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
-  setError: Dispatch<SetStateAction<string | undefined>>,
 ): DeleteDialogState {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
@@ -32,7 +31,7 @@ export function useDeleteDialogState(
       containsNonEmptyDirectories(ids)
         .then(nonEmptyDirsExist => {
           if (nonEmptyDirsExist) {
-            setError('Cannot delete non-empty folders!')
+            console.log('Cannot delete non-empty folders!')
             setDeleteDialogOpen(false)
             return
           }
@@ -44,7 +43,7 @@ export function useDeleteDialogState(
             .catch(e => console.log(e))
         })
         .catch(e => console.log(e))
-    }, [lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection, setError]),
+    }, [lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection]),
 
     handleDeleteDialogClose: useCallback((): void => setDeleteDialogOpen(false), []),
   }

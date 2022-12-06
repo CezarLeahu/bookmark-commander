@@ -1,18 +1,16 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import {
   childrenAndParent,
   getNode,
   getTopNodes,
   parentPath,
 } from '../../services/bookmarks/queries'
+import { useEffect, useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { useFolderPanelContext } from './folder-panel-context'
 
 interface FolderActiveContent {
   topNodes: BTN[]
-  error: string | undefined
-  setError: Dispatch<SetStateAction<string | undefined>>
   currentNode: chrome.bookmarks.BookmarkTreeNode | undefined
   breadcrumbs: chrome.bookmarks.BookmarkTreeNode[]
   rows: chrome.bookmarks.BookmarkTreeNode[]
@@ -23,7 +21,6 @@ export function useFolderActiveContent(): FolderActiveContent {
   const { currentNodeId, selectionModel, refreshContent } = useFolderPanelContext()
 
   const [topNodes, setTopNodes] = useState<BTN[]>([])
-  const [error, setError] = useState<string>()
   const [currentNode, setCurrentNode] = useState<BTN>()
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
   const [rows, setRows] = useState<BTN[]>([])
@@ -32,21 +29,21 @@ export function useFolderActiveContent(): FolderActiveContent {
   useEffect(() => {
     getTopNodes().then(
       r => setTopNodes(r),
-      e => setError(e),
+      e => console.log(e),
     )
   }, [])
 
   useEffect(() => {
     getNode(currentNodeId).then(
       r => setCurrentNode(r),
-      e => setError(e),
+      e => console.log(e),
     )
   }, [currentNodeId])
 
   useEffect(() => {
     parentPath(currentNode).then(
       r => setBreadcrumbs(r),
-      e => setError(e),
+      e => console.log(e),
     )
   }, [currentNode])
 
@@ -56,14 +53,12 @@ export function useFolderActiveContent(): FolderActiveContent {
         setRows(r)
         parentId.current = pId
       },
-      e => setError(e),
+      e => console.log(e),
     )
   }, [currentNodeId, refreshContent, selectionModel])
 
   return {
     topNodes,
-    error,
-    setError,
     currentNode,
     breadcrumbs,
     rows,

@@ -2,14 +2,18 @@ import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
+
+import App from './components/app/app'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import ThemedApp from './components/themedApp'
+import { ThemeContextProvider } from './components/app/theme-context'
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
   <React.StrictMode>
-    <ThemedApp />
+    <ThemeContextProvider>
+      <App />
+    </ThemeContextProvider>
   </React.StrictMode>,
 )

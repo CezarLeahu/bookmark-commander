@@ -1,4 +1,3 @@
-import { Dispatch, SetStateAction, useCallback } from 'react'
 import {
   GridApi,
   RowDoubleClickedEvent,
@@ -7,6 +6,7 @@ import {
 } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
+import { useCallback } from 'react'
 import { useFolderPanelContext } from './folder-panel-context'
 
 interface ClickHandlers {
@@ -19,10 +19,7 @@ interface ClickHandlers {
   handleMouseUpOnEmptySpace: () => void
 }
 
-export function useClickHandlers(
-  setError: Dispatch<SetStateAction<string | undefined>>,
-  api?: GridApi,
-): ClickHandlers {
+export function useClickHandlers(api?: GridApi): ClickHandlers {
   const { onSelect, setCurrentNodeId, setSelectionModel } = useFolderPanelContext()
 
   return {
@@ -47,10 +44,10 @@ export function useClickHandlers(
             setCurrentNodeId(String(node.id))
             break
           default: // actual bookmark - open in new tab
-            chrome.tabs.create({ url: node.url }).catch(e => setError(e))
+            chrome.tabs.create({ url: node.url }).catch(e => console.log(e))
         }
       },
-      [setCurrentNodeId, setError],
+      [setCurrentNodeId],
     ),
 
     handleSelectionChanged: useCallback(

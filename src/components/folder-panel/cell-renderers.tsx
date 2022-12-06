@@ -1,8 +1,8 @@
-import { getFaviconUrl, isDirectory } from '../../services/utils/utils'
-
 import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import { ICellRendererParams } from 'ag-grid-community'
+import { getFaviconUrl } from '../../services/favicons/favicons'
+import { isDirectory } from '../../services/utils/utils'
 
 export const titleCellRenderer = (params: ICellRendererParams<BTN, string>): JSX.Element => {
   return (

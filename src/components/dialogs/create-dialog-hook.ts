@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction, useCallback, useState } from 'react'
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
+import { useCallback, useState } from 'react'
 
 import { PairState } from '../../services/utils/hooks'
 import { Side } from '../../services/utils/types'
@@ -17,7 +17,6 @@ export function useCreateDialogState(
   selectedSide: Side,
   currentNodeIds: PairState<string>,
   resetCurrentSelection: () => void,
-  setError: Dispatch<SetStateAction<string | undefined>>,
 ): CreateDialogState {
   const [createBookmarkDialogOpen, setCreateBookmarkDialogOpen] = useState(false)
   const [createDirectoryDialogOpen, setCreateDirectoryDialogOpen] = useState(false)
@@ -47,7 +46,7 @@ export function useCreateDialogState(
               setCreateDirectoryDialogOpen(false)
               resetCurrentSelection()
             })
-            .catch(e => setError(e))
+            .catch(e => console.log(e))
         } else {
           createBookmark(parentId, title, url)
             .then(() => {
@@ -55,10 +54,10 @@ export function useCreateDialogState(
               setCreateDirectoryDialogOpen(false)
               resetCurrentSelection()
             })
-            .catch(e => setError(e))
+            .catch(e => console.log(e))
         }
       },
-      [currentNodeIds, selectedSide, resetCurrentSelection, setError],
+      [currentNodeIds, selectedSide, resetCurrentSelection],
     ),
     handleCreateDialogClose: useCallback((): void => {
       setCreateBookmarkDialogOpen(false)

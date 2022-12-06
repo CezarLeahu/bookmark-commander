@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { update } from '../../services/bookmarks/commands'
@@ -10,10 +10,7 @@ interface EditDialogState {
   handleEditDialogClose: () => void
 }
 
-export function useEditDialogState(
-  resetCurrentSelection: () => void,
-  setError: Dispatch<SetStateAction<string | undefined>>,
-): EditDialogState {
+export function useEditDialogState(resetCurrentSelection: () => void): EditDialogState {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
 
   return {
@@ -26,9 +23,9 @@ export function useEditDialogState(
             setEditDialogOpen(false)
             resetCurrentSelection()
           })
-          .catch(e => setError(e))
+          .catch(e => console.log(e))
       },
-      [resetCurrentSelection, setError],
+      [resetCurrentSelection],
     ),
     handleEditDialogClose: useCallback((): void => setEditDialogOpen(false), []),
   }
