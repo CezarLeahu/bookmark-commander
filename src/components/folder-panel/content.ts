@@ -4,27 +4,23 @@ import {
   getTopNodes,
   parentPath,
 } from '../../services/bookmarks/queries'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
-import { useFolderPanelContext } from './folder-panel-context'
+import { GridApi } from 'ag-grid-community'
 
 interface FolderActiveContent {
   topNodes: BTN[]
   currentNode: chrome.bookmarks.BookmarkTreeNode | undefined
   breadcrumbs: chrome.bookmarks.BookmarkTreeNode[]
   rows: chrome.bookmarks.BookmarkTreeNode[]
-  parentId: React.MutableRefObject<string | undefined>
 }
 
-export function useFolderActiveContent(): FolderActiveContent {
-  const { currentNodeId, selectionModel, refreshContent } = useFolderPanelContext()
-
+export function useFolderContentEffect(currentNodeId: string): FolderActiveContent {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [currentNode, setCurrentNode] = useState<BTN>()
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
   const [rows, setRows] = useState<BTN[]>([])
-  const parentId = useRef<string>()
 
   useEffect(() => {
     getTopNodes().then(
@@ -49,19 +45,34 @@ export function useFolderActiveContent(): FolderActiveContent {
 
   useEffect(() => {
     childrenAndParent(currentNodeId).then(
-      ([r, pId]) => {
-        setRows(r)
-        parentId.current = pId
-      },
+      ([r]) => setRows(r),
       e => console.log(e),
     )
-  }, [currentNodeId, refreshContent, selectionModel])
+  }, [currentNodeId])
 
   return {
     topNodes,
     currentNode,
     breadcrumbs,
     rows,
-    parentId,
   }
+}
+
+export function useGridSelectionEffect(
+  gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
+  selectionModel: string[],
+): void {
+  useEffect(() => {
+    if (gridApi.current === undefined) {
+      return
+    }
+    if (selectionModel.length === 0) {
+      gridApi.current.deselectAll()
+      return
+    }
+    const ids = new Set<string>(selectionModel)
+    gridApi.current.forEachNode(n =>
+      n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
+    )
+  }, [gridApi, selectionModel])
 }

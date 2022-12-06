@@ -7,7 +7,6 @@ import {
 
 import { BTN } from '../../services/bookmarks/types'
 import { useCallback } from 'react'
-import { useFolderPanelContext } from './folder-panel-context'
 
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
@@ -19,18 +18,28 @@ interface ClickHandlers {
   handleMouseUpOnEmptySpace: () => void
 }
 
-export function useClickHandlers(api?: GridApi): ClickHandlers {
-  const { onSelect, setCurrentNodeId, setSelectionModel } = useFolderPanelContext()
+export function useClickHandlers(
+  highlightSide: () => void,
+  setCurrentNodeId: (id: string) => void,
+  setSelectionModel: (model: string[]) => void,
 
+  api?: GridApi,
+): ClickHandlers {
   return {
     handleRowClick: useCallback(
       (event: RowSelectedEvent<BTN>): void => {
         const node = event.data
         if (node !== undefined) {
-          onSelect(node)
+          highlightSide()
+          setSelectionModel(
+            event.api
+              .getSelectedNodes()
+              .map(n => n.id)
+              .filter(id => id !== undefined) as string[],
+          )
         }
       },
-      [onSelect],
+      [highlightSide, setSelectionModel],
     ),
 
     handleRowDoubleClick: useCallback(
@@ -63,8 +72,8 @@ export function useClickHandlers(api?: GridApi): ClickHandlers {
       }
       // TODO this doesn't work properly - it disables multiple select
       setSelectionModel([])
-      onSelect()
+      highlightSide()
       api.deselectAll()
-    }, [onSelect, setSelectionModel, api]),
+    }, [highlightSide, setSelectionModel, api]),
   }
 }

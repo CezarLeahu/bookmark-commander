@@ -3,16 +3,7 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
 import '../../styles/style.css'
 
-import {
-  Alert,
-  Box,
-  Breadcrumbs,
-  Button,
-  ButtonGroup,
-  Container,
-  Link,
-  Typography,
-} from '@mui/material'
+import { Box, Breadcrumbs, Button, ButtonGroup, Container, Link, Typography } from '@mui/material'
 import {
   GridApi,
   GridReadyEvent,
@@ -20,15 +11,16 @@ import {
   RowDragLeaveEvent,
   RowDragMoveEvent,
 } from 'ag-grid-community'
-import { folderPanelMetadata, useRowIdMemo } from './metadata'
-import { forwardRef, useEffect, useRef } from 'react'
+import { forwardRef, useCallback, useMemo, useRef } from 'react'
 import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './dnd-handlers'
+import { useFolderContentEffect, useGridSelectionEffect } from './content'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
+import { FolderPanelProps } from './folder-panel-context'
+import { folderPanelMetadata } from './metadata'
 import { useClickHandlers } from './click-handlers'
-import { useFolderActiveContent } from './content'
-import { useFolderPanelContext } from './folder-panel-context'
+import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
 const meta = folderPanelMetadata()
@@ -37,49 +29,42 @@ export interface FolderPanelHandle {
   renameCell: (id: string | undefined) => void
 }
 
-const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle> = (
-  props,
-  ref: React.ForwardedRef<FolderPanelHandle>,
-) => {
-  const {
+const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
+  {
+    highlighted,
+    highlightSide,
     currentNodeId,
     setCurrentNodeId,
-    selected,
     onGridReady,
     selectionModel,
     setSelectionModel,
     forceUpdate,
-  } = useFolderPanelContext()
-
+  }: FolderPanelProps,
+  ref: React.ForwardedRef<FolderPanelHandle>,
+) => {
   const theme = useTheme()
   const getRowId = useRowIdMemo()
   const gridApi = useRef<GridApi<BTN>>()
 
-  const { topNodes, error, setError, currentNode, breadcrumbs, rows, parentId } =
-    useFolderActiveContent()
+  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(currentNodeId)
 
-  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } =
-    useClickHandlers(setError)
+  useGridSelectionEffect(gridApi, selectionModel)
 
-  useEffect(() => {
-    if (gridApi.current === undefined) {
-      return
-    }
-    if (selectionModel.length === 0) {
-      gridApi.current.deselectAll()
-      return
-    }
-    const ids = new Set<string>(selectionModel)
-    gridApi.current.forEachNode(n =>
-      n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
-    )
-  }, [currentNodeId, rows, selectionModel])
+  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } = useClickHandlers(
+    highlightSide,
+    setCurrentNodeId,
+    setSelectionModel,
+  )
 
-  const handleGridReady = (params: GridReadyEvent): void => {
-    gridApi.current = params.api
-    onGridReady(params)
-  }
+  const handleGridReady = useCallback(
+    (params: GridReadyEvent): void => {
+      gridApi.current = params.api
+      onGridReady(params)
+    },
+    [onGridReady],
+  )
 
+  const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
   return (
     <Container
       maxWidth={false}
@@ -93,15 +78,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle> = (
       }}
     >
       {/* <div style={{ flex: 1 }} onMouseUp={handleMouseUpOnEmptySpace}> */}
-      <Box>
-        {error !== undefined ? (
-          <Alert severity='error' onClose={() => setError(undefined)}>
-            {error}
-          </Alert>
-        ) : (
-          <></>
-        )}
-      </Box>
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
           {topNodes.map(d => (
@@ -132,7 +108,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle> = (
         alignItems='center'
         sx={{
           border: 1,
-          borderColor: selected ? 'primary.main' : 'background.default',
+          borderColor: isHighlighted ? 'primary.main' : 'background.default',
           height: '100%',
         }}
       >
@@ -149,7 +125,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle> = (
             onRowClicked={handleRowClick}
             onRowDoubleClicked={handleRowDoubleClick}
             onSelectionChanged={handleSelectionChanged}
-            isRowSelectable={p => p.id !== parentId.current}
+            isRowSelectable={p => p.id !== currentNode?.parentId}
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging

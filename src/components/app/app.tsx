@@ -1,7 +1,7 @@
-import { Alert, Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
-import { Context, useCallback, useContext, useState } from 'react'
+import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
 import { Side, other } from '../../services/utils/types'
+import { useCallback, useState } from 'react'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -10,7 +10,6 @@ import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
-import { FolderPanelContextProvider } from '../folder-panel/folder-panel-context'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/utils/utils'
 import { getNode } from '../../services/bookmarks/queries'
@@ -20,19 +19,13 @@ import { useDndBetweenGrids } from './grid-dnd-handlers'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './move-handlers'
 import { useTheme } from '@mui/material/styles'
+import { useThemeContext } from './theme-context'
 
-interface AppProps {
-  colorModeContext: Context<{
-    toggleColorMode: () => void
-  }>
-}
-
-const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
+const App: React.FC = () => {
   const theme = useTheme()
-  const colorMode = useContext(colorModeContext)
+  const themeContext = useThemeContext()
 
-  const [error, setError] = useState<string>()
-  const [refreshContent, setRefreshContent] = useState({})
+  const [, setRefreshContent] = useState({})
   const forceUpdate = useCallback(() => setRefreshContent({}), [])
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
@@ -41,12 +34,10 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
   const selectionModels = usePairState<string[]>([], [])
 
-  const lastSelectedIds = useCallback((): string[] => {
-    return selectionModels[selectedSide].state
-      .filter(e => e !== undefined)
-      .filter(e => e !== currentNodeIds[selectedSide].state)
-      .map(e => String(e))
-  }, [selectionModels, selectedSide, currentNodeIds])
+  const lastSelectedIds = useCallback(
+    (): string[] => selectionModels[selectedSide].state,
+    [selectionModels, selectedSide],
+  )
 
   const resetCurrentSelection = useCallback((): void => {
     selectionModels[selectedSide].setState([])
@@ -54,8 +45,7 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
       selectionModels[otherSide].setState([])
     }
-    forceUpdate()
-  }, [selectionModels, selectedSide, currentNodeIds, forceUpdate])
+  }, [selectionModels, selectedSide, currentNodeIds])
 
   const updateCurrentNodesIfNeeded = useCallback(
     (idsToBeDeleted: string[]): void => {
@@ -92,22 +82,17 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
     handleCreateDirectoryDialogOpen,
     handleCreateDialogConfirm,
     handleCreateDialogClose,
-  } = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection, setError)
+  } = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection)
 
   const { editDialogOpen, handleEditDialogOpen, handleEditDialogConfirm, handleEditDialogClose } =
-    useEditDialogState(resetCurrentSelection, setError)
+    useEditDialogState(resetCurrentSelection)
 
   const {
     deleteDialogOpen,
     handleDeleteDialogOpen,
     handleDeleteDialogConfirm,
     handleDeleteDialogClose,
-  } = useDeleteDialogState(
-    lastSelectedIds,
-    updateCurrentNodesIfNeeded,
-    resetCurrentSelection,
-    setError,
-  )
+  } = useDeleteDialogState(lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection)
 
   const closeAllDialogs = useCallback((): void => {
     handleCreateDialogClose()
@@ -148,20 +133,11 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
       disableGutters
       sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
-      <Box>
-        {error !== undefined ? (
-          <Alert severity='error' onClose={() => setError(undefined)}>
-            {error}
-          </Alert>
-        ) : (
-          <></>
-        )}
-      </Box>
       <Box display='flex' justifyContent='center' alignItems='center'>
         <Search onJumpTo={handleJumpTo} />
         <IconButton
           sx={{ ml: 1, justifySelf: 'right' }}
-          onClick={colorMode.toggleColorMode}
+          onClick={themeContext.toggleColorMode}
           color='inherit'
         >
           {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -170,45 +146,31 @@ const App: React.FC<AppProps> = ({ colorModeContext }: AppProps) => {
 
       <Grid container spacing={0.5} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
         <Grid item xs={6}>
-          <FolderPanelContextProvider
-            value={{
-              currentNodeId: currentNodeIds.left.state,
-              setCurrentNodeId: currentNodeIds.left.setState,
-              selected: selectedSide === 'left',
-              onSelect: node => {
-                setSelectedSide('left')
-                console.log(`Selected left panel - id ${node?.id ?? ''}`)
-              },
-              onGridReady: handleGridReadyLeft,
-              selectionModel: selectionModels.left.state,
-              setSelectionModel: selectionModels.left.setState,
-              refreshContent,
-              forceUpdate,
-            }}
-          >
-            <FolderPanel ref={panelRefs.left} />
-          </FolderPanelContextProvider>
+          <FolderPanel
+            ref={panelRefs.left}
+            highlighted={selectedSide === 'left'}
+            highlightSide={() => setSelectedSide('left')}
+            currentNodeId={currentNodeIds.left.state}
+            setCurrentNodeId={currentNodeIds.left.setState}
+            onGridReady={handleGridReadyLeft}
+            selectionModel={selectionModels.left.state}
+            setSelectionModel={selectionModels.left.setState}
+            forceUpdate={forceUpdate}
+          />
         </Grid>
 
         <Grid item xs={6}>
-          <FolderPanelContextProvider
-            value={{
-              currentNodeId: currentNodeIds.right.state,
-              setCurrentNodeId: currentNodeIds.right.setState,
-              selected: selectedSide === 'right',
-              onSelect: node => {
-                setSelectedSide('right')
-                console.log(`Selected right panel - id ${node?.id ?? ''}`)
-              },
-              onGridReady: handleGridReadyRight,
-              selectionModel: selectionModels.right.state,
-              setSelectionModel: selectionModels.right.setState,
-              refreshContent,
-              forceUpdate,
-            }}
-          >
-            <FolderPanel ref={panelRefs.right} />
-          </FolderPanelContextProvider>
+          <FolderPanel
+            ref={panelRefs.right}
+            highlighted={selectedSide === 'right'}
+            highlightSide={() => setSelectedSide('right')}
+            currentNodeId={currentNodeIds.right.state}
+            setCurrentNodeId={currentNodeIds.right.setState}
+            onGridReady={handleGridReadyRight}
+            selectionModel={selectionModels.right.state}
+            setSelectionModel={selectionModels.right.setState}
+            forceUpdate={forceUpdate}
+          />
         </Grid>
       </Grid>
 
