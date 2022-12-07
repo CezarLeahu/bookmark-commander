@@ -4,29 +4,29 @@ import { BTN } from '../../services/bookmarks/types'
 import { update } from '../../services/bookmarks/commands'
 
 interface EditDialogState {
-  editDialogOpen: boolean
-  handleEditDialogOpen: () => void
-  handleEditDialogConfirm: (node: BTN) => void
-  handleEditDialogClose: () => void
+  open: boolean
+  handleOpen: () => void
+  handleConfirm: (node: BTN) => void
+  handleClose: () => void
 }
 
 export function useEditDialogState(resetCurrentSelection: () => void): EditDialogState {
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [open, setOpen] = useState(false)
 
   return {
-    editDialogOpen,
-    handleEditDialogOpen: useCallback((): void => setEditDialogOpen(true), []),
-    handleEditDialogConfirm: useCallback(
+    open,
+    handleOpen: useCallback((): void => setOpen(true), []),
+    handleConfirm: useCallback(
       (node: BTN): void => {
         update(node)
           .then(() => {
-            setEditDialogOpen(false)
+            setOpen(false)
             resetCurrentSelection()
           })
           .catch(e => console.log(e))
       },
       [resetCurrentSelection],
     ),
-    handleEditDialogClose: useCallback((): void => setEditDialogOpen(false), []),
+    handleClose: useCallback((): void => setOpen(false), []),
   }
 }

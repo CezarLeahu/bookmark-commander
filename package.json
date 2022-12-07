@@ -29,6 +29,7 @@
     "eject": "react-scripts eject",
     "lint": "eslint --no-error-on-unmatched-pattern src/**/*.{js,jsx,ts,tsx,json}",
     "lint:fix": "eslint --no-error-on-unmatched-pattern --fix 'src/**/*.{js,jsx,ts,tsx,json}'",
+    "import-sort": "import-sort --write src/**/*.{js,jsx,ts,tsx}",
     "format": "prettier --no-error-on-unmatched-pattern --write 'src/**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
   },
   "eslintConfig": {
@@ -63,6 +64,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.31.10",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "import-sort-cli": "^6.0.0",
     "prettier": "^2.7.1"
   }
 }

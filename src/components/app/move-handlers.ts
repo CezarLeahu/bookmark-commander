@@ -3,9 +3,10 @@ import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
 import { PairState } from '../../services/utils/hooks'
+import { useLastSelectedIds } from './app-content'
 
 interface MoveHandlers {
-  handleMove: () => void
+  handleMoveBetweenPanels: () => void
   handleMoveUp: () => void
   handleMoveDown: () => void
 }
@@ -15,12 +16,12 @@ export function useMoveHandlers(
   setSelectedSide: Dispatch<SetStateAction<Side>>,
   currentNodeIds: PairState<string>,
   selectionModels: PairState<string[]>,
-  lastSelectedIds: () => string[],
-  resetCurrentSelection: () => void,
-  closeAllDialogs: () => void,
+  refreshPanels: () => void,
 ): MoveHandlers {
+  const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
+
   return {
-    handleMove: (): void => {
+    handleMoveBetweenPanels: (): void => {
       const nodeIds = lastSelectedIds()
       if (nodeIds === undefined || nodeIds.length === 0) {
         return
@@ -35,7 +36,7 @@ export function useMoveHandlers(
 
       moveAll(nodeIds, currentNodeIds[otherSide].state)
         .then(() => {
-          resetCurrentSelection()
+          selectionModels[selectedSide].setState([])
           selectionModels[otherSide].setState(nodeIds)
           setSelectedSide(otherSide)
         })
@@ -49,8 +50,8 @@ export function useMoveHandlers(
       }
       moveUp(nodeIds)
         .then(() => {
-          closeAllDialogs()
           selectionModels[selectedSide].setState(nodeIds)
+          refreshPanels()
         })
         .catch(e => console.log(e))
     },
@@ -62,8 +63,8 @@ export function useMoveHandlers(
       }
       moveDown(nodeIds)
         .then(() => {
-          closeAllDialogs()
           selectionModels[selectedSide].setState(nodeIds)
+          refreshPanels()
         })
         .catch(e => console.log(e))
     },

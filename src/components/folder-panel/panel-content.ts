@@ -61,6 +61,7 @@ export function useFolderContentEffect(currentNodeId: string): FolderActiveConte
 export function useGridSelectionEffect(
   gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
   selectionModel: string[],
+  rows: BTN[],
 ): void {
   useEffect(() => {
     if (gridApi.current === undefined) {
@@ -74,5 +75,5 @@ export function useGridSelectionEffect(
     gridApi.current.forEachNode(n =>
       n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
     )
-  }, [gridApi, selectionModel])
+  }, [gridApi, selectionModel, rows])
 }

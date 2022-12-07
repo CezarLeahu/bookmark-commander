@@ -9,7 +9,7 @@ interface DndBetweenGrids {
   handleGridReadyRight: (params: GridReadyEvent) => void
 }
 
-export function useDndBetweenGrids(): DndBetweenGrids {
+export function useDragAndDropPanelBinder(): DndBetweenGrids {
   const gridApis = usePairStateEmpty<GridApi<BTN>>()
 
   useEffect(() => {

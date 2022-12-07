@@ -1,24 +1,15 @@
-import {
-  GridApi,
-  RowDoubleClickedEvent,
-  RowSelectedEvent,
-  SelectionChangedEvent,
-} from 'ag-grid-community'
+import { GridApi, RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
 import { useCallback } from 'react'
 
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
-
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
-
-  handleSelectionChanged: (event: SelectionChangedEvent<BTN>) => void
-
   handleMouseUpOnEmptySpace: () => void
 }
 
-export function useClickHandlers(
+export function useGridSelectionHandlers(
   highlightSide: () => void,
   setCurrentNodeId: (id: string) => void,
   setSelectionModel: (model: string[]) => void,
@@ -28,16 +19,8 @@ export function useClickHandlers(
   return {
     handleRowClick: useCallback(
       (event: RowSelectedEvent<BTN>): void => {
-        const node = event.data
-        if (node !== undefined) {
-          highlightSide()
-          setSelectionModel(
-            event.api
-              .getSelectedNodes()
-              .map(n => n.id)
-              .filter(id => id !== undefined) as string[],
-          )
-        }
+        highlightSide()
+        setSelectionModel(event.api.getSelectedRows().map(n => n.id))
       },
       [highlightSide, setSelectionModel],
     ),
@@ -57,13 +40,6 @@ export function useClickHandlers(
         }
       },
       [setCurrentNodeId],
-    ),
-
-    handleSelectionChanged: useCallback(
-      (event: SelectionChangedEvent<BTN>): void => {
-        setSelectionModel(event.api.getSelectedRows().map(n => n.id))
-      },
-      [setSelectionModel],
     ),
 
     handleMouseUpOnEmptySpace: useCallback((): void => {

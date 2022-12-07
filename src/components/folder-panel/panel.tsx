@@ -12,14 +12,14 @@ import {
   RowDragMoveEvent,
 } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './dnd-handlers'
+import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './panel-dnd-handlers'
 import { useFolderContentEffect, useGridSelectionEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelProps } from './folder-panel-context'
+import { FolderPanelProps } from './panel-context'
 import { folderPanelMetadata } from './metadata'
-import { useClickHandlers } from './click-handlers'
+import { useGridSelectionHandlers } from './click-handlers'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
@@ -35,7 +35,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     highlightSide,
     currentNodeId,
     setCurrentNodeId,
-    onGridReady,
+    notifyGridReady,
     selectionModel,
     setSelectionModel,
     refreshPanels,
@@ -48,9 +48,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(currentNodeId)
 
-  useGridSelectionEffect(gridApi, selectionModel)
+  useGridSelectionEffect(gridApi, selectionModel, rows)
 
-  const { handleRowClick, handleRowDoubleClick, handleSelectionChanged } = useClickHandlers(
+  const { handleRowClick, handleRowDoubleClick } = useGridSelectionHandlers(
     highlightSide,
     setCurrentNodeId,
     setSelectionModel,
@@ -59,9 +59,9 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const handleGridReady = useCallback(
     (params: GridReadyEvent): void => {
       gridApi.current = params.api
-      onGridReady(params)
+      notifyGridReady(params)
     },
-    [onGridReady],
+    [notifyGridReady],
   )
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
@@ -124,7 +124,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowSelection='multiple'
             onRowClicked={handleRowClick}
             onRowDoubleClicked={handleRowDoubleClick}
-            onSelectionChanged={handleSelectionChanged}
             isRowSelectable={p => p.id !== currentNode?.parentId}
             rowDragEntireRow
             rowDragMultiRow

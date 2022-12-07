@@ -1,24 +1,28 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
-import FolderPanel, { FolderPanelHandle } from '../folder-panel/folder-panel'
-import { Side, other } from '../../services/utils/types'
-import { useCallback, useState } from 'react'
+import FolderPanel, { FolderPanelHandle } from '../folder-panel/panel'
+import {
+  useJumpToParent,
+  useLastSelectedIds,
+  useRefreshPanels,
+  useSelectionReset,
+  useUpdateCurrentPathsIfNeeded,
+} from './app-content'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
-import { BTN } from '../../services/bookmarks/types'
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import Search from '../search/search'
+import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/utils/utils'
-import { getNode } from '../../services/bookmarks/queries'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
-import { useDndBetweenGrids } from './grid-dnd-handlers'
+import { useDragAndDropPanelBinder } from './grid-dnd-handlers'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './move-handlers'
-import { useRefreshPanels } from './app-content'
+import { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
 
@@ -26,106 +30,38 @@ const App: React.FC = () => {
   const theme = useTheme()
   const themeContext = useThemeContext()
 
-  const refreshPanels = useRefreshPanels()
-
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const [selectedSide, setSelectedSide] = useState<Side>('left')
   const currentNodeIds = usePairState<string>('1', '2')
-
   const selectionModels = usePairState<string[]>([], [])
 
-  const lastSelectedIds = useCallback(
-    (): string[] => selectionModels[selectedSide].state,
-    [selectionModels, selectedSide],
-  )
+  const refreshPanels = useRefreshPanels()
 
-  const resetCurrentSelection = useCallback((): void => {
-    selectionModels[selectedSide].setState([])
-    const otherSide: Side = other(selectedSide)
-    if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
-      selectionModels[otherSide].setState([])
-    }
-  }, [selectionModels, selectedSide, currentNodeIds])
+  const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
 
-  const updateCurrentNodesIfNeeded = useCallback(
-    (idsToBeDeleted: string[]): void => {
-      if (idsToBeDeleted.length === 0) {
-        return
-      }
+  const resetCurrentSelection = useSelectionReset(selectedSide, currentNodeIds, selectionModels)
 
-      const ids = new Set<string>(idsToBeDeleted)
-      const otherSide: Side = other(selectedSide)
+  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded(selectedSide, currentNodeIds)
 
-      const checkSide = (side: Side): void => {
-        if (ids.has(currentNodeIds[side].state)) {
-          getNode(currentNodeIds[side].state)
-            .then(n => {
-              currentNodeIds[side].setState(n.parentId ?? '0')
-            })
-            .catch(e => {
-              console.log(e)
-              currentNodeIds[side].setState('0')
-            })
-        }
-      }
+  const jumpToParent = useJumpToParent(selectedSide, currentNodeIds, selectionModels)
 
-      checkSide(otherSide)
-      checkSide(selectedSide)
-    },
-    [currentNodeIds, selectedSide],
-  )
+  const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const {
-    createBookmarkDialogOpen,
-    createDirectoryDialogOpen,
-    handleCreateBookmarkDialogOpen,
-    handleCreateDirectoryDialogOpen,
-    handleCreateDialogConfirm,
-    handleCreateDialogClose,
-  } = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection)
-
-  const { editDialogOpen, handleEditDialogOpen, handleEditDialogConfirm, handleEditDialogClose } =
-    useEditDialogState(resetCurrentSelection)
-
-  const {
-    deleteDialogOpen,
-    handleDeleteDialogOpen,
-    handleDeleteDialogConfirm,
-    handleDeleteDialogClose,
-  } = useDeleteDialogState(lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection)
-
-  const closeAllDialogs = useCallback((): void => {
-    handleCreateDialogClose()
-    handleEditDialogClose()
-    handleDeleteDialogClose()
-    resetCurrentSelection()
-  }, [
-    handleCreateDialogClose,
-    handleEditDialogClose,
-    handleDeleteDialogClose,
+  const createDialog = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection)
+  const editDialog = useEditDialogState(resetCurrentSelection)
+  const deleteDialog = useDeleteDialogState(
+    lastSelectedIds,
+    updateCurrentPathsIfNeeded,
     resetCurrentSelection,
-  ])
+  )
 
-  const { handleMove, handleMoveUp, handleMoveDown } = useMoveHandlers(
+  const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     selectedSide,
     setSelectedSide,
     currentNodeIds,
     selectionModels,
-    lastSelectedIds,
-    resetCurrentSelection,
-    closeAllDialogs,
+    refreshPanels,
   )
-
-  const handleJumpTo = useCallback(
-    (node: BTN): void => {
-      console.log(`jump to directory ${node.parentId ?? '0'}`)
-      currentNodeIds[selectedSide].setState(node.parentId ?? '0')
-      selectionModels[selectedSide].setState([node.id])
-    },
-    [currentNodeIds, selectionModels, selectedSide],
-  )
-
-  const { handleGridReadyLeft, handleGridReadyRight } = useDndBetweenGrids()
 
   return (
     <Container
@@ -134,7 +70,7 @@ const App: React.FC = () => {
       sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <Box display='flex' justifyContent='center' alignItems='center'>
-        <Search onJumpTo={handleJumpTo} />
+        <Search onJumpTo={jumpToParent} />
         <IconButton
           sx={{ ml: 1, justifySelf: 'right' }}
           onClick={themeContext.toggleColorMode}
@@ -152,7 +88,7 @@ const App: React.FC = () => {
             highlightSide={() => setSelectedSide('left')}
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
-            onGridReady={handleGridReadyLeft}
+            notifyGridReady={handleGridReadyLeft}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
             refreshPanels={refreshPanels}
@@ -166,7 +102,7 @@ const App: React.FC = () => {
             highlightSide={() => setSelectedSide('right')}
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
-            onGridReady={handleGridReadyRight}
+            notifyGridReady={handleGridReadyRight}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
             refreshPanels={refreshPanels}
@@ -176,9 +112,9 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center'>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button onClick={handleCreateBookmarkDialogOpen}>New</Button>
+          <Button onClick={createDialog.handleBookmarkOpen}>New</Button>
 
-          <Button onClick={handleCreateDirectoryDialogOpen}>New Folder</Button>
+          <Button onClick={createDialog.handleDirectoryOpen}>New Folder</Button>
           <Button
             disabled
             // disabled={lastSelectedIds().length !== 1}
@@ -187,7 +123,7 @@ const App: React.FC = () => {
           >
             Rename
           </Button>
-          <Button disabled={lastSelectedIds().length !== 1} onClick={handleEditDialogOpen}>
+          <Button disabled={lastSelectedIds().length !== 1} onClick={editDialog.handleOpen}>
             Edit
           </Button>
           <Button
@@ -205,7 +141,7 @@ const App: React.FC = () => {
               currentNodeIds.left.state === currentNodeIds.right.state ||
               lastSelectedIds().length === 0
             }
-            onClick={handleMove}
+            onClick={handleMoveBetweenPanels}
           >
             Move
           </Button>
@@ -215,41 +151,41 @@ const App: React.FC = () => {
           <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveDown}>
             Move Down ({'\u2193'})
           </Button>
-          <Button disabled={lastSelectedIds().length === 0} onClick={handleDeleteDialogOpen}>
+          <Button disabled={lastSelectedIds().length === 0} onClick={deleteDialog.handleOpen}>
             Delete
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>
         </ButtonGroup>
       </Box>
 
-      {createBookmarkDialogOpen || createDirectoryDialogOpen ? (
+      {createDialog.isOpen() ? (
         <CreateDialog
-          open={createBookmarkDialogOpen || createDirectoryDialogOpen}
-          isDirectory={createDirectoryDialogOpen}
-          onConfirm={handleCreateDialogConfirm}
-          onCancel={handleCreateDialogClose}
+          open={createDialog.isOpen()}
+          isDirectory={createDialog.directoryOpen}
+          onConfirm={createDialog.handleConfirm}
+          onCancel={createDialog.handleClose}
         />
       ) : (
         <></>
       )}
 
-      {editDialogOpen ? (
+      {editDialog.open ? (
         <EditDialog
-          open={editDialogOpen}
+          open={editDialog.open}
           nodeId={String(selectionModels[selectedSide].state?.[0])}
-          onConfirm={handleEditDialogConfirm}
-          onCancel={handleEditDialogClose}
+          onConfirm={editDialog.handleConfirm}
+          onCancel={editDialog.handleClose}
         />
       ) : (
         <></>
       )}
 
-      {deleteDialogOpen ? (
+      {deleteDialog.open ? (
         <DeleteConfirmationDialog
-          open={deleteDialogOpen}
+          open={deleteDialog.open}
           nodeIds={selectionModels[selectedSide].state?.map(e => String(e)) ?? []}
-          onConfirm={handleDeleteDialogConfirm}
-          onCancel={handleDeleteDialogClose}
+          onConfirm={deleteDialog.handleConfirm}
+          onCancel={deleteDialog.handleClose}
         />
       ) : (
         <></>

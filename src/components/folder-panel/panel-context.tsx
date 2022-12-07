@@ -7,7 +7,7 @@ export interface FolderPanelProps {
   readonly highlightSide: () => void
   readonly currentNodeId: string
   readonly setCurrentNodeId: (id: string) => void
-  readonly onGridReady: (params: GridReadyEvent) => void
+  readonly notifyGridReady: (params: GridReadyEvent) => void
   readonly selectionModel: string[]
   readonly setSelectionModel: (model: string[]) => void
   readonly refreshPanels: () => void
@@ -18,7 +18,7 @@ const FolderPanelContext = createContext<FolderPanelProps>({
   highlightSide: () => console.log('Not yet initialized'),
   currentNodeId: '0',
   setCurrentNodeId: id => console.log('Not yet initialized'),
-  onGridReady: params => console.log('Not yet initialized'),
+  notifyGridReady: params => console.log('Not yet initialized'),
   selectionModel: [],
   setSelectionModel: model => console.log('Not yet initialized'),
   refreshPanels: () => console.log('Not yet initialized'),

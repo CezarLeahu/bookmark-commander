@@ -4,47 +4,47 @@ import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
 
 interface DeleteDialogState {
-  deleteDialogOpen: boolean
-  handleDeleteDialogOpen: () => void
-  handleDeleteDialogConfirm: () => void
-  handleDeleteDialogClose: () => void
+  open: boolean
+  handleOpen: () => void
+  handleConfirm: () => void
+  handleClose: () => void
 }
 
 export function useDeleteDialogState(
   lastSelectedIds: () => string[],
-  updateCurrentNodesIfNeeded: (idsToBeDeleted: string[]) => void,
+  updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
 ): DeleteDialogState {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [open, setOpen] = useState(false)
 
   return {
-    deleteDialogOpen,
-    handleDeleteDialogOpen: useCallback((): void => setDeleteDialogOpen(true), []),
-    handleDeleteDialogConfirm: useCallback((): void => {
+    open,
+    handleOpen: useCallback((): void => setOpen(true), []),
+    handleConfirm: useCallback((): void => {
       const ids: string[] = lastSelectedIds()
       if (ids.length === 0) {
-        setDeleteDialogOpen(false)
+        setOpen(false)
         return
       }
-      updateCurrentNodesIfNeeded(ids)
+      updateCurrentPathsIfNeeded(ids)
 
       containsNonEmptyDirectories(ids)
         .then(nonEmptyDirsExist => {
           if (nonEmptyDirsExist) {
             console.log('Cannot delete non-empty folders!')
-            setDeleteDialogOpen(false)
+            setOpen(false)
             return
           }
           removeAll(ids)
             .then(() => {
-              setDeleteDialogOpen(false)
+              setOpen(false)
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
         })
         .catch(e => console.log(e))
-    }, [lastSelectedIds, updateCurrentNodesIfNeeded, resetCurrentSelection]),
+    }, [lastSelectedIds, updateCurrentPathsIfNeeded, resetCurrentSelection]),
 
-    handleDeleteDialogClose: useCallback((): void => setDeleteDialogOpen(false), []),
+    handleClose: useCallback((): void => setOpen(false), []),
   }
 }
