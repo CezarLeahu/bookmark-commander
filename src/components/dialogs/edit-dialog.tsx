@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { getNode } from '../../services/bookmarks/queries'
-import { isDirectory } from '../../services/utils/utils'
+import { isDirectory } from '../../services/bookmarks/utils'
 
 interface EditDialogProps {
   readonly open: boolean

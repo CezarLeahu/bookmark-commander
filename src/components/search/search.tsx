@@ -18,7 +18,7 @@ import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import SearchIcon from '@mui/icons-material/Search'
 import { getFaviconUrl } from '../../services/favicons/favicons'
-import { isDirectory } from '../../services/utils/utils'
+import { isDirectory } from '../../services/bookmarks/utils'
 import { search } from '../../services/bookmarks/commands'
 
 export interface SearchProps {

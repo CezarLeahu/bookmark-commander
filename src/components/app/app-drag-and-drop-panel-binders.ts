@@ -4,12 +4,10 @@ import { useCallback, useEffect } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { usePairStateEmpty } from '../../services/utils/hooks'
 
-interface DndBetweenGrids {
+export function useDragAndDropPanelBinder(): {
   handleGridReadyLeft: (params: GridReadyEvent) => void
   handleGridReadyRight: (params: GridReadyEvent) => void
-}
-
-export function useDragAndDropPanelBinder(): DndBetweenGrids {
+} {
   const gridApis = usePairStateEmpty<GridApi<BTN>>()
 
   useEffect(() => {

@@ -2,7 +2,8 @@ import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import { ICellRendererParams } from 'ag-grid-community'
 import { getFaviconUrl } from '../../services/favicons/favicons'
-import { isDirectory } from '../../services/utils/utils'
+import { isDirectory } from '../../services/bookmarks/utils'
+import { openInNewTab } from '../../services/tabs/tabs'
 
 export const titleCellRenderer = (params: ICellRendererParams<BTN, string>): JSX.Element => {
   return (
@@ -30,6 +31,6 @@ const middleClickHandle = (
   event?: React.MouseEvent<HTMLSpanElement, MouseEvent>,
 ): void => {
   if (url !== undefined && event?.type === 'mouseup' && event.nativeEvent.which === 2) {
-    chrome.tabs.create({ url, active: false }).catch(e => console.log(e))
+    openInNewTab(url)
   }
 }

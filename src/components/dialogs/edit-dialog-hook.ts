@@ -10,7 +10,10 @@ interface EditDialogState {
   handleClose: () => void
 }
 
-export function useEditDialogState(resetCurrentSelection: () => void): EditDialogState {
+export function useEditDialogState(
+  resetCurrentSelection: () => void,
+  refreshRows: () => void,
+): EditDialogState {
   const [open, setOpen] = useState(false)
 
   return {
@@ -21,11 +24,12 @@ export function useEditDialogState(resetCurrentSelection: () => void): EditDialo
         update(node)
           .then(() => {
             setOpen(false)
+            refreshRows()
             resetCurrentSelection()
           })
           .catch(e => console.log(e))
       },
-      [resetCurrentSelection],
+      [resetCurrentSelection, refreshRows],
     ),
     handleClose: useCallback((): void => setOpen(false), []),
   }

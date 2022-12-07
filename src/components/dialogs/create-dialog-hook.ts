@@ -18,6 +18,7 @@ export function useCreateDialogState(
   selectedSide: Side,
   currentNodeIds: PairState<string>,
   resetCurrentSelection: () => void,
+  refreshRows: () => void,
 ): CreateDialogState {
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -46,6 +47,7 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
+              refreshRows()
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
@@ -54,12 +56,13 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
+              refreshRows()
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
         }
       },
-      [currentNodeIds, selectedSide, resetCurrentSelection],
+      [currentNodeIds, selectedSide, resetCurrentSelection, refreshRows],
     ),
     handleClose: useCallback((): void => {
       setBookmarkOpen(false)

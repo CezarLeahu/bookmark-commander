@@ -12,21 +12,34 @@ import {
   RowDragMoveEvent,
 } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './panel-dnd-handlers'
+import {
+  handleRowDragEnd,
+  handleRowDragLeave,
+  handleRowDragMove,
+} from './panel-drag-and-drop-grid-handlers'
 import { useFolderContentEffect, useGridSelectionEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelProps } from './panel-context'
-import { folderPanelMetadata } from './metadata'
-import { useGridSelectionHandlers } from './click-handlers'
+import { useGridSelectionHandlers } from './panel-click-grid-handlers'
+import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
-const meta = folderPanelMetadata()
-
 export interface FolderPanelHandle {
   renameCell: (id: string | undefined) => void
+}
+
+export interface FolderPanelProps {
+  readonly highlighted: boolean
+  readonly highlightSide: () => void
+  readonly currentNodeId: string
+  readonly setCurrentNodeId: (id: string) => void
+  readonly notifyGridReady: (params: GridReadyEvent) => void
+  readonly selectionModel: string[]
+  readonly setSelectionModel: (model: string[]) => void
+  readonly rowsOutdated: object
+  readonly refreshRows: () => void
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
@@ -46,6 +59,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const theme = useTheme()
   const getRowId = useRowIdMemo()
   const gridApi = useRef<GridApi<BTN>>()
+  const meta = usePanelMetadataWithDragAndDrop()
 
   const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(
     currentNodeId,

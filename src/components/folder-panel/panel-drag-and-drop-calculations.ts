@@ -1,7 +1,7 @@
 import { RowDragLeaveEvent, RowDragMoveEvent, RowHighlightPosition } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
-import { isSimpleBookmark } from '../../services/utils/utils'
+import { isSimpleBookmark } from '../../services/bookmarks/utils'
 
 export interface DnDMoveInfo {
   highlightedRowIndex: number

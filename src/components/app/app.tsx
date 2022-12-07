@@ -16,12 +16,12 @@ import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import Search from '../search/search'
 import { Side } from '../../services/utils/types'
-import { closeCurrentTab } from '../../services/utils/utils'
+import { closeCurrentTab } from '../../services/tabs/tabs'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
-import { useDragAndDropPanelBinder } from './grid-dnd-handlers'
+import { useDragAndDropPanelBinder } from './app-drag-and-drop-panel-binders'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
-import { useMoveHandlers } from './move-handlers'
+import { useMoveHandlers } from './app-move-button-handlers'
 import { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
@@ -47,12 +47,18 @@ const App: React.FC = () => {
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const createDialog = useCreateDialogState(selectedSide, currentNodeIds, resetCurrentSelection)
-  const editDialog = useEditDialogState(resetCurrentSelection)
+  const createDialog = useCreateDialogState(
+    selectedSide,
+    currentNodeIds,
+    resetCurrentSelection,
+    refreshRows,
+  )
+  const editDialog = useEditDialogState(resetCurrentSelection, refreshRows)
   const deleteDialog = useDeleteDialogState(
     lastSelectedIds,
     updateCurrentPathsIfNeeded,
     resetCurrentSelection,
+    refreshRows,
   )
 
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(

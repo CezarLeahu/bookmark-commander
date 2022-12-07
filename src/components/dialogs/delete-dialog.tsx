@@ -6,7 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
-import { containsNonEmptyDirectories, isDirectory } from '../../services/utils/utils'
+import { containsNonEmptyDirectories, isDirectory } from '../../services/bookmarks/utils'
 import { useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'

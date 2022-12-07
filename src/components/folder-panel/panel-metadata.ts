@@ -1,19 +1,20 @@
 import { CellClassParams, ColDef, GridApi, RowNode } from 'ag-grid-community'
-import { titleCellRenderer, urlCellRenderer } from './cell-renderers'
+import { titleCellRenderer, urlCellRenderer } from './grid-cell-renderers'
+import { useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 
 export interface FolderPanelMetadata {
-  potentialParent: RowNode<BTN> | undefined
   columnDefs: ColDef[]
+  sameAsPotentialParent: (node: RowNode<BTN>) => boolean
   resetPotentialParentAndRefresh: (api: GridApi) => void
   setPotentialParentAndRefresh: (api: GridApi, node: RowNode<BTN>) => void
 }
 
-export const folderPanelMetadata = (): FolderPanelMetadata => {
-  let potentialParent: RowNode<BTN> | undefined
+export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
+  const potentialParent = useRef<RowNode<BTN>>()
 
-  const columnDefs: ColDef[] = [
+  const [columnDefs] = useState<ColDef[]>([
     {
       field: 'title',
       headerName: 'Title',
@@ -24,7 +25,7 @@ export const folderPanelMetadata = (): FolderPanelMetadata => {
       cellRenderer: titleCellRenderer,
       cellClassRules: {
         'hover-over': (params: CellClassParams<BTN>) => {
-          return params.node === potentialParent
+          return params.node === potentialParent.current
         },
       },
     },
@@ -37,22 +38,25 @@ export const folderPanelMetadata = (): FolderPanelMetadata => {
       cellRenderer: urlCellRenderer,
       cellClassRules: {
         'hover-over': (params: CellClassParams<BTN>) => {
-          return params.node === potentialParent
+          return params.node === potentialParent.current
         },
       },
     },
-  ]
+  ])
 
   return {
-    potentialParent,
     columnDefs,
 
+    sameAsPotentialParent: (node: RowNode<BTN>): boolean => {
+      return node === potentialParent.current
+    },
+
     resetPotentialParentAndRefresh: (api: GridApi): void => {
-      if (potentialParent === undefined) {
+      if (potentialParent.current === undefined) {
         return
       }
-      const rowsToRefresh = [potentialParent]
-      potentialParent = undefined
+      const rowsToRefresh = [potentialParent.current]
+      potentialParent.current = undefined
       api.refreshCells({
         rowNodes: rowsToRefresh,
         force: true,
@@ -60,10 +64,10 @@ export const folderPanelMetadata = (): FolderPanelMetadata => {
     },
 
     setPotentialParentAndRefresh: (api: GridApi, node: RowNode<BTN>): void => {
-      const rowsToRefresh = [potentialParent, node].filter(n => n !== undefined) as Array<
+      const rowsToRefresh = [potentialParent.current, node].filter(n => n !== undefined) as Array<
         RowNode<BTN>
       >
-      potentialParent = node
+      potentialParent.current = node
       api.refreshCells({
         rowNodes: rowsToRefresh,
         force: true,

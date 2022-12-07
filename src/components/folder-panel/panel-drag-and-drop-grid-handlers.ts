@@ -1,8 +1,8 @@
 import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
-import { dropInfo, moveInfo } from './utils'
+import { dropInfo, moveInfo } from './panel-drag-and-drop-calculations'
 
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelMetadata } from './metadata'
+import { FolderPanelMetadata } from './panel-metadata'
 import { moveAll } from '../../services/bookmarks/commands'
 
 export const handleRowDragMove = (
@@ -54,7 +54,7 @@ export const handleRowDragMove = (
     return
   }
 
-  if (overNode !== meta.potentialParent) {
+  if (!meta.sameAsPotentialParent(overNode)) {
     meta.setPotentialParentAndRefresh(e.api, overNode)
   }
 }

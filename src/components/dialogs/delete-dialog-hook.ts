@@ -14,6 +14,7 @@ export function useDeleteDialogState(
   lastSelectedIds: () => string[],
   updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
+  refreshRows: () => void,
 ): DeleteDialogState {
   const [open, setOpen] = useState(false)
 
@@ -38,12 +39,13 @@ export function useDeleteDialogState(
           removeAll(ids)
             .then(() => {
               setOpen(false)
+              refreshRows()
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
         })
         .catch(e => console.log(e))
-    }, [lastSelectedIds, updateCurrentPathsIfNeeded, resetCurrentSelection]),
+    }, [lastSelectedIds, updateCurrentPathsIfNeeded, resetCurrentSelection, refreshRows]),
 
     handleClose: useCallback((): void => setOpen(false), []),
   }
