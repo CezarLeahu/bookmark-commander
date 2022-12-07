@@ -18,6 +18,7 @@ import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDndBetweenGrids } from './grid-dnd-handlers'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './move-handlers'
+import { useRefreshPanels } from './app-content'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
 
@@ -25,8 +26,7 @@ const App: React.FC = () => {
   const theme = useTheme()
   const themeContext = useThemeContext()
 
-  const [, setRefreshContent] = useState({})
-  const forceUpdate = useCallback(() => setRefreshContent({}), [])
+  const refreshPanels = useRefreshPanels()
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const [selectedSide, setSelectedSide] = useState<Side>('left')
@@ -155,7 +155,7 @@ const App: React.FC = () => {
             onGridReady={handleGridReadyLeft}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
-            forceUpdate={forceUpdate}
+            refreshPanels={refreshPanels}
           />
         </Grid>
 
@@ -169,7 +169,7 @@ const App: React.FC = () => {
             onGridReady={handleGridReadyRight}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
-            forceUpdate={forceUpdate}
+            refreshPanels={refreshPanels}
           />
         </Grid>
       </Grid>

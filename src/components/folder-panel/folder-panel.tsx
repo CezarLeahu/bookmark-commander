@@ -13,7 +13,7 @@ import {
 } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
 import { handleRowDragEnd, handleRowDragLeave, handleRowDragMove } from './dnd-handlers'
-import { useFolderContentEffect, useGridSelectionEffect } from './content'
+import { useFolderContentEffect, useGridSelectionEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import { BTN } from '../../services/bookmarks/types'
@@ -38,7 +38,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     onGridReady,
     selectionModel,
     setSelectionModel,
-    forceUpdate,
+    refreshPanels,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -134,7 +134,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             }
             onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
             onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
-              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, forceUpdate)
+              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, refreshPanels)
             }
             onGridReady={handleGridReady}
           />
