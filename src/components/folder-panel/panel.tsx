@@ -38,7 +38,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     notifyGridReady,
     selectionModel,
     setSelectionModel,
-    refreshPanels,
+    rowsOutdated,
+    refreshRows,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -46,7 +47,10 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const getRowId = useRowIdMemo()
   const gridApi = useRef<GridApi<BTN>>()
 
-  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(currentNodeId)
+  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(
+    currentNodeId,
+    rowsOutdated,
+  )
 
   useGridSelectionEffect(gridApi, selectionModel, rows)
 
@@ -133,7 +137,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             }
             onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
             onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
-              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, refreshPanels)
+              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, refreshRows)
             }
             onGridReady={handleGridReady}
           />

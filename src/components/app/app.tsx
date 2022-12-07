@@ -3,7 +3,7 @@ import FolderPanel, { FolderPanelHandle } from '../folder-panel/panel'
 import {
   useJumpToParent,
   useLastSelectedIds,
-  useRefreshPanels,
+  useRefresh,
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
@@ -35,7 +35,7 @@ const App: React.FC = () => {
   const currentNodeIds = usePairState<string>('1', '2')
   const selectionModels = usePairState<string[]>([], [])
 
-  const refreshPanels = useRefreshPanels()
+  const [rowsOutdated, refreshRows] = useRefresh()
 
   const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
 
@@ -60,7 +60,7 @@ const App: React.FC = () => {
     setSelectedSide,
     currentNodeIds,
     selectionModels,
-    refreshPanels,
+    refreshRows,
   )
 
   return (
@@ -91,7 +91,8 @@ const App: React.FC = () => {
             notifyGridReady={handleGridReadyLeft}
             selectionModel={selectionModels.left.state}
             setSelectionModel={selectionModels.left.setState}
-            refreshPanels={refreshPanels}
+            rowsOutdated={rowsOutdated}
+            refreshRows={refreshRows}
           />
         </Grid>
 
@@ -105,7 +106,8 @@ const App: React.FC = () => {
             notifyGridReady={handleGridReadyRight}
             selectionModel={selectionModels.right.state}
             setSelectionModel={selectionModels.right.setState}
-            refreshPanels={refreshPanels}
+            rowsOutdated={rowsOutdated}
+            refreshRows={refreshRows}
           />
         </Grid>
       </Grid>

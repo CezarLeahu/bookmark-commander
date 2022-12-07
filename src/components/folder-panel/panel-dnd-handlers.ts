@@ -70,7 +70,7 @@ export const handleRowDragEnd = (
   currentNodeId: string,
   rows: chrome.bookmarks.BookmarkTreeNode[],
   setSelectionModel: (model: string[]) => void,
-  refreshPanels: () => void,
+  refreshRows: () => void,
 ): void => {
   meta.resetPotentialParentAndRefresh(e.api)
   e.api.forEachNode(n => n.setHighlighted(null))
@@ -129,7 +129,7 @@ export const handleRowDragEnd = (
     moveAll(ids, targetDir.id)
       .then(() => {
         console.log('Moved elements (into child dir)')
-        refreshPanels()
+        refreshRows()
       })
       .catch(e => console.log(e))
     return
@@ -145,7 +145,7 @@ export const handleRowDragEnd = (
       .then(() => {
         console.log('Moved elements (same directory)')
         setSelectionModel(ids)
-        refreshPanels()
+        refreshRows()
       })
       .catch(e => console.log(e))
     return
@@ -156,7 +156,7 @@ export const handleRowDragEnd = (
     .then(() => {
       console.log('Moved elements (into dir)')
       setSelectionModel(ids)
-      refreshPanels()
+      refreshRows()
     })
     .catch(e => console.log(e))
 }

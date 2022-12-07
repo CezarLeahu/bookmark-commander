@@ -16,7 +16,7 @@ export function useMoveHandlers(
   setSelectedSide: Dispatch<SetStateAction<Side>>,
   currentNodeIds: PairState<string>,
   selectionModels: PairState<string[]>,
-  refreshPanels: () => void,
+  refreshRows: () => void,
 ): MoveHandlers {
   const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
 
@@ -39,6 +39,7 @@ export function useMoveHandlers(
           selectionModels[selectedSide].setState([])
           selectionModels[otherSide].setState(nodeIds)
           setSelectedSide(otherSide)
+          refreshRows()
         })
         .catch(e => console.log(e))
     },
@@ -51,7 +52,7 @@ export function useMoveHandlers(
       moveUp(nodeIds)
         .then(() => {
           selectionModels[selectedSide].setState(nodeIds)
-          refreshPanels()
+          refreshRows()
         })
         .catch(e => console.log(e))
     },
@@ -64,7 +65,7 @@ export function useMoveHandlers(
       moveDown(nodeIds)
         .then(() => {
           selectionModels[selectedSide].setState(nodeIds)
-          refreshPanels()
+          refreshRows()
         })
         .catch(e => console.log(e))
     },

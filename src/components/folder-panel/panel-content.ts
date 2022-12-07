@@ -16,7 +16,10 @@ interface FolderActiveContent {
   rows: chrome.bookmarks.BookmarkTreeNode[]
 }
 
-export function useFolderContentEffect(currentNodeId: string): FolderActiveContent {
+export function useFolderContentEffect(
+  currentNodeId: string,
+  rowsOutdated: object,
+): FolderActiveContent {
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [currentNode, setCurrentNode] = useState<BTN>()
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
@@ -48,7 +51,7 @@ export function useFolderContentEffect(currentNodeId: string): FolderActiveConte
       ([r]) => setRows(r),
       e => console.log(e),
     )
-  }, [currentNodeId])
+  }, [currentNodeId, rowsOutdated])
 
   return {
     topNodes,

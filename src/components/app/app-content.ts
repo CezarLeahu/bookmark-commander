@@ -5,9 +5,9 @@ import { BTN } from '../../services/bookmarks/types'
 import { PairState } from '../../services/utils/hooks'
 import { getNode } from '../../services/bookmarks/queries'
 
-export function useRefreshPanels(): () => void {
-  const [, setRefreshContent] = useState({})
-  return useCallback(() => setRefreshContent({}), [])
+export function useRefresh(): [object, () => void] {
+  const [refresh, setRefresh] = useState({})
+  return [refresh, useCallback(() => setRefresh({}), [])]
 }
 
 export function useLastSelectedIds(
