@@ -1,8 +1,11 @@
-import { CellClassParams, ColDef, GridApi, RowNode } from 'ag-grid-community'
-import { titleCellRenderer, urlCellRenderer } from './grid-cell-renderers'
+import { CellClassParams, ColDef, GridApi, ICellRendererParams, RowNode } from 'ag-grid-community'
 import { useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
+import FolderIcon from '@mui/icons-material/Folder'
+import { getFaviconUrl } from '../../services/favicons/favicons'
+import { isDirectory } from '../../services/bookmarks/utils'
+import { openAllInNewTabs } from '../../services/tabs/tabs'
 
 export interface FolderPanelMetadata {
   columnDefs: ColDef[]
@@ -73,5 +76,43 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
         force: true,
       })
     },
+  }
+}
+
+const titleCellRenderer = (params: ICellRendererParams<BTN, string>): JSX.Element => {
+  return (
+    <div onMouseUp={e => middleClickHandle(params.api, e)}>
+      {params.data !== undefined && isDirectory(params.data) ? (
+        <FolderIcon sx={{ verticalAlign: 'middle', paddingRight: '8px', outerHeight: '16' }} />
+      ) : (
+        <img
+          src={getFaviconUrl(params.data?.url ?? '')}
+          height='16'
+          style={{ verticalAlign: 'middle', paddingRight: '10px' }}
+        />
+      )}
+      <span className='filename'>{params.value}</span>
+    </div>
+  )
+}
+
+const urlCellRenderer = (params: ICellRendererParams<BTN, string>): JSX.Element => {
+  return <span onMouseUp={e => middleClickHandle(params.api, e)}>{params.value}</span>
+}
+
+const middleClickHandle = (
+  api: GridApi<BTN>,
+  event?: React.MouseEvent<HTMLSpanElement, MouseEvent>,
+): void => {
+  if (event?.type === 'mouseup' && event.nativeEvent.which === 2) {
+    // Middle click
+    const urls: string[] = api
+      .getSelectedRows()
+      .map(n => n.url)
+      .filter(url => url !== undefined) as string[]
+
+    if (urls.length > 0 && urls.length < 20) {
+      openAllInNewTabs(urls)
+    }
   }
 }

@@ -3,7 +3,16 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
 import '../../styles/style.css'
 
-import { Box, Breadcrumbs, Button, ButtonGroup, Container, Link, Typography } from '@mui/material'
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  ButtonGroup,
+  Container,
+  IconButton,
+  Link,
+  Typography,
+} from '@mui/material'
 import {
   GridApi,
   GridReadyEvent,
@@ -20,8 +29,11 @@ import {
 import { useFolderContentEffect, useGridSelectionEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
 import { useGridSelectionHandlers } from './panel-click-grid-handlers'
+import { useNavigation } from './panel-history'
 import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
@@ -68,6 +80,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   useGridSelectionEffect(gridApi, selectionModel, rows)
 
+  const navigation = useNavigation(currentNodeId, setCurrentNodeId)
+
   const { handleRowClick, handleRowDoubleClick } = useGridSelectionHandlers(
     highlightSide,
     setCurrentNodeId,
@@ -96,18 +110,46 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       }}
     >
       {/* <div style={{ flex: 1 }} onMouseUp={handleMouseUpOnEmptySpace}> */}
-      <Box display='flex' justifyContent='center' alignItems='center'>
-        <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
-          {topNodes.map(d => (
-            <Button
-              key={d.id}
-              sx={{ textTransform: 'none' }}
-              onClick={() => setCurrentNodeId(d.id)}
+      <Box
+        display='inline-flex'
+        justifyContent='space-between'
+        alignItems='center'
+        sx={{ marginTop: '5px' }}
+      >
+        <Box justifySelf='start'>
+          <ButtonGroup variant='contained' aria-label='Navigation buttons'>
+            <IconButton
+              aria-label='back'
+              size='medium'
+              disabled={!navigation.canGoBack()}
+              onClick={navigation.back}
             >
-              {d.title}
-            </Button>
-          ))}
-        </ButtonGroup>
+              <ArrowBackIcon />
+            </IconButton>
+            <IconButton
+              aria-label='forward'
+              size='medium'
+              disabled={!navigation.canGoForward()}
+              onClick={navigation.forward}
+            >
+              <ArrowForwardIcon />
+            </IconButton>
+          </ButtonGroup>
+        </Box>
+        <Box justifySelf='end'>
+          <ButtonGroup variant='text' aria-label='Main Bookmark Locations'>
+            {topNodes.map(d => (
+              <Button
+                key={d.id}
+                sx={{ textTransform: 'none' }}
+                onClick={() => setCurrentNodeId(d.id)}
+              >
+                {d.title}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </Box>
+        <Box />
       </Box>
       <Box>
         <Breadcrumbs aria-label='breadcrumb'>
