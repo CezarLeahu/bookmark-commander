@@ -1,33 +1,37 @@
 # Backlog
 
-- open ALL the selected items on Middle Click
-- add a panel history (latst 10 locations), handle back&forward - Handle MOUSE4 & MOUSE5 events (back and forward)
+- add scroll to row when searching (on jumpTo action)
+
+- add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 - handle Delete key
-- handle Shift+Delete
 - handle Tab key
 - handle Ctrl+A key (or command)
 - handle Enter key (on single select of Dir row)
-- add context menu's
-
-- fix Select row on searching
-- add scroll to row when searching 
 
 - Copy & Paste events
 - Handle navigation inside DataGrids
-  - events: up, down, Enter, Backspace, Delete, Tab
 
-- handle cell edit on delayed second click?
+  - events: up, down, Enter, Backspace, Delete, Tab
 
 - Deselect rows after Edit dialog
 
 - Disable row re-ordering
 
-- [Extension] Check if tabs permissions are needed
+- [Extension] Check if tabs permissions are needed - ask for them anyway
 - [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
 - [Extension] Check what else is needed to publish the extension
 - [Extension] Actually publish the extension
 
 ## Done
+
+- handle cell edit
+
+- fix Select row on searching
+
+- add a panel history (latst 10 locations), handle back&forward - Handle MOUSE4 & MOUSE5 events (back and forward)
+
+- open ALL the selected items on Middle Click
+
 - Handle Drag-n-drop between panels
 
 - Handle Drag-and-drop in the same panel
@@ -59,6 +63,7 @@
 - Embed EditBookmark modal top-level
 
 - Keep track of the current selected panel
+
   - type Side 'left'|'right'
   - side = useRef<Side>(left)
   - pass callback to children: updateSelectedSide(side) :void { currentSide.current = side }, have the children call this on any DataGrid select

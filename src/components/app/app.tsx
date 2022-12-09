@@ -118,15 +118,13 @@ const App: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Box display='flex' justifyContent='center' alignItems='center'>
+      <Box display='flex' justifyContent='center' alignItems='center' sx={{ padding: '5px' }}>
         <ButtonGroup variant='text' aria-label='Actions'>
           <Button onClick={createDialog.handleBookmarkOpen}>New</Button>
 
           <Button onClick={createDialog.handleDirectoryOpen}>New Folder</Button>
           <Button
-            disabled
-            // disabled={lastSelectedIds().length !== 1}
-            // TODO enable when feature is merged into MUI community (post https://github.com/mui/mui-x/pull/6773)
+            disabled={lastSelectedIds().length !== 1}
             onClick={() => panelRefs[selectedSide].current?.renameCell(lastSelectedIds()[0])}
           >
             Rename

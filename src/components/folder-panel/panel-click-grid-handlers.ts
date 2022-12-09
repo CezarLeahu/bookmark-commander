@@ -6,10 +6,10 @@ import { useCallback } from 'react'
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
-  handleMouseUpOnEmptySpace: () => void
+  handleEmptySpaceClick: () => void
 }
 
-export function useGridSelectionHandlers(
+export function useGridClickHandlers(
   highlightSide: () => void,
   setCurrentNodeId: (id: string) => void,
   setSelectionModel: (model: string[]) => void,
@@ -42,14 +42,11 @@ export function useGridSelectionHandlers(
       [setCurrentNodeId],
     ),
 
-    handleMouseUpOnEmptySpace: useCallback((): void => {
+    handleEmptySpaceClick: useCallback((): void => {
       if (api === undefined) {
         return
       }
-      // TODO this doesn't work properly - it disables multiple select
-      setSelectionModel([])
       highlightSide()
-      api.deselectAll()
-    }, [highlightSide, setSelectionModel, api]),
+    }, [highlightSide, api]),
   }
 }

@@ -23,7 +23,7 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
       headerName: 'Title',
       filter: true,
       width: 250,
-      editable: false, // change to 'true' if in-line renaming ever gets enabled
+      editable: true,
       resizable: true,
       cellRenderer: titleCellRenderer,
       cellClassRules: {

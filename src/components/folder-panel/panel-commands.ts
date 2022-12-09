@@ -1,6 +1,52 @@
-import { BTN } from '../../services/bookmarks/types'
-import { CellClickedEvent } from 'ag-grid-community'
+import { CellEditRequestEvent, GridApi } from 'ag-grid-community'
+import { useCallback, useImperativeHandle } from 'react'
 
-export const handleCellClicked = (event: CellClickedEvent<BTN>): void => {
-  console.log('Not implemented')
+import { BTN } from '../../services/bookmarks/types'
+import { updateTitle } from '../../services/bookmarks/commands'
+
+export interface CellEditingHandle {
+  renameCell: (id: string | undefined) => void
+}
+
+export function useCellEditing(
+  ref: React.ForwardedRef<CellEditingHandle>,
+  gridApi: GridApi | undefined,
+): (event: CellEditRequestEvent<BTN, string>) => void {
+  const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
+    const rowIndex = api.getRowNode(id)?.rowIndex
+    if (rowIndex === undefined || rowIndex === null) {
+      return
+    }
+    api.startEditingCell({
+      rowIndex,
+      colKey: 'title',
+    })
+  }, [])
+
+  useImperativeHandle<CellEditingHandle, CellEditingHandle>(
+    ref,
+    () => ({
+      renameCell: (id: string | undefined): void => {
+        if (id !== undefined && gridApi !== undefined) {
+          startCellEdit(gridApi, id)
+        }
+      },
+    }),
+    [gridApi, startCellEdit],
+  )
+
+  return useCallback((event: CellEditRequestEvent<BTN, string>) => {
+    if (event.colDef.field !== 'title' || event.newValue === undefined) {
+      return
+    }
+
+    const newVal = event.newValue
+    if (newVal === event.oldValue || String(newVal).trim() === String(event.oldValue)) {
+      return
+    }
+
+    updateTitle(event.data.id, newVal)
+      .then(() => console.log('Updated one title'))
+      .catch(e => console.log(e))
+  }, [])
 }

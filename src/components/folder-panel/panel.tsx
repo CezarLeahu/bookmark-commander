@@ -13,6 +13,7 @@ import {
   Link,
   Typography,
 } from '@mui/material'
+import { CellEditingHandle, useCellEditing } from './panel-commands'
 import {
   GridApi,
   GridReadyEvent,
@@ -20,7 +21,7 @@ import {
   RowDragLeaveEvent,
   RowDragMoveEvent,
 } from 'ag-grid-community'
-import { forwardRef, useCallback, useMemo, useRef } from 'react'
+import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   handleRowDragEnd,
   handleRowDragLeave,
@@ -32,16 +33,13 @@ import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
-import { useGridSelectionHandlers } from './panel-click-grid-handlers'
+import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
 import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
-export interface FolderPanelHandle {
-  renameCell: (id: string | undefined) => void
-}
-
+export interface FolderPanelHandle extends CellEditingHandle {}
 export interface FolderPanelProps {
   readonly highlighted: boolean
   readonly highlightSide: () => void
@@ -70,6 +68,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 ) => {
   const theme = useTheme()
   const getRowId = useRowIdMemo()
+  const containerRef = useRef<HTMLDivElement>(null)
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
 
@@ -82,11 +81,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
-  const { handleRowClick, handleRowDoubleClick } = useGridSelectionHandlers(
-    highlightSide,
-    setCurrentNodeId,
-    setSelectionModel,
-  )
+  const clickHandlers = useGridClickHandlers(highlightSide, setCurrentNodeId, setSelectionModel)
 
   const handleGridReady = useCallback(
     (params: GridReadyEvent): void => {
@@ -96,9 +91,24 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     [notifyGridReady],
   )
 
+  const handleCellEditRequest = useCellEditing(ref, gridApi.current)
+
+  useEffect(() => {
+    if (containerRef.current === undefined || containerRef.current === null) {
+      return
+    }
+    const elem = containerRef.current
+    elem.addEventListener('mouseup', highlightSide)
+    return () => {
+      elem.removeEventListener('mouseup', highlightSide)
+    }
+  }, [notifyGridReady, highlightSide])
+
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
+
   return (
     <Container
+      ref={containerRef}
       maxWidth={false}
       disableGutters
       sx={{
@@ -109,7 +119,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         flexDirection: 'column',
       }}
     >
-      {/* <div style={{ flex: 1 }} onMouseUp={handleMouseUpOnEmptySpace}> */}
       <Box
         display='inline-flex'
         justifyContent='space-between'
@@ -180,10 +189,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             columnDefs={meta.columnDefs}
             rowData={rows}
             getRowId={getRowId}
+            suppressClickEdit
+            readOnlyEdit
+            onCellEditRequest={handleCellEditRequest}
             animateRows
             rowSelection='multiple'
-            onRowClicked={handleRowClick}
-            onRowDoubleClicked={handleRowDoubleClick}
+            onRowClicked={clickHandlers.handleRowClick}
+            onRowDoubleClicked={clickHandlers.handleRowDoubleClick}
             isRowSelectable={p => p.id !== currentNode?.parentId}
             rowDragEntireRow
             rowDragMultiRow
@@ -199,7 +211,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
           />
         </Box>
       </Box>
-      {/* </div> */}
     </Container>
   )
 }
