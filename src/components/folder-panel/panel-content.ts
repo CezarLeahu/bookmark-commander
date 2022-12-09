@@ -78,5 +78,8 @@ export function useGridSelectionEffect(
     gridApi.current.forEachNode(n =>
       n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
     )
+    if (selectionModel.length === 1) {
+      gridApi.current.ensureNodeVisible(n => n.id === selectionModel[0])
+    }
   }, [gridApi, selectionModel, rows])
 }
