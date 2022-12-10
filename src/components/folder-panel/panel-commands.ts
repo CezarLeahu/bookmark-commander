@@ -11,6 +11,7 @@ export interface CellEditingHandle {
 export function useCellEditing(
   ref: React.ForwardedRef<CellEditingHandle>,
   gridApi: GridApi | undefined,
+  refreshRows: () => void,
 ): (event: CellEditRequestEvent<BTN, string>) => void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
     const rowIndex = api.getRowNode(id)?.rowIndex
@@ -35,18 +36,24 @@ export function useCellEditing(
     [gridApi, startCellEdit],
   )
 
-  return useCallback((event: CellEditRequestEvent<BTN, string>) => {
-    if (event.colDef.field !== 'title' || event.newValue === undefined) {
-      return
-    }
+  return useCallback(
+    (event: CellEditRequestEvent<BTN, string>) => {
+      if (event.colDef.field !== 'title' || event.newValue === undefined) {
+        return
+      }
 
-    const newVal = event.newValue
-    if (newVal === event.oldValue || String(newVal).trim() === String(event.oldValue)) {
-      return
-    }
+      const newVal = event.newValue
+      if (newVal === event.oldValue || String(newVal).trim() === String(event.oldValue)) {
+        return
+      }
 
-    updateTitle(event.data.id, newVal)
-      .then(() => console.log('Updated one title'))
-      .catch(e => console.log(e))
-  }, [])
+      updateTitle(event.data.id, newVal)
+        .then(() => {
+          console.log('Updated one title')
+          refreshRows()
+        })
+        .catch(e => console.log(e))
+    },
+    [refreshRows],
+  )
 }

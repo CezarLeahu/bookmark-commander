@@ -1,4 +1,5 @@
 import { CellClassParams, ColDef, GridApi, ICellRendererParams, RowNode } from 'ag-grid-community'
+import { suppressHeaderKeys, suppressKeys } from './panel-key-events'
 import { useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -31,6 +32,8 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
           return params.node === potentialParent.current
         },
       },
+      suppressHeaderKeyboardEvent: suppressHeaderKeys,
+      suppressKeyboardEvent: suppressKeys,
     },
     {
       field: 'url',
@@ -44,6 +47,8 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
           return params.node === potentialParent.current
         },
       },
+      suppressHeaderKeyboardEvent: suppressHeaderKeys,
+      suppressKeyboardEvent: suppressKeys,
     },
   ])
 

@@ -91,7 +91,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     [notifyGridReady],
   )
 
-  const handleCellEditRequest = useCellEditing(ref, gridApi.current)
+  const handleCellEditRequest = useCellEditing(ref, gridApi.current, refreshRows)
 
   useEffect(() => {
     if (containerRef.current === undefined || containerRef.current === null) {
@@ -190,6 +190,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowData={rows}
             getRowId={getRowId}
             suppressClickEdit
+            stopEditingWhenCellsLoseFocus
             readOnlyEdit
             onCellEditRequest={handleCellEditRequest}
             animateRows

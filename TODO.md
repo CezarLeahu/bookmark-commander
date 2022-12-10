@@ -1,7 +1,5 @@
 # Backlog
 
-- add scroll to row when searching (on jumpTo action)
-
 - add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 - handle Delete key
 - handle Tab key
@@ -13,8 +11,6 @@
 
   - events: up, down, Enter, Backspace, Delete, Tab
 
-- Deselect rows after Edit dialog
-
 - Disable row re-ordering
 
 - [Extension] Check if tabs permissions are needed - ask for them anyway
@@ -23,6 +19,12 @@
 - [Extension] Actually publish the extension
 
 ## Done
+
+- Deselect rows after Edit dialog
+
+- add key Up/Down/Enter events on search box and result list
+
+- add scroll to row when searching (on jumpTo action)
 
 - handle cell edit
 
