@@ -1,6 +1,7 @@
 import { GridApi, RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
+import { openInNewTab } from '../../services/tabs/tabs'
 import { useCallback } from 'react'
 
 interface ClickHandlers {
@@ -36,7 +37,7 @@ export function useGridClickHandlers(
             setCurrentNodeId(String(node.id))
             break
           default: // actual bookmark - open in new tab
-            chrome.tabs.create({ url: node.url }).catch(e => console.log(e))
+            openInNewTab(node.url, true)
         }
       },
       [setCurrentNodeId],

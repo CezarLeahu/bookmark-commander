@@ -1,19 +1,20 @@
+import { GridApi, SelectionChangedEvent } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
   getTopNodes,
   parentPath,
 } from '../../services/bookmarks/queries'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
-import { GridApi } from 'ag-grid-community'
+import { TITLE_COLUMN } from './panel-metadata'
 
 interface FolderActiveContent {
   topNodes: BTN[]
-  currentNode: chrome.bookmarks.BookmarkTreeNode | undefined
-  breadcrumbs: chrome.bookmarks.BookmarkTreeNode[]
-  rows: chrome.bookmarks.BookmarkTreeNode[]
+  currentNode: BTN | undefined
+  breadcrumbs: BTN[]
+  rows: BTN[]
 }
 
 export function useFolderContentEffect(
@@ -65,7 +66,7 @@ export function useGridSelectionEffect(
   gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
   selectionModel: string[],
   rows: BTN[],
-): void {
+): (event: SelectionChangedEvent<BTN>) => void {
   useEffect(() => {
     if (gridApi.current === undefined) {
       return
@@ -78,8 +79,35 @@ export function useGridSelectionEffect(
     gridApi.current.forEachNode(n =>
       n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
     )
-    if (selectionModel.length === 1) {
-      gridApi.current.ensureNodeVisible(n => n.id === selectionModel[0])
-    }
   }, [gridApi, selectionModel, rows])
+
+  return useCallback((event: SelectionChangedEvent<BTN>): void => {
+    const selectedRows = event.api.getSelectedNodes()
+    if (selectedRows.length === 1) {
+      event.api.ensureNodeVisible(selectedRows[0])
+      event.api.setFocusedCell(selectedRows[0].rowIndex ?? 0, TITLE_COLUMN)
+      return
+    }
+    if (selectedRows.length > 1) {
+      return
+    }
+    if (event.api.getDisplayedRowCount() !== 0) {
+      event.api.ensureIndexVisible(0)
+      event.api.setFocusedCell(0, TITLE_COLUMN)
+    }
+  }, [])
+}
+
+export function useGridHighlightEffect(
+  gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
+  highlighted: boolean,
+  rows: BTN[],
+): void {
+  useEffect(() => {
+    if (!highlighted || rows.length === 0 || gridApi.current === undefined) {
+      return
+    }
+    gridApi.current.ensureIndexVisible(0)
+    gridApi.current.setFocusedCell(0, TITLE_COLUMN)
+  }, [gridApi, highlighted, rows])
 }

@@ -1,5 +1,5 @@
-export const openInNewTab = (url: string): void => {
-  chrome.tabs.create({ url, active: false }).catch(e => console.log(e))
+export const openInNewTab = (url: string, switchTo?: boolean): void => {
+  chrome.tabs.create({ url, active: switchTo ?? false }).catch(e => console.log(e))
 }
 
 export const openAllInNewTabs = (urls: string[]): void => {

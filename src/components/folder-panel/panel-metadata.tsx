@@ -10,9 +10,20 @@ import { openAllInNewTabs } from '../../services/tabs/tabs'
 
 export interface FolderPanelMetadata {
   columnDefs: ColDef[]
+  defaultColDef: ColDef
   sameAsPotentialParent: (node: RowNode<BTN>) => boolean
   resetPotentialParentAndRefresh: (api: GridApi) => void
   setPotentialParentAndRefresh: (api: GridApi, node: RowNode<BTN>) => void
+}
+
+export const TITLE_COLUMN = 'title'
+
+const defaultColDef: ColDef = {
+  filter: false,
+  sortable: false,
+  suppressMenu: true,
+  suppressHeaderKeyboardEvent: suppressHeaderKeys,
+  suppressKeyboardEvent: suppressKeys,
 }
 
 export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
@@ -20,9 +31,8 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
 
   const [columnDefs] = useState<ColDef[]>([
     {
-      field: 'title',
+      field: TITLE_COLUMN,
       headerName: 'Title',
-      filter: true,
       width: 250,
       editable: true,
       resizable: true,
@@ -32,13 +42,10 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
           return params.node === potentialParent.current
         },
       },
-      suppressHeaderKeyboardEvent: suppressHeaderKeys,
-      suppressKeyboardEvent: suppressKeys,
     },
     {
       field: 'url',
       headerName: 'URL',
-      filter: true,
       flex: 1,
       resizable: true,
       cellRenderer: urlCellRenderer,
@@ -47,13 +54,12 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
           return params.node === potentialParent.current
         },
       },
-      suppressHeaderKeyboardEvent: suppressHeaderKeys,
-      suppressKeyboardEvent: suppressKeys,
     },
   ])
 
   return {
     columnDefs,
+    defaultColDef,
 
     sameAsPotentialParent: (node: RowNode<BTN>): boolean => {
       return node === potentialParent.current

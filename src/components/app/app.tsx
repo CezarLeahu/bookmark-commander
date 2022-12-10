@@ -1,5 +1,5 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
-import FolderPanel, { FolderPanelHandle } from '../folder-panel/panel'
+import FolderPanel, { OpenDialogActions } from '../folder-panel/panel'
 import {
   useJumpToParent,
   useLastSelectedIds,
@@ -7,6 +7,7 @@ import {
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
+import { useMemo, useState } from 'react'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
@@ -14,15 +15,16 @@ import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
+import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import Search from '../search/search'
 import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/tabs/tabs'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
+import { useDocumentKeyListener } from './app-key-events'
 import { useDragAndDropPanelBinder } from './app-drag-and-drop-panel-binders'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './app-move-button-handlers'
-import { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
 
@@ -61,12 +63,30 @@ const App: React.FC = () => {
     refreshRows,
   )
 
+  const dialogActions = useMemo<OpenDialogActions>(() => {
+    return {
+      openNewBookmark: createDialog.handleBookmarkOpen,
+      openNewDirectory: createDialog.handleDirectoryOpen,
+      openEdit: editDialog.handleOpen,
+      openDelete: deleteDialog.handleOpen,
+    }
+  }, [createDialog, editDialog, deleteDialog])
+
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     selectedSide,
     setSelectedSide,
     currentNodeIds,
     selectionModels,
     refreshRows,
+  )
+
+  useDocumentKeyListener(
+    selectedSide,
+    setSelectedSide,
+    selectionModels,
+    panelRefs,
+    lastSelectedIds,
+    deleteDialog.handleOpen,
   )
 
   return (
@@ -99,6 +119,7 @@ const App: React.FC = () => {
             setSelectionModel={selectionModels.left.setState}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
+            openDialogActions={dialogActions}
           />
         </Grid>
 
@@ -114,6 +135,7 @@ const App: React.FC = () => {
             setSelectionModel={selectionModels.right.setState}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
+            openDialogActions={dialogActions}
           />
         </Grid>
       </Grid>

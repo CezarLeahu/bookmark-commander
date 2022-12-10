@@ -9,7 +9,7 @@ export const handleRowDragMove = (
   e: RowDragMoveEvent<BTN>,
   meta: FolderPanelMetadata,
   currentNodeId: string,
-  rows: chrome.bookmarks.BookmarkTreeNode[],
+  rows: BTN[],
 ): void => {
   // if current panel is in the root dir: skip (not supported) // todo enable for DND
   if (currentNodeId === '0') {
@@ -68,7 +68,7 @@ export const handleRowDragEnd = (
   e: RowDragEndEvent<BTN>,
   meta: FolderPanelMetadata,
   currentNodeId: string,
-  rows: chrome.bookmarks.BookmarkTreeNode[],
+  rows: BTN[],
   setSelectionModel: (model: string[]) => void,
   refreshRows: () => void,
 ): void => {

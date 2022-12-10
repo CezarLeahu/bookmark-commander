@@ -13,7 +13,13 @@ import {
   Link,
   Typography,
 } from '@mui/material'
-import { CellEditingHandle, useCellEditing } from './panel-commands'
+import {
+  FolderPanelHandle,
+  useCellEditingHandler,
+  useGridReadyHandle,
+  useHighlightPanelOnClick,
+  usePanelHandlers,
+} from './panel-commands'
 import {
   GridApi,
   GridReadyEvent,
@@ -21,13 +27,17 @@ import {
   RowDragLeaveEvent,
   RowDragMoveEvent,
 } from 'ag-grid-community'
-import { forwardRef, useCallback, useEffect, useMemo, useRef } from 'react'
+import { forwardRef, useMemo, useRef } from 'react'
 import {
   handleRowDragEnd,
   handleRowDragLeave,
   handleRowDragMove,
 } from './panel-drag-and-drop-grid-handlers'
-import { useFolderContentEffect, useGridSelectionEffect } from './panel-content'
+import {
+  useFolderContentEffect,
+  useGridHighlightEffect,
+  useGridSelectionEffect,
+} from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -39,7 +49,6 @@ import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
-export interface FolderPanelHandle extends CellEditingHandle {}
 export interface FolderPanelProps {
   readonly highlighted: boolean
   readonly highlightSide: () => void
@@ -50,6 +59,14 @@ export interface FolderPanelProps {
   readonly setSelectionModel: (model: string[]) => void
   readonly rowsOutdated: object
   readonly refreshRows: () => void
+  readonly openDialogActions: OpenDialogActions
+}
+
+export interface OpenDialogActions {
+  readonly openNewBookmark: () => void
+  readonly openNewDirectory: () => void
+  readonly openEdit: () => void
+  readonly openDelete: () => void
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
@@ -77,32 +94,20 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     rowsOutdated,
   )
 
-  useGridSelectionEffect(gridApi, selectionModel, rows)
+  const handleSelectionChanged = useGridSelectionEffect(gridApi, selectionModel, rows)
+  useGridHighlightEffect(gridApi, highlighted, rows)
 
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
   const clickHandlers = useGridClickHandlers(highlightSide, setCurrentNodeId, setSelectionModel)
 
-  const handleGridReady = useCallback(
-    (params: GridReadyEvent): void => {
-      gridApi.current = params.api
-      notifyGridReady(params)
-    },
-    [notifyGridReady],
-  )
+  const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
-  const handleCellEditRequest = useCellEditing(ref, gridApi.current, refreshRows)
+  const handleCellEditRequest = useCellEditingHandler(refreshRows)
 
-  useEffect(() => {
-    if (containerRef.current === undefined || containerRef.current === null) {
-      return
-    }
-    const elem = containerRef.current
-    elem.addEventListener('mouseup', highlightSide)
-    return () => {
-      elem.removeEventListener('mouseup', highlightSide)
-    }
-  }, [notifyGridReady, highlightSide])
+  usePanelHandlers(ref, gridApi.current, setCurrentNodeId, setSelectionModel)
+
+  useHighlightPanelOnClick(containerRef, highlightSide, notifyGridReady)
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
 
@@ -187,6 +192,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         >
           <AgGridReact
             columnDefs={meta.columnDefs}
+            defaultColDef={meta.defaultColDef}
             rowData={rows}
             getRowId={getRowId}
             suppressClickEdit
@@ -198,6 +204,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowClicked={clickHandlers.handleRowClick}
             onRowDoubleClicked={clickHandlers.handleRowDoubleClick}
             isRowSelectable={p => p.id !== currentNode?.parentId}
+            onSelectionChanged={handleSelectionChanged}
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging

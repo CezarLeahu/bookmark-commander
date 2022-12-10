@@ -1,18 +1,24 @@
-import { CellEditRequestEvent, GridApi } from 'ag-grid-community'
-import { useCallback, useImperativeHandle } from 'react'
+import { CellEditRequestEvent, GridApi, GridReadyEvent } from 'ag-grid-community'
+import { useCallback, useEffect, useImperativeHandle } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
+import { MOUSEUP } from '../../services/utils/events'
+import { TITLE_COLUMN } from './panel-metadata'
+import { openInNewTab } from '../../services/tabs/tabs'
 import { updateTitle } from '../../services/bookmarks/commands'
 
-export interface CellEditingHandle {
-  renameCell: (id: string | undefined) => void
+export interface FolderPanelHandle {
+  readonly openHighlightedRow: () => void
+  readonly renameCell: (id: string | undefined) => void
+  readonly highlightedRowId: () => string | undefined
 }
 
-export function useCellEditing(
-  ref: React.ForwardedRef<CellEditingHandle>,
+export function usePanelHandlers(
+  ref: React.ForwardedRef<FolderPanelHandle>,
   gridApi: GridApi | undefined,
-  refreshRows: () => void,
-): (event: CellEditRequestEvent<BTN, string>) => void {
+  setCurrentNodeId: (id: string) => void,
+  setSelectionModel: (model: string[]) => void,
+): void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
     const rowIndex = api.getRowNode(id)?.rowIndex
     if (rowIndex === undefined || rowIndex === null) {
@@ -20,11 +26,11 @@ export function useCellEditing(
     }
     api.startEditingCell({
       rowIndex,
-      colKey: 'title',
+      colKey: TITLE_COLUMN,
     })
   }, [])
 
-  useImperativeHandle<CellEditingHandle, CellEditingHandle>(
+  useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
     () => ({
       renameCell: (id: string | undefined): void => {
@@ -32,13 +38,53 @@ export function useCellEditing(
           startCellEdit(gridApi, id)
         }
       },
-    }),
-    [gridApi, startCellEdit],
-  )
 
+      openHighlightedRow: (): void => {
+        if (gridApi === undefined) {
+          return
+        }
+        const cell = gridApi.getFocusedCell()
+        if (cell === undefined || cell === null) {
+          return
+        }
+
+        const node = gridApi.getModel().getRow(cell.rowIndex)?.data
+        if (node === undefined) {
+          return
+        }
+
+        switch (node.url) {
+          case undefined: // folder
+            setCurrentNodeId(String(node.id))
+            setSelectionModel([])
+            break
+          default: // actual bookmark - open in new tab
+            openInNewTab(node.url, false)
+        }
+      },
+
+      highlightedRowId: (): string | undefined => {
+        if (gridApi === undefined) {
+          return
+        }
+        const cell = gridApi.getFocusedCell()
+        if (cell === undefined || cell === null) {
+          return
+        }
+
+        return gridApi.getModel().getRow(cell.rowIndex)?.data.id
+      },
+    }),
+    [gridApi, startCellEdit, setCurrentNodeId, setSelectionModel],
+  )
+}
+
+export function useCellEditingHandler(
+  refreshRows: () => void,
+): (event: CellEditRequestEvent<BTN, string>) => void {
   return useCallback(
     (event: CellEditRequestEvent<BTN, string>) => {
-      if (event.colDef.field !== 'title' || event.newValue === undefined) {
+      if (event.colDef.field !== TITLE_COLUMN || event.newValue === undefined) {
         return
       }
 
@@ -56,4 +102,34 @@ export function useCellEditing(
     },
     [refreshRows],
   )
+}
+
+export function useGridReadyHandle(
+  notifyGridReady: (params: GridReadyEvent) => void,
+  gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
+): (params: GridReadyEvent) => void {
+  return useCallback(
+    (params: GridReadyEvent): void => {
+      gridApi.current = params.api
+      notifyGridReady(params)
+    },
+    [gridApi, notifyGridReady],
+  )
+}
+
+export function useHighlightPanelOnClick(
+  containerRef: React.RefObject<HTMLDivElement>,
+  highlightSide: () => void,
+  notifyGridReady: (params: GridReadyEvent) => void,
+): void {
+  useEffect(() => {
+    if (containerRef.current === undefined || containerRef.current === null) {
+      return
+    }
+    const elem = containerRef.current
+    elem.addEventListener(MOUSEUP, highlightSide)
+    return () => {
+      elem.removeEventListener(MOUSEUP, highlightSide)
+    }
+  }, [containerRef, highlightSide, notifyGridReady])
 }
