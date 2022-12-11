@@ -45,6 +45,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
+import { usePanelKeyListener } from './panel-key-events'
 import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
@@ -52,6 +53,7 @@ import { useTheme } from '@mui/material/styles'
 export interface FolderPanelProps {
   readonly highlighted: boolean
   readonly highlightSide: () => void
+  readonly highlightOtherSide: () => void
   readonly currentNodeId: string
   readonly setCurrentNodeId: (id: string) => void
   readonly notifyGridReady: (params: GridReadyEvent) => void
@@ -73,6 +75,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   {
     highlighted,
     highlightSide,
+    highlightOtherSide,
     currentNodeId,
     setCurrentNodeId,
     notifyGridReady,
@@ -80,6 +83,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setSelectionModel,
     rowsOutdated,
     refreshRows,
+    openDialogActions,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
@@ -105,9 +109,20 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleCellEditRequest = useCellEditingHandler(refreshRows)
 
-  usePanelHandlers(ref, gridApi.current, setCurrentNodeId, setSelectionModel)
+  usePanelHandlers(ref, gridApi.current)
 
   useHighlightPanelOnClick(containerRef, highlightSide, notifyGridReady)
+
+  usePanelKeyListener(
+    containerRef,
+    gridApi.current,
+    highlightOtherSide,
+    setCurrentNodeId,
+    notifyGridReady,
+    selectionModel,
+    setSelectionModel,
+    openDialogActions,
+  )
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
 

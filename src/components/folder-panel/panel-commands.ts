@@ -8,16 +8,12 @@ import { openInNewTab } from '../../services/tabs/tabs'
 import { updateTitle } from '../../services/bookmarks/commands'
 
 export interface FolderPanelHandle {
-  readonly openHighlightedRow: () => void
   readonly renameCell: (id: string | undefined) => void
-  readonly highlightedRowId: () => string | undefined
 }
 
 export function usePanelHandlers(
   ref: React.ForwardedRef<FolderPanelHandle>,
   gridApi: GridApi | undefined,
-  setCurrentNodeId: (id: string) => void,
-  setSelectionModel: (model: string[]) => void,
 ): void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
     const rowIndex = api.getRowNode(id)?.rowIndex
@@ -38,45 +34,39 @@ export function usePanelHandlers(
           startCellEdit(gridApi, id)
         }
       },
-
-      openHighlightedRow: (): void => {
-        if (gridApi === undefined) {
-          return
-        }
-        const cell = gridApi.getFocusedCell()
-        if (cell === undefined || cell === null) {
-          return
-        }
-
-        const node = gridApi.getModel().getRow(cell.rowIndex)?.data
-        if (node === undefined) {
-          return
-        }
-
-        switch (node.url) {
-          case undefined: // folder
-            setCurrentNodeId(String(node.id))
-            setSelectionModel([])
-            break
-          default: // actual bookmark - open in new tab
-            openInNewTab(node.url, false)
-        }
-      },
-
-      highlightedRowId: (): string | undefined => {
-        if (gridApi === undefined) {
-          return
-        }
-        const cell = gridApi.getFocusedCell()
-        if (cell === undefined || cell === null) {
-          return
-        }
-
-        return gridApi.getModel().getRow(cell.rowIndex)?.data.id
-      },
     }),
-    [gridApi, startCellEdit, setCurrentNodeId, setSelectionModel],
+    [gridApi, startCellEdit],
   )
+}
+
+export function useOpenHighlightedRow(
+  gridApi: GridApi | undefined,
+  setCurrentNodeId: (id: string) => void,
+  setSelectionModel: (model: string[]) => void,
+): () => void {
+  return useCallback(() => {
+    if (gridApi === undefined) {
+      return
+    }
+    const cell = gridApi.getFocusedCell()
+    if (cell === undefined || cell === null) {
+      return
+    }
+
+    const node = gridApi.getModel().getRow(cell.rowIndex)?.data
+    if (node === undefined) {
+      return
+    }
+
+    switch (node.url) {
+      case undefined: // folder
+        setCurrentNodeId(String(node.id))
+        setSelectionModel([])
+        break
+      default: // actual bookmark - open in new tab
+        openInNewTab(node.url, false)
+    }
+  }, [gridApi, setCurrentNodeId, setSelectionModel])
 }
 
 export function useCellEditingHandler(

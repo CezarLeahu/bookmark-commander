@@ -80,14 +80,7 @@ const App: React.FC = () => {
     refreshRows,
   )
 
-  useDocumentKeyListener(
-    selectedSide,
-    setSelectedSide,
-    selectionModels,
-    panelRefs,
-    lastSelectedIds,
-    deleteDialog.handleOpen,
-  )
+  useDocumentKeyListener()
 
   return (
     <Container
@@ -112,6 +105,7 @@ const App: React.FC = () => {
             ref={panelRefs.left}
             highlighted={selectedSide === 'left'}
             highlightSide={() => setSelectedSide('left')}
+            highlightOtherSide={() => setSelectedSide('right')}
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
             notifyGridReady={handleGridReadyLeft}
@@ -128,6 +122,7 @@ const App: React.FC = () => {
             ref={panelRefs.right}
             highlighted={selectedSide === 'right'}
             highlightSide={() => setSelectedSide('right')}
+            highlightOtherSide={() => setSelectedSide('left')}
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
             notifyGridReady={handleGridReadyRight}

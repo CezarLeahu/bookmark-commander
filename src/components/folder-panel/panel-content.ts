@@ -104,7 +104,10 @@ export function useGridHighlightEffect(
   rows: BTN[],
 ): void {
   useEffect(() => {
-    if (!highlighted || rows.length === 0 || gridApi.current === undefined) {
+    if (!highlighted || gridApi.current === undefined) {
+      return
+    }
+    if (gridApi.current.getDisplayedRowAtIndex(0) === undefined) {
       return
     }
     gridApi.current.ensureIndexVisible(0)
