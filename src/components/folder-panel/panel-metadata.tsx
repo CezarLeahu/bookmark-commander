@@ -6,7 +6,7 @@ import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import { getFaviconUrl } from '../../services/favicons/favicons'
 import { isDirectory } from '../../services/bookmarks/utils'
-import { openAllInNewTabs } from '../../services/tabs/tabs'
+import { openInNewTab } from '../../services/tabs/tabs'
 
 export interface FolderPanelMetadata {
   columnDefs: ColDef[]
@@ -117,13 +117,14 @@ const middleClickHandle = (
 ): void => {
   if (event?.type === 'mouseup' && event.nativeEvent.which === 2) {
     // Middle click
-    const urls: string[] = api
-      .getSelectedRows()
-      .map(n => n.url)
-      .filter(url => url !== undefined) as string[]
-
-    if (urls.length > 0 && urls.length < 20) {
-      openAllInNewTabs(urls)
+    const rowIndex = api?.getFocusedCell()?.rowIndex
+    if (rowIndex === undefined || rowIndex === 0) {
+      return
     }
+    const node: BTN = api?.getModel().getRow(rowIndex)?.data
+    if (node === undefined || node.url === undefined) {
+      return
+    }
+    openInNewTab(node.url, false)
   }
 }

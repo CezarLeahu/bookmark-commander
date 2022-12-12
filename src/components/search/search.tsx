@@ -113,11 +113,15 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
     (event: KeyboardEvent): void => {
       switch (event.key) {
         case keys.DOWN: {
-          focusedIndex.current++
+          if (focusedIndex.current + 1 < searchResults.length) {
+            focusedIndex.current++
+          }
           break
         }
         case keys.UP: {
-          focusedIndex.current--
+          if (focusedIndex.current >= 0) {
+            focusedIndex.current--
+          }
           break
         }
         case keys.ENTER: {

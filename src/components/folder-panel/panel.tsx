@@ -34,8 +34,8 @@ import {
   handleRowDragMove,
 } from './panel-drag-and-drop-grid-handlers'
 import {
+  useComponenetStateChangedHandler,
   useFolderContentEffect,
-  useGridHighlightEffect,
   useGridSelectionEffect,
 } from './panel-content'
 
@@ -98,8 +98,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     rowsOutdated,
   )
 
-  const handleSelectionChanged = useGridSelectionEffect(gridApi, selectionModel, rows)
-  useGridHighlightEffect(gridApi, highlighted, rows)
+  useGridSelectionEffect(gridApi, selectionModel, rows)
 
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
@@ -123,6 +122,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setSelectionModel,
     openDialogActions,
   )
+
+  const handleComponentStateChanged = useComponenetStateChangedHandler()
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
 
@@ -219,7 +220,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowClicked={clickHandlers.handleRowClick}
             onRowDoubleClicked={clickHandlers.handleRowDoubleClick}
             isRowSelectable={p => p.id !== currentNode?.parentId}
-            onSelectionChanged={handleSelectionChanged}
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging
@@ -231,6 +231,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
               handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, refreshRows)
             }
             onGridReady={handleGridReady}
+            onComponentStateChanged={handleComponentStateChanged}
           />
         </Box>
       </Box>

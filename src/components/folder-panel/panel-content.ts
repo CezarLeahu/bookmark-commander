@@ -1,4 +1,4 @@
-import { GridApi, SelectionChangedEvent } from 'ag-grid-community'
+import { ComponentStateChangedEvent, GridApi } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
@@ -66,7 +66,7 @@ export function useGridSelectionEffect(
   gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
   selectionModel: string[],
   rows: BTN[],
-): (event: SelectionChangedEvent<BTN>) => void {
+): void {
   useEffect(() => {
     if (gridApi.current === undefined) {
       return
@@ -80,8 +80,12 @@ export function useGridSelectionEffect(
       n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
     )
   }, [gridApi, selectionModel, rows])
+}
 
-  return useCallback((event: SelectionChangedEvent<BTN>): void => {
+export function useComponenetStateChangedHandler(): (
+  event: ComponentStateChangedEvent<BTN>,
+) => void {
+  return useCallback((event: ComponentStateChangedEvent<BTN>) => {
     const selectedRows = event.api.getSelectedNodes()
     if (selectedRows.length === 1) {
       event.api.ensureNodeVisible(selectedRows[0])
@@ -96,21 +100,4 @@ export function useGridSelectionEffect(
       event.api.setFocusedCell(0, TITLE_COLUMN)
     }
   }, [])
-}
-
-export function useGridHighlightEffect(
-  gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
-  highlighted: boolean,
-  rows: BTN[],
-): void {
-  useEffect(() => {
-    if (!highlighted || gridApi.current === undefined) {
-      return
-    }
-    if (gridApi.current.getDisplayedRowAtIndex(0) === undefined) {
-      return
-    }
-    gridApi.current.ensureIndexVisible(0)
-    gridApi.current.setFocusedCell(0, TITLE_COLUMN)
-  }, [gridApi, highlighted, rows])
 }
