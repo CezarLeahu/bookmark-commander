@@ -33,7 +33,8 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
     {
       field: TITLE_COLUMN,
       headerName: 'Title',
-      width: 250,
+      minWidth: 100,
+      flex: 1, // 1 out for 2 -> 50% width
       resizable: true,
       cellRenderer: titleCellRenderer,
       cellClassRules: {
@@ -45,7 +46,7 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
     {
       field: 'url',
       headerName: 'URL',
-      flex: 1,
+      flex: 1, // 1 out for 2 -> 50% width
       resizable: true,
       cellRenderer: urlCellRenderer,
       cellClassRules: {
