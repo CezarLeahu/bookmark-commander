@@ -9,6 +9,7 @@ import { updateTitle } from '../../services/bookmarks/commands'
 
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
+  readonly clearFocus: () => void
 }
 
 export function usePanelHandlers(
@@ -34,6 +35,7 @@ export function usePanelHandlers(
           startCellEdit(gridApi, id)
         }
       },
+      clearFocus: (): void => gridApi?.clearFocusedCell(),
     }),
     [gridApi, startCellEdit],
   )

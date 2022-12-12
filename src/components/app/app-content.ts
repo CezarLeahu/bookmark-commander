@@ -1,8 +1,9 @@
+import { PairCallback, PairRef, PairState, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
-import { PairState } from '../../services/utils/hooks'
+import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { getNode } from '../../services/bookmarks/queries'
 
 export function useRefresh(): [object, () => void] {
@@ -79,5 +80,22 @@ export function useJumpToParent(
       currentNodeIds[selectedSide].setState(node.parentId ?? '0')
     },
     [selectedSide, currentNodeIds, selectionModels],
+  )
+}
+
+export function usePanelHighlight(
+  panelRefs: PairRef<FolderPanelHandle | null>,
+  setSelectedSide: React.Dispatch<React.SetStateAction<Side>>,
+): PairCallback<() => void> {
+  return usePairCallbacks(
+    () => {
+      panelRefs.right.current?.clearFocus()
+      setSelectedSide('left')
+    },
+    () => {
+      panelRefs.left.current?.clearFocus()
+      setSelectedSide('right')
+    },
+    [panelRefs.left, panelRefs.right],
   )
 }

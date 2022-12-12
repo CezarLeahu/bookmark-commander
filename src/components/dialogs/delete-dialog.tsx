@@ -1,3 +1,5 @@
+import * as keys from '../../services/utils/keys'
+
 import {
   Button,
   Dialog,
@@ -6,8 +8,8 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import { KeyboardEvent, useCallback, useEffect, useState } from 'react'
 import { containsNonEmptyDirectories, isDirectory } from '../../services/bookmarks/utils'
-import { useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { getNodesWithImmediateChildren } from '../../services/bookmarks/queries'
@@ -63,17 +65,25 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
       .catch(e => console.log(e))
   }, [nodeIds])
 
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent): void => {
+      if (e.key !== keys.ENTER || nonEmptyDirs) {
+        return
+      }
+      e.stopPropagation()
+
+      onConfirm()
+    },
+    [onConfirm, nonEmptyDirs],
+  )
+
   return (
     <Dialog
       open={open}
       onClose={onCancel}
       aria-labelledby='dialog-title'
       aria-describedby='dialog-description'
-      onKeyDown={e => {
-        if (e.key === 'Enter' && !nonEmptyDirs) {
-          onConfirm()
-        }
-      }}
+      onKeyUpCapture={handleKeyUp}
     >
       <DialogTitle id='dialog-title'>{title}</DialogTitle>
       <DialogContent>

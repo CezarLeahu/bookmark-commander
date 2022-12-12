@@ -1,4 +1,4 @@
-import { ComponentStateChangedEvent, GridApi } from 'ag-grid-community'
+import { ComponentStateChangedEvent, GridApi, RowNode } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
@@ -82,22 +82,36 @@ export function useGridSelectionEffect(
   }, [gridApi, selectionModel, rows])
 }
 
-export function useComponenetStateChangedHandler(): (
-  event: ComponentStateChangedEvent<BTN>,
-) => void {
-  return useCallback((event: ComponentStateChangedEvent<BTN>) => {
-    const selectedRows = event.api.getSelectedNodes()
-    if (selectedRows.length === 1) {
-      event.api.ensureNodeVisible(selectedRows[0])
-      event.api.setFocusedCell(selectedRows[0].rowIndex ?? 0, TITLE_COLUMN)
-      return
-    }
-    if (selectedRows.length > 1) {
-      return
-    }
-    if (event.api.getDisplayedRowCount() !== 0) {
-      event.api.ensureIndexVisible(0)
-      event.api.setFocusedCell(0, TITLE_COLUMN)
-    }
-  }, [])
+export function useComponenetStateChangedHandler(
+  currentNode: BTN | undefined,
+): (event: ComponentStateChangedEvent<BTN>) => void {
+  const deselectFirstRowIfNeeded = useCallback(
+    (selectedRows: Array<RowNode<BTN>>): void => {
+      selectedRows
+        .filter(r => r.rowIndex === 0 && r.data?.id === currentNode?.parentId)
+        .forEach(r => r.setSelected(false, false, true))
+    },
+    [currentNode],
+  )
+
+  return useCallback(
+    (event: ComponentStateChangedEvent<BTN>) => {
+      const selectedRows: RowNode[] = event.api.getSelectedNodes()
+      if (selectedRows.length === 1) {
+        event.api.ensureNodeVisible(selectedRows[0])
+        event.api.setFocusedCell(selectedRows[0].rowIndex ?? 0, TITLE_COLUMN)
+        deselectFirstRowIfNeeded(selectedRows)
+        return
+      }
+      if (selectedRows.length > 1) {
+        deselectFirstRowIfNeeded(selectedRows)
+        return
+      }
+      if (event.api.getDisplayedRowCount() !== 0) {
+        event.api.ensureIndexVisible(0)
+        event.api.setFocusedCell(0, TITLE_COLUMN)
+      }
+    },
+    [deselectFirstRowIfNeeded],
+  )
 }

@@ -1,6 +1,7 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
+import * as keys from '../../services/utils/keys'
 
-import { useState } from 'react'
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
+import { KeyboardEvent, useCallback, useState } from 'react'
 
 interface CreateDialogProps {
   readonly open: boolean
@@ -36,18 +37,30 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     setValidUrl(e.target.value !== undefined && e.target.value.length > 0)
   }
 
-  const handleConfirm = (): void => {
+  const handleConfirm = useCallback((): void => {
     if (validTitle && validUrl) {
       onConfirm(title, url)
     }
-  }
+  }, [onConfirm, title, url, validTitle, validUrl])
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent): void => {
+      if (e.key !== keys.ENTER) {
+        return
+      }
+      e.stopPropagation()
+
+      handleConfirm()
+    },
+    [handleConfirm],
+  )
 
   return (
     <Dialog
       open={open}
       onClose={onCancel}
       aria-labelledby='dialog-title'
-      onKeyDown={e => e.key === 'Enter' && handleConfirm()}
+      onKeyUpCapture={handleKeyUp}
     >
       <DialogTitle id='dialog-title'>
         {isDirectory ? 'Create folder' : 'Create bookmark'}
@@ -56,6 +69,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
         <TextField
           id='name'
           autoFocus
+          inputRef={input => input?.focus()}
           margin='dense'
           label='Name'
           type='text'

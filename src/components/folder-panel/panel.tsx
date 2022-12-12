@@ -26,8 +26,9 @@ import {
   RowDragEndEvent,
   RowDragLeaveEvent,
   RowDragMoveEvent,
+  RowNode,
 } from 'ag-grid-community'
-import { forwardRef, useMemo, useRef } from 'react'
+import { forwardRef, useCallback, useMemo, useRef } from 'react'
 import {
   handleRowDragEnd,
   handleRowDragLeave,
@@ -102,7 +103,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
-  const clickHandlers = useGridClickHandlers(highlightSide, setCurrentNodeId, setSelectionModel)
+  const clickHandlers = useGridClickHandlers(
+    highlightSide,
+    currentNode,
+    setCurrentNodeId,
+    setSelectionModel,
+  )
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
@@ -117,15 +123,20 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     gridApi.current,
     highlightOtherSide,
     setCurrentNodeId,
+    currentNode,
     notifyGridReady,
-    selectionModel,
     setSelectionModel,
     openDialogActions,
   )
 
-  const handleComponentStateChanged = useComponenetStateChangedHandler()
+  const handleComponentStateChanged = useComponenetStateChangedHandler(currentNode)
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
+
+  const rowSelectable = useCallback(
+    (node: RowNode<BTN>): boolean => node.id !== currentNode?.parentId,
+    [currentNode],
+  )
 
   return (
     <Container
@@ -219,7 +230,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowSelection='multiple'
             onRowClicked={clickHandlers.handleRowClick}
             onRowDoubleClicked={clickHandlers.handleRowDoubleClick}
-            isRowSelectable={p => p.id !== currentNode?.parentId}
+            isRowSelectable={rowSelectable}
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging

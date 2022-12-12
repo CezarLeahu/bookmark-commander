@@ -1,8 +1,7 @@
-import { Dispatch, SetStateAction } from 'react'
+import { PairCallback, PairState } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
-import { PairState } from '../../services/utils/hooks'
 import { useLastSelectedIds } from './app-content'
 
 interface MoveHandlers {
@@ -13,7 +12,7 @@ interface MoveHandlers {
 
 export function useMoveHandlers(
   selectedSide: Side,
-  setSelectedSide: Dispatch<SetStateAction<Side>>,
+  highlight: PairCallback<() => void>,
   currentNodeIds: PairState<string>,
   selectionModels: PairState<string[]>,
   refreshRows: () => void,
@@ -38,7 +37,7 @@ export function useMoveHandlers(
         .then(() => {
           selectionModels[selectedSide].setState([])
           selectionModels[otherSide].setState(nodeIds)
-          setSelectedSide(otherSide)
+          highlight[otherSide]()
           refreshRows()
         })
         .catch(e => console.log(e))

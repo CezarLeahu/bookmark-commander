@@ -34,7 +34,6 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
       field: TITLE_COLUMN,
       headerName: 'Title',
       width: 250,
-      editable: true,
       resizable: true,
       cellRenderer: titleCellRenderer,
       cellClassRules: {

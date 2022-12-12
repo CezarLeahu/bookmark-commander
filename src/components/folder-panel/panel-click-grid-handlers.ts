@@ -12,6 +12,7 @@ interface ClickHandlers {
 
 export function useGridClickHandlers(
   highlightSide: () => void,
+  currentNode: BTN | undefined,
   setCurrentNodeId: (id: string) => void,
   setSelectionModel: (model: string[]) => void,
 
@@ -21,9 +22,14 @@ export function useGridClickHandlers(
     handleRowClick: useCallback(
       (event: RowSelectedEvent<BTN>): void => {
         highlightSide()
-        setSelectionModel(event.api.getSelectedRows().map(n => n.id))
+        setSelectionModel(
+          event.api
+            .getSelectedRows()
+            .filter(n => n.id !== currentNode?.parentId)
+            .map(n => n.id),
+        )
       },
-      [highlightSide, setSelectionModel],
+      [highlightSide, setSelectionModel, currentNode],
     ),
 
     handleRowDoubleClick: useCallback(

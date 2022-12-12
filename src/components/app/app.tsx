@@ -3,11 +3,12 @@ import FolderPanel, { OpenDialogActions } from '../folder-panel/panel'
 import {
   useJumpToParent,
   useLastSelectedIds,
+  usePanelHighlight,
   useRefresh,
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
@@ -32,6 +33,8 @@ const App: React.FC = () => {
   const theme = useTheme()
   const themeContext = useThemeContext()
 
+  const panelAreaRef = useRef<HTMLDivElement>(null)
+
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const [selectedSide, setSelectedSide] = useState<Side>('left')
   const currentNodeIds = usePairState<string>('1', '2')
@@ -48,6 +51,8 @@ const App: React.FC = () => {
   const jumpToParent = useJumpToParent(selectedSide, currentNodeIds, selectionModels)
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
+
+  const highlight = usePanelHighlight(panelRefs, setSelectedSide)
 
   const createDialog = useCreateDialogState(
     selectedSide,
@@ -74,13 +79,13 @@ const App: React.FC = () => {
 
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     selectedSide,
-    setSelectedSide,
+    highlight,
     currentNodeIds,
     selectionModels,
     refreshRows,
   )
 
-  useDocumentKeyListener()
+  useDocumentKeyListener(panelAreaRef, selectedSide, highlight)
 
   return (
     <Container
@@ -99,13 +104,19 @@ const App: React.FC = () => {
         </IconButton>
       </Box>
 
-      <Grid container spacing={0.5} alignItems='stretch' sx={{ flex: 1, overflow: 'auto' }}>
+      <Grid
+        container
+        spacing={0.5}
+        alignItems='stretch'
+        sx={{ flex: 1, overflow: 'auto' }}
+        ref={panelAreaRef}
+      >
         <Grid item xs={6}>
           <FolderPanel
             ref={panelRefs.left}
             highlighted={selectedSide === 'left'}
-            highlightSide={() => setSelectedSide('left')}
-            highlightOtherSide={() => setSelectedSide('right')}
+            highlightSide={highlight.left}
+            highlightOtherSide={highlight.right}
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
             notifyGridReady={handleGridReadyLeft}
@@ -121,8 +132,8 @@ const App: React.FC = () => {
           <FolderPanel
             ref={panelRefs.right}
             highlighted={selectedSide === 'right'}
-            highlightSide={() => setSelectedSide('right')}
-            highlightOtherSide={() => setSelectedSide('left')}
+            highlightSide={highlight.right}
+            highlightOtherSide={highlight.left}
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
             notifyGridReady={handleGridReadyRight}
@@ -140,12 +151,6 @@ const App: React.FC = () => {
           <Button onClick={createDialog.handleBookmarkOpen}>New</Button>
 
           <Button onClick={createDialog.handleDirectoryOpen}>New Folder</Button>
-          <Button
-            disabled={lastSelectedIds().length !== 1}
-            onClick={() => panelRefs[selectedSide].current?.renameCell(lastSelectedIds()[0])}
-          >
-            Rename
-          </Button>
           <Button disabled={lastSelectedIds().length !== 1} onClick={editDialog.handleOpen}>
             Edit
           </Button>

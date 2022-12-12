@@ -1,4 +1,12 @@
-import { Dispatch, MutableRefObject, SetStateAction, useRef, useState } from 'react'
+import {
+  DependencyList,
+  Dispatch,
+  MutableRefObject,
+  SetStateAction,
+  useCallback,
+  useRef,
+  useState,
+} from 'react'
 
 export interface PairState<S> {
   left: {
@@ -58,5 +66,22 @@ export function usePairRef<T>(initialValueLeft: T, initialValueRight: T): PairRe
   return {
     left: useRef<T>(initialValueLeft),
     right: useRef<T>(initialValueRight),
+  }
+}
+
+type F = () => void
+export interface PairCallback<T extends F> {
+  left: T
+  right: T
+}
+
+export function usePairCallbacks<T extends F>(
+  callbackLeft: T,
+  callbackRight: T,
+  deps: DependencyList,
+): PairCallback<T> {
+  return {
+    left: useCallback<T>(callbackLeft, [callbackLeft, ...deps]),
+    right: useCallback<T>(callbackRight, [callbackRight, ...deps]),
   }
 }

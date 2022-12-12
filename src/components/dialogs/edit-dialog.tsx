@@ -1,5 +1,7 @@
+import * as keys from '../../services/utils/keys'
+
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { KeyboardEvent, useCallback, useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { getNode } from '../../services/bookmarks/queries'
@@ -59,24 +61,37 @@ const EditDialog: React.FC<EditDialogProps> = ({
     setValidUrl(e.target.value !== undefined && e.target.value.length > 0)
   }
 
-  const handleConfirm = (): void => {
+  const handleConfirm = useCallback((): void => {
     if (node !== undefined && validTitle && validUrl) {
       onConfirm({ ...node, title, url })
     }
-  }
+  }, [onConfirm, node, title, url, validTitle, validUrl])
+
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent): void => {
+      if (e.key !== keys.ENTER) {
+        return
+      }
+      e.stopPropagation()
+
+      handleConfirm()
+    },
+    [handleConfirm],
+  )
 
   return (
     <Dialog
       open={open}
       onClose={onCancel}
       aria-labelledby='dialog-title'
-      onKeyDown={e => e.key === 'Enter' && handleConfirm()}
+      onKeyUpCapture={handleKeyUp}
     >
       <DialogTitle id='dialog-title'>{isDir ? 'Edit folder' : 'Edit bookmark'}</DialogTitle>
       <DialogContent>
         <TextField
           id='name'
           autoFocus
+          inputRef={input => input?.focus()}
           margin='dense'
           label='Name'
           type='text'
