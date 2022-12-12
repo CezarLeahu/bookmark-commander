@@ -59,13 +59,16 @@ const App: React.FC = () => {
     currentNodeIds,
     resetCurrentSelection,
     refreshRows,
+    panelRefs,
   )
-  const editDialog = useEditDialogState(resetCurrentSelection, refreshRows)
+  const editDialog = useEditDialogState(selectedSide, resetCurrentSelection, refreshRows, panelRefs)
   const deleteDialog = useDeleteDialogState(
     lastSelectedIds,
+    selectedSide,
     updateCurrentPathsIfNeeded,
     resetCurrentSelection,
     refreshRows,
+    panelRefs,
   )
 
   const dialogActions = useMemo<OpenDialogActions>(() => {
@@ -94,7 +97,7 @@ const App: React.FC = () => {
       sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <Box display='flex' justifyContent='center' alignItems='center'>
-        <Search onJumpTo={jumpToParent} />
+        <Search onJumpTo={jumpToParent} goAway={() => panelAreaRef.current?.focus()} />
         <IconButton
           sx={{ ml: 1, justifySelf: 'right' }}
           onClick={themeContext.toggleColorMode}
@@ -151,35 +154,49 @@ const App: React.FC = () => {
           <Button onClick={createDialog.handleBookmarkOpen}>New</Button>
 
           <Button onClick={createDialog.handleDirectoryOpen}>New Folder</Button>
-          <Button disabled={lastSelectedIds().length !== 1} onClick={editDialog.handleOpen}>
+          <Button
+            disabled={!(panelRefs[selectedSide].current?.singleRowSelectedOrFocused() ?? false)}
+            onClick={editDialog.handleOpen}
+          >
             Edit
           </Button>
           <Button
             disabled={currentNodeIds.left.state === currentNodeIds.right.state}
-            onClick={() =>
-              currentNodeIds[selectedSide === 'left' ? 'right' : 'left'].setState(
-                currentNodeIds[selectedSide].state,
-              )
-            }
+            onClick={() => currentNodeIds.right.setState(currentNodeIds.left.state)}
           >
-            Mirror (=)
+            Mirror ({'\u2192'})
+          </Button>
+          <Button
+            disabled={currentNodeIds.left.state === currentNodeIds.right.state}
+            onClick={() => currentNodeIds.left.setState(currentNodeIds.right.state)}
+          >
+            Mirror ({'\u2190'})
           </Button>
           <Button
             disabled={
               currentNodeIds.left.state === currentNodeIds.right.state ||
-              lastSelectedIds().length === 0
+              !(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)
             }
             onClick={handleMoveBetweenPanels}
           >
             Move
           </Button>
-          <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveUp}>
+          <Button
+            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            onClick={handleMoveUp}
+          >
             Move Up ({'\u2191'})
           </Button>
-          <Button disabled={lastSelectedIds().length === 0} onClick={handleMoveDown}>
+          <Button
+            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            onClick={handleMoveDown}
+          >
             Move Down ({'\u2193'})
           </Button>
-          <Button disabled={lastSelectedIds().length === 0} onClick={deleteDialog.handleOpen}>
+          <Button
+            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            onClick={deleteDialog.handleOpen}
+          >
             Delete
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>

@@ -1,5 +1,8 @@
 import { useCallback, useState } from 'react'
 
+import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { PairRef } from '../../services/utils/hooks'
+import { Side } from '../../services/utils/types'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
 
@@ -12,15 +15,24 @@ interface DeleteDialogState {
 
 export function useDeleteDialogState(
   lastSelectedIds: () => string[],
+  selectedSide: Side,
   updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
+  panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const [open, setOpen] = useState(false)
 
   return {
     open,
-    handleOpen: useCallback((): void => setOpen(true), []),
+
+    handleOpen: useCallback((): void => {
+      panelRefs[selectedSide].current?.ensureAtLeastOneRowSelected()
+      panelRefs.left.current?.clearFocus()
+      panelRefs.right.current?.clearFocus()
+      setOpen(true)
+    }, [selectedSide, panelRefs]),
+
     handleConfirm: useCallback((): void => {
       const ids: string[] = lastSelectedIds()
       if (ids.length === 0) {

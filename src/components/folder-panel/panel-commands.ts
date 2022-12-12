@@ -10,11 +10,17 @@ import { updateTitle } from '../../services/bookmarks/commands'
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
   readonly clearFocus: () => void
+  readonly singleRowSelectedOrFocused: () => boolean
+  readonly rowsSelectedOrFocused: () => boolean
+  readonly ensureAtLeastOneRowSelected: () => void
 }
 
 export function usePanelHandlers(
   ref: React.ForwardedRef<FolderPanelHandle>,
-  gridApi: GridApi | undefined,
+  gridApi: GridApi<BTN> | undefined,
+  currentNode: BTN | undefined,
+  selectionModel: string[],
+  setSelectionModel: (model: string[]) => void,
 ): void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
     const rowIndex = api.getRowNode(id)?.rowIndex
@@ -35,9 +41,47 @@ export function usePanelHandlers(
           startCellEdit(gridApi, id)
         }
       },
+
       clearFocus: (): void => gridApi?.clearFocusedCell(),
+
+      singleRowSelectedOrFocused: (): boolean => {
+        if (currentNode?.parentId === undefined || selectionModel.length > 1) {
+          return false
+        }
+        if (selectionModel.length === 1) {
+          return true
+        }
+        return (gridApi?.getFocusedCell()?.rowIndex ?? 0) > 0
+        // TODO check if selectionModel can be retrieved from the gridApi (and maybe account for index 0)
+      },
+
+      rowsSelectedOrFocused: (): boolean => {
+        if (currentNode?.parentId === undefined) {
+          return false
+        }
+        return selectionModel.length > 0 || (gridApi?.getFocusedCell()?.rowIndex ?? 0) > 0
+        // TODO check if selectionModel can be retrieved from the gridApi (and maybe account for index 0)
+      },
+
+      ensureAtLeastOneRowSelected: (): void => {
+        if (selectionModel.length !== 0) {
+          return
+        }
+        const rowIndex = gridApi?.getFocusedCell()?.rowIndex ?? 0
+        if (rowIndex === 0) {
+          return
+        }
+
+        const id = gridApi?.getModel().getRow(rowIndex)?.id
+        if (id === undefined) {
+          return
+        }
+
+        setSelectionModel([id])
+        // gridApi?.clearFocusedCell()
+      },
     }),
-    [gridApi, startCellEdit],
+    [gridApi, startCellEdit, currentNode, selectionModel, setSelectionModel],
   )
 }
 

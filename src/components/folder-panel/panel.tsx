@@ -114,7 +114,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleCellEditRequest = useCellEditingHandler(refreshRows)
 
-  usePanelHandlers(ref, gridApi.current)
+  usePanelHandlers(ref, gridApi.current, currentNode, selectionModel, setSelectionModel)
 
   useHighlightPanelOnClick(containerRef, highlightSide, notifyGridReady)
 

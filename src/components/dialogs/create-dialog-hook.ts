@@ -1,7 +1,8 @@
+import { PairRef, PairState } from '../../services/utils/hooks'
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
 import { useCallback, useState } from 'react'
 
-import { PairState } from '../../services/utils/hooks'
+import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { Side } from '../../services/utils/types'
 
 interface CreateDialogState {
@@ -19,6 +20,7 @@ export function useCreateDialogState(
   currentNodeIds: PairState<string>,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
+  panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -26,12 +28,24 @@ export function useCreateDialogState(
   return {
     bookmarkOpen,
     directoryOpen,
+
     isOpen: useCallback(
       (): boolean => bookmarkOpen || directoryOpen,
       [bookmarkOpen, directoryOpen],
     ),
-    handleBookmarkOpen: useCallback((): void => setBookmarkOpen(true), []),
-    handleDirectoryOpen: useCallback((): void => setDirectoryOpen(true), []),
+
+    handleBookmarkOpen: useCallback((): void => {
+      panelRefs.left.current?.clearFocus()
+      panelRefs.right.current?.clearFocus()
+      setBookmarkOpen(true)
+    }, [panelRefs.left, panelRefs.right]),
+
+    handleDirectoryOpen: useCallback((): void => {
+      panelRefs.left.current?.clearFocus()
+      panelRefs.right.current?.clearFocus()
+      setDirectoryOpen(true)
+    }, [panelRefs.left, panelRefs.right]),
+
     handleConfirm: useCallback(
       (title: string, url?: string): void => {
         const parentId = currentNodeIds[selectedSide].state
@@ -64,6 +78,7 @@ export function useCreateDialogState(
       },
       [currentNodeIds, selectedSide, resetCurrentSelection, refreshRows],
     ),
+
     handleClose: useCallback((): void => {
       setBookmarkOpen(false)
       setDirectoryOpen(false)

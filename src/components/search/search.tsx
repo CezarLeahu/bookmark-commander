@@ -25,9 +25,10 @@ import { search } from '../../services/bookmarks/commands'
 
 export interface SearchProps {
   onJumpTo: (node: BTN) => void
+  goAway: () => void
 }
 
-const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
+const Search: React.FC<SearchProps> = ({ onJumpTo, goAway }: SearchProps) => {
   const [open, setOpen] = useState(false)
   const inputBoxEl = useRef<HTMLElement>(null)
   const inputEl = useRef<HTMLInputElement>(null)
@@ -45,22 +46,38 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
     handleSearch(event.target.value)
   }
 
+  const handleGoAway = useCallback((): void => {
+    setOpen(false)
+    setSearchValue('')
+    setSearchResults([])
+    goAway()
+  }, [goAway])
+
   const handleOnKeyUp = useCallback(
     (event: KeyboardEvent<HTMLInputElement>): void => {
-      if (
-        event.key === keys.DOWN &&
-        searchResults.length !== 0 &&
-        resultListEl.current !== undefined &&
-        resultListEl.current !== null
-      ) {
-        const list = resultListEl.current
-        if (list.firstElementChild !== null && list.firstElementChild instanceof HTMLLIElement) {
-          list.firstElementChild.focus()
-          focusedIndex.current = 0
+      switch (event.key) {
+        case keys.ESCAPE: {
+          handleGoAway()
+          break
+        }
+        case keys.DOWN: {
+          if (
+            searchResults.length === 0 ||
+            resultListEl.current === undefined ||
+            resultListEl.current === null
+          ) {
+            break
+          }
+          const list = resultListEl.current
+          if (list.firstElementChild !== null && list.firstElementChild instanceof HTMLLIElement) {
+            list.firstElementChild.focus()
+            focusedIndex.current = 0
+          }
+          break
         }
       }
     },
-    [searchResults],
+    [searchResults, handleGoAway],
   )
 
   const focusLiElement = useCallback((index: number): HTMLLIElement | undefined => {
@@ -112,6 +129,10 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
   const handleListOnKeyUp = useCallback(
     (event: KeyboardEvent): void => {
       switch (event.key) {
+        case keys.ESCAPE: {
+          handleGoAway()
+          break
+        }
         case keys.DOWN: {
           if (focusedIndex.current + 1 < searchResults.length) {
             focusedIndex.current++
@@ -135,7 +156,7 @@ const Search: React.FC<SearchProps> = ({ onJumpTo }: SearchProps) => {
         focusLiElement(focusedIndex.current)
       }
     },
-    [focusLiElement, handleJumpTo, searchResults],
+    [focusLiElement, handleGoAway, handleJumpTo, searchResults],
   )
 
   return (

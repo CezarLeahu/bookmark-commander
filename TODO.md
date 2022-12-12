@@ -1,5 +1,8 @@
 # Backlog
 
+- enable buttons when a row is highlighted, not just when one row is selected
+- on empty dirs disable the buttons (when the highlighted row is the parent)
+- actually fix the ('goAway') focus on search cancelation
 - add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 - handle Ctrl+A key (or command)
 
