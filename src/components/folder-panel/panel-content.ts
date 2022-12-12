@@ -83,6 +83,7 @@ export function useGridSelectionEffect(
 }
 
 export function useComponenetStateChangedHandler(
+  highlighted: boolean,
   currentNode: BTN | undefined,
 ): (event: ComponentStateChangedEvent<BTN>) => void {
   const deselectFirstRowIfNeeded = useCallback(
@@ -96,6 +97,10 @@ export function useComponenetStateChangedHandler(
 
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {
+      if (!highlighted) {
+        event.api.clearFocusedCell()
+        return
+      }
       const selectedRows: RowNode[] = event.api.getSelectedNodes()
       if (selectedRows.length === 1) {
         event.api.ensureNodeVisible(selectedRows[0])
@@ -112,6 +117,6 @@ export function useComponenetStateChangedHandler(
         event.api.setFocusedCell(0, TITLE_COLUMN)
       }
     },
-    [deselectFirstRowIfNeeded],
+    [highlighted, deselectFirstRowIfNeeded],
   )
 }

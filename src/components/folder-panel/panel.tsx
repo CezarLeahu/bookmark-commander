@@ -129,7 +129,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     openDialogActions,
   )
 
-  const handleComponentStateChanged = useComponenetStateChangedHandler(currentNode)
+  const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted, currentNode)
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
 

@@ -6,6 +6,7 @@ import { KeyboardEvent, useCallback, useEffect, useState } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { getNode } from '../../services/bookmarks/queries'
 import { isDirectory } from '../../services/bookmarks/utils'
+import { useKeyDownCallback } from './dialog-keys'
 
 interface EditDialogProps {
   readonly open: boolean
@@ -78,6 +79,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
     },
     [handleConfirm],
   )
+  const handleKeyDown = useKeyDownCallback()
 
   return (
     <Dialog
@@ -85,6 +87,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
       onClose={onCancel}
       aria-labelledby='dialog-title'
       onKeyUpCapture={handleKeyUp}
+      onKeyDownCapture={handleKeyDown}
     >
       <DialogTitle id='dialog-title'>{isDir ? 'Edit folder' : 'Edit bookmark'}</DialogTitle>
       <DialogContent>

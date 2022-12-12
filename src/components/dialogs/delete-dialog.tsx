@@ -13,6 +13,7 @@ import { containsNonEmptyDirectories, isDirectory } from '../../services/bookmar
 
 import { BTN } from '../../services/bookmarks/types'
 import { getNodesWithImmediateChildren } from '../../services/bookmarks/queries'
+import { useKeyDownCallback } from './dialog-keys'
 
 const dialogTitleAndMessage = (nodes: BTN[], nonEmptyDirs: boolean): [string, string] => {
   if (nodes.length !== 1) {
@@ -76,6 +77,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
     },
     [onConfirm, nonEmptyDirs],
   )
+  const handleKeyDown = useKeyDownCallback()
 
   return (
     <Dialog
@@ -84,6 +86,7 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
       aria-labelledby='dialog-title'
       aria-describedby='dialog-description'
       onKeyUpCapture={handleKeyUp}
+      onKeyDownCapture={handleKeyDown}
     >
       <DialogTitle id='dialog-title'>{title}</DialogTitle>
       <DialogContent>

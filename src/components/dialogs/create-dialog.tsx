@@ -3,6 +3,8 @@ import * as keys from '../../services/utils/keys'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import { KeyboardEvent, useCallback, useState } from 'react'
 
+import { useKeyDownCallback } from './dialog-keys'
+
 interface CreateDialogProps {
   readonly open: boolean
   readonly isDirectory: boolean
@@ -54,6 +56,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     },
     [handleConfirm],
   )
+  const handleKeyDown = useKeyDownCallback()
 
   return (
     <Dialog
@@ -61,6 +64,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
       onClose={onCancel}
       aria-labelledby='dialog-title'
       onKeyUpCapture={handleKeyUp}
+      onKeyDownCapture={handleKeyDown}
     >
       <DialogTitle id='dialog-title'>
         {isDirectory ? 'Create folder' : 'Create bookmark'}
