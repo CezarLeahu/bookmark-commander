@@ -1,4 +1,4 @@
-import { ComponentStateChangedEvent, GridApi, RowNode } from 'ag-grid-community'
+import { ComponentStateChangedEvent, RowNode } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
@@ -60,26 +60,6 @@ export function useFolderContentEffect(
     breadcrumbs,
     rows,
   }
-}
-
-export function useGridSelectionEffect(
-  gridApi: React.MutableRefObject<GridApi<BTN> | undefined>,
-  selectionModel: string[],
-  rows: BTN[],
-): void {
-  useEffect(() => {
-    if (gridApi.current === undefined) {
-      return
-    }
-    if (selectionModel.length === 0) {
-      gridApi.current.deselectAll()
-      return
-    }
-    const ids = new Set<string>(selectionModel)
-    gridApi.current.forEachNode(n =>
-      n.setSelected(n.data?.id !== undefined && ids.has(n.data.id), false, true),
-    )
-  }, [gridApi, selectionModel, rows])
 }
 
 export function useComponenetStateChangedHandler(

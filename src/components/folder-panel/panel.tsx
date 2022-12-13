@@ -34,11 +34,7 @@ import {
   handleRowDragLeave,
   handleRowDragMove,
 } from './panel-drag-and-drop-grid-handlers'
-import {
-  useComponenetStateChangedHandler,
-  useFolderContentEffect,
-  useGridSelectionEffect,
-} from './panel-content'
+import { useComponenetStateChangedHandler, useFolderContentEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -58,8 +54,6 @@ export interface FolderPanelProps {
   readonly currentNodeId: string
   readonly setCurrentNodeId: (id: string) => void
   readonly notifyGridReady: (params: GridReadyEvent) => void
-  readonly selectionModel: string[]
-  readonly setSelectionModel: (model: string[]) => void
   readonly rowsOutdated: object
   readonly refreshRows: () => void
   readonly openDialogActions: OpenDialogActions
@@ -80,8 +74,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     currentNodeId,
     setCurrentNodeId,
     notifyGridReady,
-    selectionModel,
-    setSelectionModel,
     rowsOutdated,
     refreshRows,
     openDialogActions,
@@ -99,22 +91,15 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     rowsOutdated,
   )
 
-  useGridSelectionEffect(gridApi, selectionModel, rows)
-
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
-  const clickHandlers = useGridClickHandlers(
-    highlightSide,
-    currentNode,
-    setCurrentNodeId,
-    setSelectionModel,
-  )
+  const clickHandlers = useGridClickHandlers(highlightSide, currentNode, setCurrentNodeId)
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
   const handleCellEditRequest = useCellEditingHandler(refreshRows)
 
-  usePanelHandlers(ref, gridApi.current, currentNode, selectionModel, setSelectionModel)
+  usePanelHandlers(ref, gridApi.current, currentNode)
 
   useHighlightPanelOnClick(containerRef, highlightSide, notifyGridReady)
 
@@ -125,7 +110,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     setCurrentNodeId,
     currentNode,
     notifyGridReady,
-    setSelectionModel,
     openDialogActions,
   )
 
@@ -239,7 +223,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             }
             onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
             onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
-              handleRowDragEnd(e, meta, currentNodeId, rows, setSelectionModel, refreshRows)
+              handleRowDragEnd(e, meta, currentNodeId, rows, refreshRows)
             }
             onGridReady={handleGridReady}
             onComponentStateChanged={handleComponentStateChanged}

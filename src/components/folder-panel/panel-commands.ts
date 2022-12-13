@@ -9,7 +9,10 @@ import { updateTitle } from '../../services/bookmarks/commands'
 
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
+  readonly getSelectedNodeIds: () => string[]
   readonly clearFocus: () => void
+  readonly clearSelection: () => void
+  readonly setSelection: (ids: string[]) => void
   readonly singleRowSelectedOrFocused: () => boolean
   readonly rowsSelectedOrFocused: () => boolean
   readonly ensureAtLeastOneRowSelected: () => void
@@ -19,8 +22,6 @@ export function usePanelHandlers(
   ref: React.ForwardedRef<FolderPanelHandle>,
   gridApi: GridApi<BTN> | undefined,
   currentNode: BTN | undefined,
-  selectionModel: string[],
-  setSelectionModel: (model: string[]) => void,
 ): void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
     const rowIndex = api.getRowNode(id)?.rowIndex
@@ -33,6 +34,15 @@ export function usePanelHandlers(
     })
   }, [])
 
+  const getSelectedNodeIds = useSelectedNodeIds(gridApi, currentNode)
+  const getFocusedNodeId = useFocusedNodeId(gridApi, currentNode)
+  const setSelection = useSetSelection(gridApi, currentNode)
+  const clearFocus = useCallback((): void => gridApi?.clearFocusedCell(), [gridApi])
+  const clearSelection = useCallback((): void => {
+    gridApi?.clearFocusedCell()
+    gridApi?.deselectAll()
+  }, [gridApi])
+
   useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
     () => ({
@@ -42,53 +52,120 @@ export function usePanelHandlers(
         }
       },
 
-      clearFocus: (): void => gridApi?.clearFocusedCell(),
+      getSelectedNodeIds,
+
+      clearFocus,
+
+      clearSelection,
+
+      setSelection,
 
       singleRowSelectedOrFocused: (): boolean => {
-        if (currentNode?.parentId === undefined || selectionModel.length > 1) {
+        if (currentNode?.parentId === undefined) {
           return false
         }
-        if (selectionModel.length === 1) {
+
+        const selectedIds = getSelectedNodeIds()
+        if (selectedIds.length === 1) {
           return true
         }
-        return (gridApi?.getFocusedCell()?.rowIndex ?? 0) > 0
-        // TODO check if selectionModel can be retrieved from the gridApi (and maybe account for index 0)
+        if (selectedIds.length > 1) {
+          return false
+        }
+
+        return getFocusedNodeId() !== undefined
       },
 
       rowsSelectedOrFocused: (): boolean => {
         if (currentNode?.parentId === undefined) {
           return false
         }
-        return selectionModel.length > 0 || (gridApi?.getFocusedCell()?.rowIndex ?? 0) > 0
-        // TODO check if selectionModel can be retrieved from the gridApi (and maybe account for index 0)
+        const selectedIds = getSelectedNodeIds()
+        if (selectedIds.length > 0) {
+          return true
+        }
+
+        return getFocusedNodeId() !== undefined
       },
 
       ensureAtLeastOneRowSelected: (): void => {
-        if (selectionModel.length !== 0) {
+        if (getSelectedNodeIds().length !== 0) {
           return
         }
-        const rowIndex = gridApi?.getFocusedCell()?.rowIndex ?? 0
-        if (rowIndex === 0) {
+        const focusedId = getFocusedNodeId()
+        if (focusedId === undefined) {
           return
         }
-
-        const id = gridApi?.getModel().getRow(rowIndex)?.id
-        if (id === undefined) {
-          return
-        }
-
-        setSelectionModel([id])
-        // gridApi?.clearFocusedCell()
+        gridApi?.getRowNode(focusedId)?.setSelected(true)
       },
     }),
-    [gridApi, startCellEdit, currentNode, selectionModel, setSelectionModel],
+    [
+      gridApi,
+      currentNode,
+      startCellEdit,
+      getSelectedNodeIds,
+      getFocusedNodeId,
+      setSelection,
+      clearFocus,
+      clearSelection,
+    ],
+  )
+}
+
+export function useSelectedNodeIds(
+  gridApi: GridApi<BTN> | undefined,
+  currentNode: BTN | undefined,
+): () => string[] {
+  return useCallback((): string[] => {
+    if (currentNode?.parentId === undefined) {
+      return []
+    }
+    return (
+      gridApi
+        ?.getSelectedRows()
+        .filter(r => r.index !== 0)
+        .map(r => r.id) ?? []
+    )
+  }, [gridApi, currentNode])
+}
+
+export function useFocusedNodeId(
+  gridApi: GridApi<BTN> | undefined,
+  currentNode: BTN | undefined,
+): () => string | undefined {
+  return useCallback((): string | undefined => {
+    if (currentNode?.parentId === undefined) {
+      return undefined
+    }
+
+    const rowIndex = gridApi?.getFocusedCell()?.rowIndex ?? 0
+    if (rowIndex === 0) {
+      return undefined
+    }
+
+    return gridApi?.getModel().getRow(rowIndex)?.id
+  }, [gridApi, currentNode])
+}
+
+export function useSetSelection(
+  gridApi: GridApi<BTN> | undefined,
+  currentNode: BTN | undefined,
+): (ids: string[]) => void {
+  return useCallback(
+    (ids: string[]) => {
+      gridApi?.deselectAll()
+      ids
+        .map(id => gridApi?.getRowNode(id))
+        .filter(n => n !== undefined && n.id !== currentNode?.parentId)
+        .forEach(n => n?.setSelected(true))
+    },
+    [gridApi, currentNode],
   )
 }
 
 export function useOpenHighlightedRow(
   gridApi: GridApi | undefined,
   setCurrentNodeId: (id: string) => void,
-  setSelectionModel: (model: string[]) => void,
 ): () => void {
   return useCallback(() => {
     if (gridApi === undefined) {
@@ -107,12 +184,13 @@ export function useOpenHighlightedRow(
     switch (node.url) {
       case undefined: // folder
         setCurrentNodeId(String(node.id))
-        setSelectionModel([])
+        gridApi.clearFocusedCell()
+        gridApi.deselectAll()
         break
       default: // actual bookmark - open in new tab
         openInNewTab(node.url, false)
     }
-  }, [gridApi, setCurrentNodeId, setSelectionModel])
+  }, [gridApi, setCurrentNodeId])
 }
 
 export function useCellEditingHandler(

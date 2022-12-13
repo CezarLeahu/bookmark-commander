@@ -36,28 +36,37 @@ export function suppressKeys(params: SuppressKeyboardEventParams): boolean {
 
 export function usePanelKeyListener(
   containerRef: React.RefObject<HTMLDivElement>,
-  gridApi: GridApi | undefined,
+  gridApi: GridApi<BTN> | undefined,
   highlightOtherSide: () => void,
   setCurrentNodeId: (id: string) => void,
   currentNode: BTN | undefined,
   notifyGridReady: (params: GridReadyEvent) => void,
-  setSelectionModel: (model: string[]) => void,
   openDialogActions: OpenDialogActions,
 ): void {
-  const openHighlightedRow = useOpenHighlightedRow(gridApi, setCurrentNodeId, setSelectionModel)
+  const openHighlightedRow = useOpenHighlightedRow(gridApi, setCurrentNodeId)
 
   const selectHighlightedRow: () => boolean = useCallback((): boolean => {
     const rowIndex = gridApi?.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0) {
+    if (rowIndex === undefined) {
       return false
     }
-    const rowId = gridApi?.getModel().getRow(rowIndex)?.data.id
-    if (rowId === undefined) {
+
+    const row = gridApi?.getModel().getRow(rowIndex)
+    if (row === undefined) {
       return false
     }
-    setSelectionModel([rowId])
+    if (rowIndex === 0 || currentNode?.parentId === undefined) {
+      row.setSelected(false)
+      return false
+    }
+
+    if (row.id === undefined) {
+      return false
+    }
+
+    row.setSelected(true)
     return true
-  }, [gridApi, setSelectionModel])
+  }, [gridApi, currentNode])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {

@@ -1,7 +1,8 @@
-import { PairCallback, PairState } from '../../services/utils/hooks'
+import { PairCallback, PairRef, PairState } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
+import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { useLastSelectedIds } from './app-content'
 
 interface MoveHandlers {
@@ -11,13 +12,13 @@ interface MoveHandlers {
 }
 
 export function useMoveHandlers(
+  panelRefs: PairRef<FolderPanelHandle | null>,
   selectedSide: Side,
   highlight: PairCallback<() => void>,
   currentNodeIds: PairState<string>,
-  selectionModels: PairState<string[]>,
   refreshRows: () => void,
 ): MoveHandlers {
-  const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
+  const lastSelectedIds = useLastSelectedIds(panelRefs, selectedSide)
 
   return {
     handleMoveBetweenPanels: (): void => {
@@ -35,8 +36,8 @@ export function useMoveHandlers(
 
       moveAll(nodeIds, currentNodeIds[otherSide].state)
         .then(() => {
-          selectionModels[selectedSide].setState([])
-          selectionModels[otherSide].setState(nodeIds)
+          panelRefs[selectedSide].current?.clearSelection()
+          panelRefs[otherSide].current?.setSelection(nodeIds)
           highlight[otherSide]()
           refreshRows()
         })
@@ -50,7 +51,7 @@ export function useMoveHandlers(
       }
       moveUp(nodeIds)
         .then(() => {
-          selectionModels[selectedSide].setState(nodeIds)
+          panelRefs[selectedSide].current?.setSelection(nodeIds)
           refreshRows()
         })
         .catch(e => console.log(e))
@@ -63,7 +64,7 @@ export function useMoveHandlers(
       }
       moveDown(nodeIds)
         .then(() => {
-          selectionModels[selectedSide].setState(nodeIds)
+          panelRefs[selectedSide].current?.setSelection(nodeIds)
           refreshRows()
         })
         .catch(e => console.log(e))

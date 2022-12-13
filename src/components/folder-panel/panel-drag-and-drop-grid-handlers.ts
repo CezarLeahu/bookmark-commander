@@ -69,7 +69,6 @@ export const handleRowDragEnd = (
   meta: FolderPanelMetadata,
   currentNodeId: string,
   rows: BTN[],
-  setSelectionModel: (model: string[]) => void,
   refreshRows: () => void,
 ): void => {
   meta.resetPotentialParentAndRefresh(e.api)
@@ -144,7 +143,10 @@ export const handleRowDragEnd = (
     moveAll(directionUp ? ids.reverse() : ids, undefined, dropAtIndex)
       .then(() => {
         console.log('Moved elements (same directory)')
-        setSelectionModel(ids)
+        ids
+          .map(id => e.api.getRowNode(id))
+          .filter(n => n !== undefined)
+          .forEach(n => n?.setSelected(true))
         refreshRows()
       })
       .catch(e => console.log(e))
@@ -155,7 +157,10 @@ export const handleRowDragEnd = (
   moveAll(ids.reverse(), currentNodeId, dropAtIndex)
     .then(() => {
       console.log('Moved elements (into dir)')
-      setSelectionModel(ids)
+      ids
+        .map(id => e.api.getRowNode(id))
+        .filter(n => n !== undefined)
+        .forEach(n => n?.setSelected(true))
       refreshRows()
     })
     .catch(e => console.log(e))

@@ -38,17 +38,16 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const [selectedSide, setSelectedSide] = useState<Side>('left')
   const currentNodeIds = usePairState<string>('1', '2')
-  const selectionModels = usePairState<string[]>([], [])
 
   const [rowsOutdated, refreshRows] = useRefresh()
 
-  const lastSelectedIds = useLastSelectedIds(selectedSide, selectionModels)
+  const lastSelectedIds = useLastSelectedIds(panelRefs, selectedSide)
 
-  const resetCurrentSelection = useSelectionReset(selectedSide, currentNodeIds, selectionModels)
+  const resetCurrentSelection = useSelectionReset(panelRefs, selectedSide, currentNodeIds)
 
   const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded(selectedSide, currentNodeIds)
 
-  const jumpToParent = useJumpToParent(selectedSide, currentNodeIds, selectionModels)
+  const jumpToParent = useJumpToParent(panelRefs, selectedSide, currentNodeIds)
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
@@ -81,10 +80,10 @@ const App: React.FC = () => {
   }, [createDialog, editDialog, deleteDialog])
 
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
+    panelRefs,
     selectedSide,
     highlight,
     currentNodeIds,
-    selectionModels,
     refreshRows,
   )
 
@@ -123,8 +122,6 @@ const App: React.FC = () => {
             currentNodeId={currentNodeIds.left.state}
             setCurrentNodeId={currentNodeIds.left.setState}
             notifyGridReady={handleGridReadyLeft}
-            selectionModel={selectionModels.left.state}
-            setSelectionModel={selectionModels.left.setState}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
             openDialogActions={dialogActions}
@@ -140,8 +137,6 @@ const App: React.FC = () => {
             currentNodeId={currentNodeIds.right.state}
             setCurrentNodeId={currentNodeIds.right.setState}
             notifyGridReady={handleGridReadyRight}
-            selectionModel={selectionModels.right.state}
-            setSelectionModel={selectionModels.right.setState}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
             openDialogActions={dialogActions}
@@ -217,7 +212,7 @@ const App: React.FC = () => {
       {editDialog.open ? (
         <EditDialog
           open={editDialog.open}
-          nodeId={String(selectionModels[selectedSide].state?.[0])}
+          nodeId={panelRefs[selectedSide].current?.getSelectedNodeIds()[0]}
           onConfirm={editDialog.handleConfirm}
           onCancel={editDialog.handleClose}
         />
@@ -228,7 +223,7 @@ const App: React.FC = () => {
       {deleteDialog.open ? (
         <DeleteConfirmationDialog
           open={deleteDialog.open}
-          nodeIds={selectionModels[selectedSide].state?.map(e => String(e)) ?? []}
+          nodeIds={panelRefs[selectedSide].current?.getSelectedNodeIds() ?? []}
           onConfirm={deleteDialog.handleConfirm}
           onCancel={deleteDialog.handleClose}
         />

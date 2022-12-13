@@ -12,27 +12,27 @@ export function useRefresh(): [object, () => void] {
 }
 
 export function useLastSelectedIds(
+  panelRefs: PairRef<FolderPanelHandle | null>,
   selectedSide: Side,
-  selectionModels: PairState<string[]>,
 ): () => string[] {
   return useCallback(
-    (): string[] => selectionModels[selectedSide].state,
-    [selectedSide, selectionModels],
+    (): string[] => panelRefs[selectedSide].current?.getSelectedNodeIds() ?? [],
+    [selectedSide, panelRefs],
   )
 }
 
 export function useSelectionReset(
+  panelRefs: PairRef<FolderPanelHandle | null>,
   selectedSide: Side,
   currentNodeIds: PairState<string>,
-  selectionModels: PairState<string[]>,
 ): () => void {
   return useCallback((): void => {
-    selectionModels[selectedSide].setState([])
+    panelRefs[selectedSide].current?.clearSelection()
     const otherSide: Side = other(selectedSide)
     if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
-      selectionModels[otherSide].setState([])
+      panelRefs[otherSide].current?.clearSelection()
     }
-  }, [selectedSide, currentNodeIds, selectionModels])
+  }, [panelRefs, selectedSide, currentNodeIds])
 }
 
 export function useUpdateCurrentPathsIfNeeded(
@@ -69,17 +69,17 @@ export function useUpdateCurrentPathsIfNeeded(
 }
 
 export function useJumpToParent(
+  panelRefs: PairRef<FolderPanelHandle | null>,
   selectedSide: Side,
   currentNodeIds: PairState<string>,
-  selectionModels: PairState<string[]>,
 ): (node: BTN) => void {
   return useCallback(
     (node: BTN): void => {
       console.log(`jump to directory ${node.parentId ?? '0'}`)
-      selectionModels[selectedSide].setState([node.id])
+      panelRefs[selectedSide].current?.setSelection([node.id])
       currentNodeIds[selectedSide].setState(node.parentId ?? '0')
     },
-    [selectedSide, currentNodeIds, selectionModels],
+    [panelRefs, selectedSide, currentNodeIds],
   )
 }
 
