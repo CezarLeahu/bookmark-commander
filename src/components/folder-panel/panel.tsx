@@ -20,26 +20,15 @@ import {
   useHighlightPanelOnClick,
   usePanelHandlers,
 } from './panel-commands'
-import {
-  GridApi,
-  GridReadyEvent,
-  RowDragEndEvent,
-  RowDragLeaveEvent,
-  RowDragMoveEvent,
-  RowNode,
-} from 'ag-grid-community'
+import { GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
-import {
-  handleRowDragEnd,
-  handleRowDragLeave,
-  handleRowDragMove,
-} from './panel-drag-and-drop-grid-handlers'
 import { useComponenetStateChangedHandler, useFolderContentEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
+import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
 import { usePanelKeyListener } from './panel-key-events'
@@ -112,6 +101,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     notifyGridReady,
     openDialogActions,
   )
+
+  const dndHandlers = useDragAndDropHandlers(meta, currentNodeId, rows, refreshRows)
 
   const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted, currentNode)
 
@@ -206,6 +197,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             defaultColDef={meta.defaultColDef}
             rowData={rows}
             getRowId={getRowId}
+            onGridReady={handleGridReady}
             suppressClickEdit
             stopEditingWhenCellsLoseFocus
             readOnlyEdit
@@ -218,15 +210,11 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             rowDragEntireRow
             rowDragMultiRow
             suppressMoveWhenRowDragging
-            onRowDragMove={(e: RowDragMoveEvent<BTN>) =>
-              handleRowDragMove(e, meta, currentNodeId, rows)
-            }
-            onRowDragLeave={(e: RowDragLeaveEvent<BTN>) => handleRowDragLeave(e, meta)}
-            onRowDragEnd={(e: RowDragEndEvent<BTN>) =>
-              handleRowDragEnd(e, meta, currentNodeId, rows, refreshRows)
-            }
-            onGridReady={handleGridReady}
+            onRowDragMove={dndHandlers.handleRowDragMove}
+            onRowDragLeave={dndHandlers.handleRowDragLeave}
+            onRowDragEnd={dndHandlers.handleRowDragEnd}
             onComponentStateChanged={handleComponentStateChanged}
+            onSelectionChanged={refreshRows}
           />
         </Box>
       </Box>
