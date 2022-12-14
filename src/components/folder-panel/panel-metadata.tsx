@@ -4,9 +4,10 @@ import { useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
+import { MOUSEUP } from '../../services/utils/events'
 import { getFaviconUrl } from '../../services/favicons/favicons'
-import { isDirectory } from '../../services/bookmarks/utils'
-import { openInNewTab } from '../../services/tabs/tabs'
+import { isDirectory, isSimpleBookmark } from '../../services/bookmarks/utils'
+import { openAllInNewTabs, openInNewTab } from '../../services/tabs/tabs'
 
 export interface FolderPanelMetadata {
   columnDefs: ColDef[]
@@ -115,16 +116,25 @@ const middleClickHandle = (
   api: GridApi<BTN>,
   event?: React.MouseEvent<HTMLSpanElement, MouseEvent>,
 ): void => {
-  if (event?.type === 'mouseup' && event.nativeEvent.which === 2) {
+  if (event?.type === MOUSEUP && event.button === 1) {
     // Middle click
     const rowIndex = api?.getFocusedCell()?.rowIndex
     if (rowIndex === undefined || rowIndex === 0) {
       return
     }
-    const node: BTN = api?.getModel().getRow(rowIndex)?.data
-    if (node === undefined || node.url === undefined) {
+    const focusedNode: BTN = api?.getModel().getRow(rowIndex)?.data
+    if (focusedNode === undefined || focusedNode.url === undefined) {
       return
     }
-    openInNewTab(node.url, false)
+    const selectedNodes: BTN[] = api.getSelectedRows().filter(n => isSimpleBookmark(n))
+
+    const focusedNodeSelected = selectedNodes.filter(n => n.id === focusedNode.id).length === 1
+
+    if (focusedNodeSelected) {
+      openAllInNewTabs(selectedNodes.map(n => n.url) as string[])
+      return
+    }
+
+    openInNewTab(focusedNode.url, false)
   }
 }

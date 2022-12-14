@@ -33,6 +33,7 @@ import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
 import { usePanelKeyListener } from './panel-key-events'
 import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
+import { usePanelMouseListener } from './panel-mouse-events'
 import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
@@ -101,6 +102,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     notifyGridReady,
     openDialogActions,
   )
+  usePanelMouseListener(highlighted, containerRef, navigation)
 
   const dndHandlers = useDragAndDropHandlers(meta, currentNodeId, rows, refreshRows)
 
