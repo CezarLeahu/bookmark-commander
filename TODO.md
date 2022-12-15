@@ -1,19 +1,19 @@
 # Backlog
 
-- enable buttons when a row is highlighted, not just when one row is selected
-- on empty dirs disable the buttons (when the highlighted row is the parent)
 - actually fix the ('goAway') focus on search cancelation
-- add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 - handle Ctrl+A key (or command)
 
 - Copy & Paste events
 
-- [Extension] Check if tabs permissions are needed - ask for them anyway
 - [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
 - [Extension] Check what else is needed to publish the extension
 - [Extension] Actually publish the extension
+- [Extension] Check if tabs permissions are needed - ask for them anyway
 
 ## Done
+- on empty dirs disable the buttons (when the highlighted row is the parent)
+
+- enable buttons when a row is highlighted, not just when one row is selected
 
 - Handle navigation inside DataGrids
 
@@ -78,6 +78,7 @@
 - Use the currently-selected side as the target for opening up _Directory_ search results
 
 ## Scrapped
+- add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 
 - Capture F keys (F2-10)
   - can't easily grab F keys, not a good ideea anyway -> ideea scrapped

@@ -1,4 +1,6 @@
 import { CellClassParams, ColDef, GridApi, ICellRendererParams, RowNode } from 'ag-grid-community'
+import { isDirectory, isSimpleBookmark } from '../../services/bookmarks/utils'
+import { openAllInNewTabs, openInNewTab } from '../../services/tabs/tabs'
 import { suppressHeaderKeys, suppressKeys } from './panel-key-events'
 import { useRef, useState } from 'react'
 
@@ -6,8 +8,6 @@ import { BTN } from '../../services/bookmarks/types'
 import FolderIcon from '@mui/icons-material/Folder'
 import { MOUSEUP } from '../../services/utils/events'
 import { getFaviconUrl } from '../../services/favicons/favicons'
-import { isDirectory, isSimpleBookmark } from '../../services/bookmarks/utils'
-import { openAllInNewTabs, openInNewTab } from '../../services/tabs/tabs'
 
 export interface FolderPanelMetadata {
   columnDefs: ColDef[]
