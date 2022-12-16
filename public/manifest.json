@@ -5,11 +5,17 @@
   "name": "Bookmark Commander",
   "description": "Two-panel bookmark manager",
   "action": {
-    "default_title": "Open Bookmark Commander",
+    "default_title": "Bookmark Commander",
     "default_icon": "icon.png"
   },
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["bookmarks", "tabs", "favicon"]
+  "permissions": ["bookmarks", "tabs", "favicon"],
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
 }
