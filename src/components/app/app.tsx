@@ -146,9 +146,19 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center' sx={{ padding: '5px' }}>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button onClick={createDialog.handleBookmarkOpen}>New</Button>
+          <Button
+            onClick={createDialog.handleBookmarkOpen}
+            disabled={currentNodeIds[selectedSide].state === '0'}
+          >
+            New
+          </Button>
 
-          <Button onClick={createDialog.handleDirectoryOpen}>New Folder</Button>
+          <Button
+            onClick={createDialog.handleDirectoryOpen}
+            disabled={currentNodeIds[selectedSide].state === '0'}
+          >
+            New Folder
+          </Button>
           <Button
             disabled={!(panelRefs[selectedSide].current?.singleRowSelectedOrFocused() ?? false)}
             onClick={editDialog.handleOpen}
