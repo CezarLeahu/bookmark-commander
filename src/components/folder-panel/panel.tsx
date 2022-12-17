@@ -89,20 +89,21 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleCellEditRequest = useCellEditingHandler(refreshRows)
 
-  usePanelHandlers(ref, gridApi.current, currentNode)
+  usePanelHandlers(ref, gridApi.current, highlighted, currentNode)
 
-  useHighlightPanelOnClick(containerRef, highlightSide, notifyGridReady)
+  useHighlightPanelOnClick(containerRef.current, highlightSide, notifyGridReady)
 
   usePanelKeyListener(
-    containerRef,
+    containerRef.current,
     gridApi.current,
     highlightOtherSide,
     setCurrentNodeId,
+    highlighted,
     currentNode,
     notifyGridReady,
     openDialogActions,
   )
-  usePanelMouseListener(highlighted, containerRef, navigation)
+  usePanelMouseListener(highlighted, containerRef.current, navigation)
 
   const dndHandlers = useDragAndDropHandlers(meta, currentNodeId, rows, refreshRows)
 

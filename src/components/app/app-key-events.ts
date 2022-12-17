@@ -7,7 +7,7 @@ import { useCallback, useEffect } from 'react'
 import { PairCallback } from '../../services/utils/hooks'
 
 export function useDocumentKeyListener(
-  panelAreaRef: React.RefObject<HTMLDivElement>,
+  area: HTMLDivElement | null,
   selectedSide: Side,
   highlight: PairCallback<() => void>,
 ): void {
@@ -30,7 +30,6 @@ export function useDocumentKeyListener(
   }, [])
 
   useEffect(() => {
-    const area = panelAreaRef.current
     if (area === undefined || area === null) {
       return
     }
@@ -40,5 +39,5 @@ export function useDocumentKeyListener(
       area.removeEventListener(KEYDOWN, handleKeyDown, { capture: true })
       area.removeEventListener(KEYUP, handleKeyUp, { capture: true })
     }
-  }, [panelAreaRef, handleKeyDown, handleKeyUp])
+  }, [area, handleKeyDown, handleKeyUp])
 }

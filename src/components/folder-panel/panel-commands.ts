@@ -20,7 +20,8 @@ export interface FolderPanelHandle {
 
 export function usePanelHandlers(
   ref: React.ForwardedRef<FolderPanelHandle>,
-  gridApi: GridApi<BTN> | undefined,
+  api: GridApi<BTN> | undefined,
+  highlighted: boolean,
   currentNode: BTN | undefined,
 ): void {
   const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
@@ -34,21 +35,21 @@ export function usePanelHandlers(
     })
   }, [])
 
-  const getSelectedNodeIds = useSelectedNodeIds(gridApi, currentNode)
-  const getFocusedNodeId = useFocusedNodeId(gridApi, currentNode)
-  const setSelection = useSetSelection(gridApi, currentNode)
-  const clearFocus = useCallback((): void => gridApi?.clearFocusedCell(), [gridApi])
+  const getSelectedNodeIds = useSelectedNodeIds(api, currentNode)
+  const getFocusedNodeId = useFocusedNodeId(api, currentNode)
+  const setSelection = useSetSelection(api, highlighted, currentNode)
+  const clearFocus = useCallback((): void => api?.clearFocusedCell(), [api])
   const clearSelection = useCallback((): void => {
-    gridApi?.clearFocusedCell()
-    gridApi?.deselectAll()
-  }, [gridApi])
+    api?.clearFocusedCell()
+    api?.deselectAll()
+  }, [api])
 
   useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
     () => ({
       renameCell: (id: string | undefined): void => {
-        if (id !== undefined && gridApi !== undefined) {
-          startCellEdit(gridApi, id)
+        if (id !== undefined && api !== undefined) {
+          startCellEdit(api, id)
         }
       },
 
@@ -96,11 +97,11 @@ export function usePanelHandlers(
         if (focusedId === undefined) {
           return
         }
-        gridApi?.getRowNode(focusedId)?.setSelected(true)
+        api?.getRowNode(focusedId)?.setSelected(true)
       },
     }),
     [
-      gridApi,
+      api,
       currentNode,
       startCellEdit,
       getSelectedNodeIds,
@@ -113,7 +114,7 @@ export function usePanelHandlers(
 }
 
 export function useSelectedNodeIds(
-  gridApi: GridApi<BTN> | undefined,
+  api: GridApi<BTN> | undefined,
   currentNode: BTN | undefined,
 ): () => string[] {
   return useCallback((): string[] => {
@@ -121,16 +122,16 @@ export function useSelectedNodeIds(
       return []
     }
     return (
-      gridApi
+      api
         ?.getSelectedRows()
         .filter(r => r.index !== 0)
         .map(r => r.id) ?? []
     )
-  }, [gridApi, currentNode])
+  }, [api, currentNode])
 }
 
 export function useFocusedNodeId(
-  gridApi: GridApi<BTN> | undefined,
+  api: GridApi<BTN> | undefined,
   currentNode: BTN | undefined,
 ): () => string | undefined {
   return useCallback((): string | undefined => {
@@ -138,58 +139,59 @@ export function useFocusedNodeId(
       return undefined
     }
 
-    const rowIndex = gridApi?.getFocusedCell()?.rowIndex ?? 0
+    const rowIndex = api?.getFocusedCell()?.rowIndex ?? 0
     if (rowIndex === 0) {
       return undefined
     }
 
-    return gridApi?.getModel().getRow(rowIndex)?.id
-  }, [gridApi, currentNode])
+    return api?.getModel().getRow(rowIndex)?.id
+  }, [api, currentNode])
 }
 
 export function useSetSelection(
-  gridApi: GridApi<BTN> | undefined,
+  api: GridApi<BTN> | undefined,
+  highlighted: boolean,
   currentNode: BTN | undefined,
 ): (ids: string[]) => void {
   return useCallback(
     (ids: string[]) => {
-      if (gridApi === undefined || currentNode?.parentId === undefined) {
+      if (api === undefined || currentNode?.parentId === undefined) {
         return
       }
-      gridApi.deselectAll()
+      api.deselectAll()
 
       const rows = ids
-        .map(id => gridApi.getRowNode(id))
+        .map(id => api.getRowNode(id))
         .filter(n => n !== undefined && n.id !== currentNode.parentId)
         .map(n => n as RowNode<BTN>)
 
       rows.forEach(n => n.setSelected(true))
 
-      if (rows.length === 0) {
+      if (rows.length === 0 || !highlighted) {
         return
       }
 
-      gridApi.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
-      gridApi.ensureNodeVisible(rows[0])
+      api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
+      api.ensureNodeVisible(rows[0])
     },
-    [gridApi, currentNode],
+    [api, highlighted, currentNode],
   )
 }
 
 export function useOpenHighlightedRow(
-  gridApi: GridApi | undefined,
+  api: GridApi | undefined,
   setCurrentNodeId: (id: string) => void,
 ): () => void {
   return useCallback(() => {
-    if (gridApi === undefined) {
+    if (api === undefined) {
       return
     }
-    const cell = gridApi.getFocusedCell()
+    const cell = api.getFocusedCell()
     if (cell === undefined || cell === null) {
       return
     }
 
-    const node = gridApi.getModel().getRow(cell.rowIndex)?.data
+    const node = api.getModel().getRow(cell.rowIndex)?.data
     if (node === undefined) {
       return
     }
@@ -197,13 +199,13 @@ export function useOpenHighlightedRow(
     switch (node.url) {
       case undefined: // folder
         setCurrentNodeId(String(node.id))
-        gridApi.clearFocusedCell()
-        gridApi.deselectAll()
+        api.clearFocusedCell()
+        api.deselectAll()
         break
       default: // actual bookmark - open in new tab
         openInNewTab(node.url, false)
     }
-  }, [gridApi, setCurrentNodeId])
+  }, [api, setCurrentNodeId])
 }
 
 export function useCellEditingHandler(
@@ -245,19 +247,18 @@ export function useGridReadyHandle(
 }
 
 export function useHighlightPanelOnClick(
-  containerRef: React.RefObject<HTMLDivElement>,
+  container: HTMLDivElement | null,
   highlightSide: () => void,
   notifyGridReady: (params: GridReadyEvent) => void,
 ): void {
   useEffect(() => {
     console.log('[useHighlightPanelOnClick Effect / notifyGridReadyEffect]')
-    if (containerRef.current === undefined || containerRef.current === null) {
+    if (container === null) {
       return
     }
-    const elem = containerRef.current
-    elem.addEventListener(MOUSEUP, highlightSide)
+    container.addEventListener(MOUSEUP, highlightSide)
     return () => {
-      elem.removeEventListener(MOUSEUP, highlightSide)
+      container.removeEventListener(MOUSEUP, highlightSide)
     }
-  }, [containerRef, highlightSide, notifyGridReady])
+  }, [container, highlightSide, notifyGridReady])
 }

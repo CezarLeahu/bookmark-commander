@@ -5,7 +5,7 @@ import { Navigation } from './panel-history'
 
 export function usePanelMouseListener(
   highlighted: boolean,
-  containerRef: React.RefObject<HTMLDivElement>,
+  container: HTMLDivElement | null,
   navigation: Navigation,
 ): void {
   const handleMouseButton: (e: MouseEvent) => void = useCallback(
@@ -33,13 +33,12 @@ export function usePanelMouseListener(
   )
 
   useEffect(() => {
-    if (containerRef.current === undefined || containerRef.current === null) {
+    if (container === null) {
       return
     }
-    const elem = containerRef.current
-    elem.addEventListener(MOUSEUP, handleMouseButton)
+    container.addEventListener(MOUSEUP, handleMouseButton)
     return () => {
-      elem.removeEventListener(MOUSEUP, handleMouseButton)
+      container.removeEventListener(MOUSEUP, handleMouseButton)
     }
-  }, [containerRef, handleMouseButton])
+  }, [container, handleMouseButton])
 }

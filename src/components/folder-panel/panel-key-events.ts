@@ -11,7 +11,6 @@ import { useCallback, useEffect } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
-import { TITLE_COLUMN } from './panel-metadata'
 import { useOpenHighlightedRow } from './panel-commands'
 
 export function suppressHeaderKeys(params: SuppressHeaderKeyboardEventParams): boolean {
@@ -36,34 +35,35 @@ export function suppressKeys(params: SuppressKeyboardEventParams): boolean {
 }
 
 export function usePanelKeyListener(
-  containerRef: React.RefObject<HTMLDivElement>,
-  gridApi: GridApi<BTN> | undefined,
+  container: HTMLDivElement | null,
+  api: GridApi<BTN> | undefined,
   highlightOtherSide: () => void,
   setCurrentNodeId: (id: string) => void,
+  highlighted: boolean,
   currentNode: BTN | undefined,
   notifyGridReady: (params: GridReadyEvent) => void,
   openDialogActions: OpenDialogActions,
 ): void {
-  const openHighlightedRow = useOpenHighlightedRow(gridApi, setCurrentNodeId)
+  const openHighlightedRow = useOpenHighlightedRow(api, setCurrentNodeId)
 
   const selectHighlightedRow: () => boolean = useCallback((): boolean => {
     // TODO replace with actually getting the FocusedRow
-    if (gridApi === undefined) {
+    if (api === undefined) {
       return false
     }
-    const rowIndex = gridApi.getFocusedCell()?.rowIndex
+    const rowIndex = api.getFocusedCell()?.rowIndex
     if (rowIndex === undefined || rowIndex === 0) {
       return false
     }
 
-    const row = gridApi?.getModel().getRow(rowIndex)
+    const row = api?.getModel().getRow(rowIndex)
     if (row === undefined || row.id === undefined) {
       return false
     }
 
     row.setSelected(true)
     return true
-  }, [gridApi])
+  }, [api])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
@@ -88,6 +88,7 @@ export function usePanelKeyListener(
           break
         }
         case keys.TAB: {
+          api?.clearFocusedCell()
           highlightOtherSide()
           break
         }
@@ -95,18 +96,18 @@ export function usePanelKeyListener(
           openHighlightedRow()
           break
         }
-        default: {
-          if (KeysToPermit.has(e.key) && gridApi?.getFocusedCell() === null) {
-            // TODO this block is never reached, doesn't do nothin'
-            console.log('[handleKeyUp(): Focusing on the first row')
-            gridApi.setFocusedCell(0, TITLE_COLUMN)
-            gridApi.ensureIndexVisible(0)
-          }
-        }
+        // default: {
+        //   if (highlighted && KeysToPermit.has(e.key) && api?.getFocusedCell() === null) {
+        //     // TODO this block is never reached, doesn't do nothin'
+        //     console.log('[handleKeyUp(): Focusing on the first row')
+        //     api.setFocusedCell(0, TITLE_COLUMN)
+        //     api.ensureIndexVisible(0)
+        //   }
+        // }
       }
     },
     [
-      gridApi,
+      api,
       currentNode,
       setCurrentNodeId,
       openDialogActions,
@@ -117,13 +118,12 @@ export function usePanelKeyListener(
   )
 
   useEffect(() => {
-    if (containerRef.current === undefined || containerRef.current === null) {
+    if (container === null) {
       return
     }
-    const elem = containerRef.current
-    elem.addEventListener(KEYUP, handleKeyUp)
+    container.addEventListener(KEYUP, handleKeyUp)
     return () => {
-      elem.removeEventListener(KEYUP, handleKeyUp)
+      container.removeEventListener(KEYUP, handleKeyUp)
     }
-  }, [containerRef, handleKeyUp, notifyGridReady])
+  }, [container, handleKeyUp, notifyGridReady])
 }

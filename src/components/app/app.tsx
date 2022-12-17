@@ -87,7 +87,7 @@ const App: React.FC = () => {
     refreshRows,
   )
 
-  useDocumentKeyListener(panelAreaRef, selectedSide, highlight)
+  useDocumentKeyListener(panelAreaRef.current, selectedSide, highlight)
 
   return (
     <Container

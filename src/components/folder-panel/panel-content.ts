@@ -1,4 +1,3 @@
-import { CellPosition, ComponentStateChangedEvent } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
@@ -8,6 +7,7 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
+import { ComponentStateChangedEvent } from 'ag-grid-community'
 import { TITLE_COLUMN } from './panel-metadata'
 
 interface FolderActiveContent {
@@ -78,7 +78,11 @@ export function useComponenetStateChangedHandler(
       }
 
       if (event.api.getFocusedCell() !== null) {
-        event.api.ensureIndexVisible((event.api.getFocusedCell() as CellPosition).rowIndex)
+        event.api.ensureIndexVisible(event.api.getFocusedCell()?.rowIndex ?? 0)
+        return
+      }
+
+      if (!highlighted) {
         return
       }
 
