@@ -1,5 +1,20 @@
 # Backlog
 
+- rename gridApi
+- remove effects/callbacks on REFs
+
+- SPLIT FOCUS FROM SELECTION!!!
+
+- fix scroll to row on search
+
+- fix delete
+
+- consider handling row de-selection (regardless of highlighting) - onClick prevent default?
+
+- handle 'Enter' on '..' parent dir (when highlighted)
+
+- handle case when selection exists, but no highlight - can we use keys - Up/Down
+
 - actually fix the ('goAway') focus on search cancelation
 - handle Ctrl+A key (or command)
 
@@ -10,7 +25,28 @@
 - [Extension] Actually publish the extension
 - [Extension] Check if tabs permissions are needed - ask for them anyway
 
+# EVENTS
+
+## Create
+
+## Edit
+
+## Delete
+
+## JumpTo (Search)
+
+## OnSelect (panel)
+
+## OnKeyUp (panel)
+
+# TESTS
+
+- check search item "enter"
+  - target highlighted and selected
+-
+
 ## Done
+
 - on empty dirs disable the buttons (when the highlighted row is the parent)
 
 - enable buttons when a row is highlighted, not just when one row is selected
@@ -78,6 +114,7 @@
 - Use the currently-selected side as the target for opening up _Directory_ search results
 
 ## Scrapped
+
 - add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 
 - Capture F keys (F2-10)

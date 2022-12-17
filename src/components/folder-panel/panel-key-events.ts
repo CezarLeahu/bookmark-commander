@@ -11,6 +11,7 @@ import { useCallback, useEffect } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
+import { TITLE_COLUMN } from './panel-metadata'
 import { useOpenHighlightedRow } from './panel-commands'
 
 export function suppressHeaderKeys(params: SuppressHeaderKeyboardEventParams): boolean {
@@ -46,27 +47,23 @@ export function usePanelKeyListener(
   const openHighlightedRow = useOpenHighlightedRow(gridApi, setCurrentNodeId)
 
   const selectHighlightedRow: () => boolean = useCallback((): boolean => {
-    const rowIndex = gridApi?.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined) {
+    // TODO replace with actually getting the FocusedRow
+    if (gridApi === undefined) {
+      return false
+    }
+    const rowIndex = gridApi.getFocusedCell()?.rowIndex
+    if (rowIndex === undefined || rowIndex === 0) {
       return false
     }
 
     const row = gridApi?.getModel().getRow(rowIndex)
-    if (row === undefined) {
-      return false
-    }
-    if (rowIndex === 0 || currentNode?.parentId === undefined) {
-      row.setSelected(false)
-      return false
-    }
-
-    if (row.id === undefined) {
+    if (row === undefined || row.id === undefined) {
       return false
     }
 
     row.setSelected(true)
     return true
-  }, [gridApi, currentNode])
+  }, [gridApi])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
@@ -98,9 +95,18 @@ export function usePanelKeyListener(
           openHighlightedRow()
           break
         }
+        default: {
+          if (KeysToPermit.has(e.key) && gridApi?.getFocusedCell() === null) {
+            // TODO this block is never reached, doesn't do nothin'
+            console.log('[handleKeyUp(): Focusing on the first row')
+            gridApi.setFocusedCell(0, TITLE_COLUMN)
+            gridApi.ensureIndexVisible(0)
+          }
+        }
       }
     },
     [
+      gridApi,
       currentNode,
       setCurrentNodeId,
       openDialogActions,

@@ -1,4 +1,4 @@
-import { GridApi, RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
+import { RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
 import { openInNewTab } from '../../services/tabs/tabs'
@@ -7,29 +7,16 @@ import { useCallback } from 'react'
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
-  handleEmptySpaceClick: () => void
 }
 
-export function useGridClickHandlers(
-  highlightSide: () => void,
-  currentNode: BTN | undefined,
-  setCurrentNodeId: (id: string) => void,
-
-  api?: GridApi,
-): ClickHandlers {
+export function useGridClickHandlers(setCurrentNodeId: (id: string) => void): ClickHandlers {
   return {
-    handleRowClick: useCallback(
-      (event: RowSelectedEvent<BTN>): void => {
-        highlightSide()
-        const node = event.node
-        if (node.id === currentNode?.parentId) {
-          node.setSelected(false)
-          return
-        }
-        node.setSelected(true)
-      },
-      [highlightSide, currentNode],
-    ),
+    handleRowClick: useCallback((event: RowSelectedEvent<BTN>): void => {
+      // TODO remove
+      if (event.node === undefined) {
+        console.log('Clicked into the void...')
+      }
+    }, []),
 
     handleRowDoubleClick: useCallback(
       (event: RowDoubleClickedEvent<BTN>): void => {
@@ -47,12 +34,5 @@ export function useGridClickHandlers(
       },
       [setCurrentNodeId],
     ),
-
-    handleEmptySpaceClick: useCallback((): void => {
-      if (api === undefined) {
-        return
-      }
-      highlightSide()
-    }, [highlightSide, api]),
   }
 }

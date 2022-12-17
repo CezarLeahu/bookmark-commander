@@ -1,4 +1,4 @@
-import { ComponentStateChangedEvent, RowNode } from 'ag-grid-community'
+import { CellPosition, ComponentStateChangedEvent } from 'ag-grid-community'
 import {
   childrenAndParent,
   getNode,
@@ -64,39 +64,29 @@ export function useFolderContentEffect(
 
 export function useComponenetStateChangedHandler(
   highlighted: boolean,
-  currentNode: BTN | undefined,
 ): (event: ComponentStateChangedEvent<BTN>) => void {
-  const deselectFirstRowIfNeeded = useCallback(
-    (selectedRows: Array<RowNode<BTN>>): void => {
-      selectedRows
-        .filter(r => r.rowIndex === 0 && r.data?.id === currentNode?.parentId)
-        .forEach(r => r.setSelected(false, false, true))
-    },
-    [currentNode],
-  )
-
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {
+      console.log('[onComponentStateChanged]')
+
       if (!highlighted) {
         event.api.clearFocusedCell()
         return
       }
-      const selectedRows: RowNode[] = event.api.getSelectedNodes()
-      if (selectedRows.length === 1) {
-        event.api.ensureNodeVisible(selectedRows[0])
-        event.api.setFocusedCell(selectedRows[0].rowIndex ?? 0, TITLE_COLUMN)
-        deselectFirstRowIfNeeded(selectedRows)
-        return
-      }
-      if (selectedRows.length > 1) {
-        deselectFirstRowIfNeeded(selectedRows)
-        return
-      }
       if (event.api.getDisplayedRowCount() !== 0) {
-        event.api.ensureIndexVisible(0)
-        event.api.setFocusedCell(0, TITLE_COLUMN)
+        return
       }
+
+      if (event.api.getFocusedCell() !== null) {
+        event.api.ensureIndexVisible((event.api.getFocusedCell() as CellPosition).rowIndex)
+        return
+      }
+
+      // TODO hopefully not  really needed - we might need to set a current focused cell as a Ref
+      console.log('[onComponentStateChanged(): Focusing on the first row')
+      event.api.setFocusedCell(0, TITLE_COLUMN)
+      event.api.ensureIndexVisible(0)
     },
-    [highlighted, deselectFirstRowIfNeeded],
+    [highlighted],
   )
 }

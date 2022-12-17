@@ -1,4 +1,4 @@
-import { CellEditRequestEvent, GridApi, GridReadyEvent } from 'ag-grid-community'
+import { CellEditRequestEvent, GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
 import { useCallback, useEffect, useImperativeHandle } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -153,11 +153,24 @@ export function useSetSelection(
 ): (ids: string[]) => void {
   return useCallback(
     (ids: string[]) => {
-      gridApi?.deselectAll()
-      ids
-        .map(id => gridApi?.getRowNode(id))
-        .filter(n => n !== undefined && n.id !== currentNode?.parentId)
-        .forEach(n => n?.setSelected(true))
+      if (gridApi === undefined || currentNode?.parentId === undefined) {
+        return
+      }
+      gridApi.deselectAll()
+
+      const rows = ids
+        .map(id => gridApi.getRowNode(id))
+        .filter(n => n !== undefined && n.id !== currentNode.parentId)
+        .map(n => n as RowNode<BTN>)
+
+      rows.forEach(n => n.setSelected(true))
+
+      if (rows.length === 0) {
+        return
+      }
+
+      gridApi.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
+      gridApi.ensureNodeVisible(rows[0])
     },
     [gridApi, currentNode],
   )
@@ -237,6 +250,7 @@ export function useHighlightPanelOnClick(
   notifyGridReady: (params: GridReadyEvent) => void,
 ): void {
   useEffect(() => {
+    console.log('[useHighlightPanelOnClick Effect / notifyGridReadyEffect]')
     if (containerRef.current === undefined || containerRef.current === null) {
       return
     }

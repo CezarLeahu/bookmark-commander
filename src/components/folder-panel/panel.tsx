@@ -83,7 +83,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
-  const clickHandlers = useGridClickHandlers(highlightSide, currentNode, setCurrentNodeId)
+  const clickHandlers = useGridClickHandlers(setCurrentNodeId)
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
@@ -106,12 +106,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const dndHandlers = useDragAndDropHandlers(meta, currentNodeId, rows, refreshRows)
 
-  const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted, currentNode)
+  const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted)
 
   const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
 
   const rowSelectable = useCallback(
-    (node: RowNode<BTN>): boolean => node.id !== currentNode?.parentId,
+    (node: RowNode<BTN>): boolean =>
+      currentNode?.parentId !== undefined && node.id !== currentNode?.parentId,
     [currentNode],
   )
 
