@@ -3,7 +3,7 @@ import { createBookmark, createDir } from '../../services/bookmarks/commands'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
-import { Side } from '../../services/utils/types'
+import { useAppSelector } from '../../store/hooks'
 
 interface CreateDialogState {
   bookmarkOpen: boolean
@@ -16,12 +16,13 @@ interface CreateDialogState {
 }
 
 export function useCreateDialogState(
-  selectedSide: Side,
   currentNodeIds: PairState<string>,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
+  const selectedSide = useAppSelector(state => state.side)
+
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
 

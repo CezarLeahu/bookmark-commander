@@ -3,8 +3,8 @@ import { useCallback, useState } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { Side } from '../../services/utils/types'
 import { update } from '../../services/bookmarks/commands'
+import { useAppSelector } from '../../store/hooks'
 
 interface EditDialogState {
   open: boolean
@@ -14,11 +14,12 @@ interface EditDialogState {
 }
 
 export function useEditDialogState(
-  selectedSide: Side,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): EditDialogState {
+  const selectedSide = useAppSelector(state => state.side)
+
   const [open, setOpen] = useState(false)
 
   return {

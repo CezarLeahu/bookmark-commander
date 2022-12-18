@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { Side } from '../../services/utils/types'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
+import { useAppSelector } from '../../store/hooks'
 
 interface DeleteDialogState {
   open: boolean
@@ -15,12 +15,13 @@ interface DeleteDialogState {
 
 export function useDeleteDialogState(
   lastSelectedIds: () => string[],
-  selectedSide: Side,
   updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
+  const selectedSide = useAppSelector(state => state.side)
+
   const [open, setOpen] = useState(false)
 
   return {

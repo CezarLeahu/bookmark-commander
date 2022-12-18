@@ -8,7 +8,7 @@ import {
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
@@ -18,8 +18,8 @@ import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import Search from '../search/search'
-import { Side } from '../../services/utils/types'
 import { closeCurrentTab } from '../../services/tabs/tabs'
+import { useAppSelector } from '../../store/hooks'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDocumentKeyListener } from './app-key-events'
@@ -36,34 +36,32 @@ const App: React.FC = () => {
   const panelAreaRef = useRef<HTMLDivElement>(null)
 
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
-  const [selectedSide, setSelectedSide] = useState<Side>('left')
+  const selectedSide = useAppSelector(state => state.side)
   const currentNodeIds = usePairState<string>('1', '2')
 
   const [rowsOutdated, refreshRows] = useRefresh()
 
-  const lastSelectedIds = useLastSelectedIds(panelRefs, selectedSide)
+  const lastSelectedIds = useLastSelectedIds(panelRefs)
 
-  const resetCurrentSelection = useSelectionReset(panelRefs, selectedSide, currentNodeIds)
+  const resetCurrentSelection = useSelectionReset(panelRefs, currentNodeIds)
 
-  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded(selectedSide, currentNodeIds)
+  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded(currentNodeIds)
 
-  const jumpToParent = useJumpToParent(panelRefs, selectedSide, currentNodeIds)
+  const jumpToParent = useJumpToParent(panelRefs, currentNodeIds)
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const highlight = usePanelHighlight(panelRefs, setSelectedSide)
+  const highlight = usePanelHighlight(panelRefs)
 
   const createDialog = useCreateDialogState(
-    selectedSide,
     currentNodeIds,
     resetCurrentSelection,
     refreshRows,
     panelRefs,
   )
-  const editDialog = useEditDialogState(selectedSide, resetCurrentSelection, refreshRows, panelRefs)
+  const editDialog = useEditDialogState(resetCurrentSelection, refreshRows, panelRefs)
   const deleteDialog = useDeleteDialogState(
     lastSelectedIds,
-    selectedSide,
     updateCurrentPathsIfNeeded,
     resetCurrentSelection,
     refreshRows,
@@ -81,13 +79,12 @@ const App: React.FC = () => {
 
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     panelRefs,
-    selectedSide,
     highlight,
     currentNodeIds,
     refreshRows,
   )
 
-  useDocumentKeyListener(panelAreaRef.current, selectedSide, highlight)
+  useDocumentKeyListener(panelAreaRef.current, highlight)
 
   return (
     <Container

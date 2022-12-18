@@ -1,5 +1,7 @@
 import { PairCallback, PairRef, PairState, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
+import { focusLeft, focusRight } from '../../store/sideReducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -11,10 +13,9 @@ export function useRefresh(): [object, () => void] {
   return [refresh, useCallback(() => setRefresh({}), [])]
 }
 
-export function useLastSelectedIds(
-  panelRefs: PairRef<FolderPanelHandle | null>,
-  selectedSide: Side,
-): () => string[] {
+export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>): () => string[] {
+  const selectedSide = useAppSelector(state => state.side)
+
   return useCallback(
     (): string[] => panelRefs[selectedSide].current?.getSelectedNodeIds() ?? [],
     [selectedSide, panelRefs],
@@ -23,9 +24,10 @@ export function useLastSelectedIds(
 
 export function useSelectionReset(
   panelRefs: PairRef<FolderPanelHandle | null>,
-  selectedSide: Side,
   currentNodeIds: PairState<string>,
 ): () => void {
+  const selectedSide = useAppSelector(state => state.side)
+
   return useCallback((): void => {
     panelRefs[selectedSide].current?.clearSelection()
     const otherSide: Side = other(selectedSide)
@@ -36,9 +38,10 @@ export function useSelectionReset(
 }
 
 export function useUpdateCurrentPathsIfNeeded(
-  selectedSide: Side,
   currentNodeIds: PairState<string>,
 ): (idsToBeDeleted: string[]) => void {
+  const selectedSide = useAppSelector(state => state.side)
+
   return useCallback(
     (idsToBeDeleted: string[]): void => {
       if (idsToBeDeleted.length === 0) {
@@ -70,9 +73,10 @@ export function useUpdateCurrentPathsIfNeeded(
 
 export function useJumpToParent(
   panelRefs: PairRef<FolderPanelHandle | null>,
-  selectedSide: Side,
   currentNodeIds: PairState<string>,
 ): (node: BTN) => void {
+  const selectedSide = useAppSelector(state => state.side)
+
   return useCallback(
     (node: BTN): void => {
       console.log(`jump to directory ${node.parentId ?? '0'}`)
@@ -85,16 +89,17 @@ export function useJumpToParent(
 
 export function usePanelHighlight(
   panelRefs: PairRef<FolderPanelHandle | null>,
-  setSelectedSide: React.Dispatch<React.SetStateAction<Side>>,
 ): PairCallback<() => void> {
+  const dispatch = useAppDispatch()
+
   return usePairCallbacks(
     () => {
       panelRefs.right.current?.clearFocus()
-      setSelectedSide('left')
+      dispatch(focusLeft(''))
     },
     () => {
       panelRefs.left.current?.clearFocus()
-      setSelectedSide('right')
+      dispatch(focusRight(''))
     },
     [panelRefs.left, panelRefs.right],
   )

@@ -26,18 +26,19 @@ plugins:
   - '@typescript-eslint'
   - 'prettier'
 rules:
+  camelcase: error
+  no-duplicate-imports: error
+  prettier/prettier: error
+  quotes:
+    - error
+    - single
   react/react-in-jsx-scope: off
   react/jsx-uses-react: error
   react/jsx-uses-vars: error
   react-hooks/rules-of-hooks: error
   react-hooks/exhaustive-deps: warn
-  camelcase: error
-  spaced-comment: error
-  quotes:
-    - error
-    - single
-  no-duplicate-imports: error
   sort-imports: error
+  spaced-comment: error
 settings:
   import/resolver: typescript
   react:

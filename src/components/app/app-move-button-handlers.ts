@@ -3,6 +3,7 @@ import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { useAppSelector } from '../../store/hooks'
 import { useLastSelectedIds } from './app-content'
 
 interface MoveHandlers {
@@ -13,12 +14,13 @@ interface MoveHandlers {
 
 export function useMoveHandlers(
   panelRefs: PairRef<FolderPanelHandle | null>,
-  selectedSide: Side,
   highlight: PairCallback<() => void>,
   currentNodeIds: PairState<string>,
   refreshRows: () => void,
 ): MoveHandlers {
-  const lastSelectedIds = useLastSelectedIds(panelRefs, selectedSide)
+  const selectedSide = useAppSelector(state => state.side)
+
+  const lastSelectedIds = useLastSelectedIds(panelRefs)
 
   return {
     handleMoveBetweenPanels: (): void => {
