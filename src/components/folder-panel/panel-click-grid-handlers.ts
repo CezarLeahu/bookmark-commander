@@ -9,7 +9,9 @@ interface ClickHandlers {
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
 }
 
-export function useGridClickHandlers(setCurrentNodeId: (id: string) => void): ClickHandlers {
+export function useGridClickHandlers(
+  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
+): ClickHandlers {
   return {
     handleRowClick: useCallback((event: RowSelectedEvent<BTN>): void => {
       // TODO remove

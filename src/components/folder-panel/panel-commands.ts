@@ -18,31 +18,25 @@ export interface FolderPanelHandle {
   readonly ensureAtLeastOneRowSelected: () => void
 }
 
+const startCellEdit = (api: GridApi<BTN>, id: string): void => {
+  const rowIndex = api.getRowNode(id)?.rowIndex
+  if (rowIndex === undefined || rowIndex === null) {
+    return
+  }
+  api.startEditingCell({
+    rowIndex,
+    colKey: TITLE_COLUMN,
+  })
+}
+
 export function usePanelHandlers(
   ref: React.ForwardedRef<FolderPanelHandle>,
   api: GridApi<BTN> | undefined,
   highlighted: boolean,
   currentNode: BTN | undefined,
 ): void {
-  const startCellEdit = useCallback((api: GridApi<BTN>, id: string): void => {
-    const rowIndex = api.getRowNode(id)?.rowIndex
-    if (rowIndex === undefined || rowIndex === null) {
-      return
-    }
-    api.startEditingCell({
-      rowIndex,
-      colKey: TITLE_COLUMN,
-    })
-  }, [])
-
-  const getSelectedNodeIds = useSelectedNodeIds(api, currentNode)
-  const getFocusedNodeId = useFocusedNodeId(api, currentNode)
-  const setSelection = useSetSelection(api, highlighted, currentNode)
-  const clearFocus = useCallback((): void => api?.clearFocusedCell(), [api])
-  const clearSelection = useCallback((): void => {
-    api?.clearFocusedCell()
-    api?.deselectAll()
-  }, [api])
+  const getSelectedNodeIds = selectedNodeIdsProvider(api, currentNode)
+  const getFocusedNodeId = focusedNodeIdProvider(api, currentNode)
 
   useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
@@ -55,11 +49,14 @@ export function usePanelHandlers(
 
       getSelectedNodeIds,
 
-      clearFocus,
+      clearFocus: (): void => api?.clearFocusedCell(),
 
-      clearSelection,
+      clearSelection: (): void => {
+        api?.clearFocusedCell()
+        api?.deselectAll()
+      },
 
-      setSelection,
+      setSelection: setSelectionProvider(api, highlighted, currentNode),
 
       singleRowSelectedOrFocused: (): boolean => {
         if (currentNode?.parentId === undefined) {
@@ -100,24 +97,15 @@ export function usePanelHandlers(
         api?.getRowNode(focusedId)?.setSelected(true)
       },
     }),
-    [
-      api,
-      currentNode,
-      startCellEdit,
-      getSelectedNodeIds,
-      getFocusedNodeId,
-      setSelection,
-      clearFocus,
-      clearSelection,
-    ],
+    [api, highlighted, currentNode, getSelectedNodeIds, getFocusedNodeId],
   )
 }
 
-export function useSelectedNodeIds(
+export function selectedNodeIdsProvider(
   api: GridApi<BTN> | undefined,
   currentNode: BTN | undefined,
 ): () => string[] {
-  return useCallback((): string[] => {
+  return (): string[] => {
     if (currentNode?.parentId === undefined) {
       return []
     }
@@ -127,14 +115,14 @@ export function useSelectedNodeIds(
         .filter(r => r.index !== 0)
         .map(r => r.id) ?? []
     )
-  }, [api, currentNode])
+  }
 }
 
-export function useFocusedNodeId(
+export function focusedNodeIdProvider(
   api: GridApi<BTN> | undefined,
   currentNode: BTN | undefined,
 ): () => string | undefined {
-  return useCallback((): string | undefined => {
+  return (): string | undefined => {
     if (currentNode?.parentId === undefined) {
       return undefined
     }
@@ -145,42 +133,39 @@ export function useFocusedNodeId(
     }
 
     return api?.getModel().getRow(rowIndex)?.id
-  }, [api, currentNode])
+  }
 }
 
-export function useSetSelection(
+export function setSelectionProvider(
   api: GridApi<BTN> | undefined,
   highlighted: boolean,
   currentNode: BTN | undefined,
 ): (ids: string[]) => void {
-  return useCallback(
-    (ids: string[]) => {
-      if (api === undefined || currentNode?.parentId === undefined) {
-        return
-      }
-      api.deselectAll()
+  return (ids: string[]) => {
+    if (api === undefined || currentNode?.parentId === undefined) {
+      return
+    }
+    api.deselectAll()
 
-      const rows = ids
-        .map(id => api.getRowNode(id))
-        .filter(n => n !== undefined && n.id !== currentNode.parentId)
-        .map(n => n as RowNode<BTN>)
+    const rows = ids
+      .map(id => api.getRowNode(id))
+      .filter(n => n !== undefined && n.id !== currentNode.parentId)
+      .map(n => n as RowNode<BTN>)
 
-      rows.forEach(n => n.setSelected(true))
+    rows.forEach(n => n.setSelected(true))
 
-      if (rows.length === 0 || !highlighted) {
-        return
-      }
+    if (rows.length === 0 || !highlighted) {
+      return
+    }
 
-      api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
-      api.ensureNodeVisible(rows[0])
-    },
-    [api, highlighted, currentNode],
-  )
+    api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
+    api.ensureNodeVisible(rows[0])
+  }
 }
 
 export function useOpenHighlightedRow(
   api: GridApi | undefined,
-  setCurrentNodeId: (id: string) => void,
+  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
 ): () => void {
   return useCallback(() => {
     if (api === undefined) {

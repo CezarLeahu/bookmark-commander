@@ -28,13 +28,13 @@ import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
+import { rowIdProvider } from './grid-utils'
 import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
 import { usePanelKeyListener } from './panel-key-events'
 import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { usePanelMouseListener } from './panel-mouse-events'
-import { useRowIdMemo } from './grid-utils'
 import { useTheme } from '@mui/material/styles'
 
 export interface FolderPanelProps {
@@ -42,7 +42,7 @@ export interface FolderPanelProps {
   readonly highlightSide: () => void
   readonly highlightOtherSide: () => void
   readonly currentNodeId: string
-  readonly setCurrentNodeId: (id: string) => void
+  readonly setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>
   readonly notifyGridReady: (params: GridReadyEvent) => void
   readonly rowsOutdated: object
   readonly refreshRows: () => void
@@ -71,7 +71,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
-  const getRowId = useRowIdMemo()
   const containerRef = useRef<HTMLDivElement>(null)
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
@@ -98,7 +97,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     gridApi.current,
     highlightOtherSide,
     setCurrentNodeId,
-    highlighted,
     currentNode,
     notifyGridReady,
     openDialogActions,
@@ -200,7 +198,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             columnDefs={meta.columnDefs}
             defaultColDef={meta.defaultColDef}
             rowData={rows}
-            getRowId={getRowId}
+            getRowId={rowIdProvider}
             onGridReady={handleGridReady}
             suppressClickEdit
             stopEditingWhenCellsLoseFocus

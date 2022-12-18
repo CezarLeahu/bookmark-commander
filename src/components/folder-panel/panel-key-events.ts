@@ -38,8 +38,7 @@ export function usePanelKeyListener(
   container: HTMLDivElement | null,
   api: GridApi<BTN> | undefined,
   highlightOtherSide: () => void,
-  setCurrentNodeId: (id: string) => void,
-  highlighted: boolean,
+  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
   currentNode: BTN | undefined,
   notifyGridReady: (params: GridReadyEvent) => void,
   openDialogActions: OpenDialogActions,
@@ -96,14 +95,6 @@ export function usePanelKeyListener(
           openHighlightedRow()
           break
         }
-        // default: {
-        //   if (highlighted && KeysToPermit.has(e.key) && api?.getFocusedCell() === null) {
-        //     // TODO this block is never reached, doesn't do nothin'
-        //     console.log('[handleKeyUp(): Focusing on the first row')
-        //     api.setFocusedCell(0, TITLE_COLUMN)
-        //     api.ensureIndexVisible(0)
-        //   }
-        // }
       }
     },
     [
