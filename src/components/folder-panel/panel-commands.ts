@@ -3,9 +3,12 @@ import { useCallback, useEffect, useImperativeHandle } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { MOUSEUP } from '../../services/utils/events'
+import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { openInNewTab } from '../../services/tabs/tabs'
+import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
 import { updateTitle } from '../../services/bookmarks/commands'
+import { useAppDispatch } from '../../store/hooks'
 
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
@@ -163,10 +166,9 @@ export function setSelectionProvider(
   }
 }
 
-export function useOpenHighlightedRow(
-  api: GridApi | undefined,
-  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
-): () => void {
+export function useOpenHighlightedRow(api: GridApi | undefined, side: Side): () => void {
+  const dispatch = useAppDispatch()
+
   return useCallback(() => {
     if (api === undefined) {
       return
@@ -183,14 +185,14 @@ export function useOpenHighlightedRow(
 
     switch (node.url) {
       case undefined: // folder
-        setCurrentNodeId(String(node.id))
+        dispatch(updateCurrentNodeId({ side, id: String(node.id) }))
         api.clearFocusedCell()
         api.deselectAll()
         break
       default: // actual bookmark - open in new tab
         openInNewTab(node.url, false)
     }
-  }, [api, setCurrentNodeId])
+  }, [dispatch, api, side])
 }
 
 export function useCellEditingHandler(

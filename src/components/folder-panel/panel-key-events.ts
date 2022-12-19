@@ -11,6 +11,9 @@ import { useCallback, useEffect } from 'react'
 import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
+import { Side } from '../../services/utils/types'
+import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { useAppDispatch } from '../../store/hooks'
 import { useOpenHighlightedRow } from './panel-commands'
 
 export function suppressHeaderKeys(params: SuppressHeaderKeyboardEventParams): boolean {
@@ -35,15 +38,16 @@ export function suppressKeys(params: SuppressKeyboardEventParams): boolean {
 }
 
 export function usePanelKeyListener(
+  side: Side,
   container: HTMLDivElement | null,
   api: GridApi<BTN> | undefined,
   highlightOtherSide: () => void,
-  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
   currentNode: BTN | undefined,
   notifyGridReady: (params: GridReadyEvent) => void,
   openDialogActions: OpenDialogActions,
 ): void {
-  const openHighlightedRow = useOpenHighlightedRow(api, setCurrentNodeId)
+  const dispatch = useAppDispatch()
+  const openHighlightedRow = useOpenHighlightedRow(api, side)
 
   const selectHighlightedRow: () => boolean = useCallback((): boolean => {
     // TODO replace with actually getting the FocusedRow
@@ -70,7 +74,7 @@ export function usePanelKeyListener(
       switch (e.key) {
         case keys.BACKSPACE: {
           if (currentNode?.parentId !== undefined) {
-            setCurrentNodeId(currentNode.parentId)
+            dispatch(updateCurrentNodeId({ side, id: currentNode.parentId }))
           }
           break
         }
@@ -98,9 +102,10 @@ export function usePanelKeyListener(
       }
     },
     [
+      dispatch,
+      side,
       api,
       currentNode,
-      setCurrentNodeId,
       openDialogActions,
       highlightOtherSide,
       openHighlightedRow,

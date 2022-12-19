@@ -22,13 +22,16 @@ import {
 } from './panel-commands'
 import { GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useComponenetStateChangedHandler, useFolderContentEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
+import { Side } from '../../services/utils/types'
 import { rowIdProvider } from './grid-utils'
+import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
 import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
@@ -38,11 +41,10 @@ import { usePanelMouseListener } from './panel-mouse-events'
 import { useTheme } from '@mui/material/styles'
 
 export interface FolderPanelProps {
+  readonly side: Side
   readonly highlighted: boolean
   readonly highlightSide: () => void
   readonly highlightOtherSide: () => void
-  readonly currentNodeId: string
-  readonly setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>
   readonly notifyGridReady: (params: GridReadyEvent) => void
   readonly rowsOutdated: object
   readonly refreshRows: () => void
@@ -58,11 +60,10 @@ export interface OpenDialogActions {
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
   {
+    side,
     highlighted,
     highlightSide,
     highlightOtherSide,
-    currentNodeId,
-    setCurrentNodeId,
     notifyGridReady,
     rowsOutdated,
     refreshRows,
@@ -71,6 +72,10 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
+
+  const dispatch = useAppDispatch()
+  const currentNodeId = useAppSelector(state => state.currentNodeIds[side])
+
   const containerRef = useRef<HTMLDivElement>(null)
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
@@ -80,9 +85,16 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     rowsOutdated,
   )
 
+  const setCurrentNodeId = useCallback(
+    (id: string) => {
+      dispatch(updateCurrentNodeId({ side, id }))
+    },
+    [dispatch, side],
+  )
+
   const navigation = useNavigation(currentNodeId, setCurrentNodeId)
 
-  const clickHandlers = useGridClickHandlers(setCurrentNodeId)
+  const clickHandlers = useGridClickHandlers(side)
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
@@ -93,10 +105,10 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   useHighlightPanelOnClick(containerRef.current, highlightSide, notifyGridReady)
 
   usePanelKeyListener(
+    side,
     containerRef.current,
     gridApi.current,
     highlightOtherSide,
-    setCurrentNodeId,
     currentNode,
     notifyGridReady,
     openDialogActions,

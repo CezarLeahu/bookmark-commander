@@ -1,12 +1,13 @@
-import { PairCallback, PairRef, PairState, usePairCallbacks } from '../../services/utils/hooks'
+import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import { focusLeft, focusRight } from '../../store/sideReducers'
+import { focusLeft, focusRight } from '../../store/sideReducer'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import { getNode } from '../../services/bookmarks/queries'
+import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
 
 export function useRefresh(): [object, () => void] {
   const [refresh, setRefresh] = useState({})
@@ -22,11 +23,9 @@ export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>)
   )
 }
 
-export function useSelectionReset(
-  panelRefs: PairRef<FolderPanelHandle | null>,
-  currentNodeIds: PairState<string>,
-): () => void {
+export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
   const selectedSide = useAppSelector(state => state.side)
+  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
 
   return useCallback((): void => {
     panelRefs[selectedSide].current?.clearSelection()
@@ -37,10 +36,10 @@ export function useSelectionReset(
   }, [panelRefs, selectedSide, currentNodeIds])
 }
 
-export function useUpdateCurrentPathsIfNeeded(
-  currentNodeIds: PairState<string>,
-): (idsToBeDeleted: string[]) => void {
+export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => void {
+  const dispatch = useAppDispatch()
   const selectedSide = useAppSelector(state => state.side)
+  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
 
   return useCallback(
     (idsToBeDeleted: string[]): void => {
@@ -52,14 +51,14 @@ export function useUpdateCurrentPathsIfNeeded(
       const otherSide: Side = other(selectedSide)
 
       const checkSide = (side: Side): void => {
-        if (ids.has(currentNodeIds[side].state)) {
-          getNode(currentNodeIds[side].state)
+        if (ids.has(currentNodeIds[side])) {
+          getNode(currentNodeIds[side])
             .then(n => {
-              currentNodeIds[side].setState(n.parentId ?? '0')
+              dispatch(updateCurrentNodeId({ side, id: n.parentId ?? '0' }))
             })
             .catch(e => {
               console.log(e)
-              currentNodeIds[side].setState('0')
+              dispatch(updateCurrentNodeId({ side, id: '0' }))
             })
         }
       }
@@ -67,23 +66,21 @@ export function useUpdateCurrentPathsIfNeeded(
       checkSide(otherSide)
       checkSide(selectedSide)
     },
-    [selectedSide, currentNodeIds],
+    [dispatch, selectedSide, currentNodeIds],
   )
 }
 
-export function useJumpToParent(
-  panelRefs: PairRef<FolderPanelHandle | null>,
-  currentNodeIds: PairState<string>,
-): (node: BTN) => void {
+export function useJumpToParent(panelRefs: PairRef<FolderPanelHandle | null>): (node: BTN) => void {
+  const dispatch = useAppDispatch()
   const selectedSide = useAppSelector(state => state.side)
 
   return useCallback(
     (node: BTN): void => {
       console.log(`jump to directory ${node.parentId ?? '0'}`)
       panelRefs[selectedSide].current?.setSelection([node.id])
-      currentNodeIds[selectedSide].setState(node.parentId ?? '0')
+      dispatch(updateCurrentNodeId({ side: selectedSide, id: node.parentId ?? '0' }))
     },
-    [panelRefs, selectedSide, currentNodeIds],
+    [dispatch, panelRefs, selectedSide],
   )
 }
 
@@ -95,11 +92,11 @@ export function usePanelHighlight(
   return usePairCallbacks(
     () => {
       panelRefs.right.current?.clearFocus()
-      dispatch(focusLeft(''))
+      dispatch(focusLeft())
     },
     () => {
       panelRefs.left.current?.clearFocus()
-      dispatch(focusRight(''))
+      dispatch(focusRight())
     },
     [panelRefs.left, panelRefs.right],
   )

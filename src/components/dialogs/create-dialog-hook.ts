@@ -1,8 +1,9 @@
-import { PairRef, PairState } from '../../services/utils/hooks'
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { PairRef } from '../../services/utils/hooks'
+import { selectCurrentNodeId } from '../../store/currentNodeIdsReducer'
 import { useAppSelector } from '../../store/hooks'
 
 interface CreateDialogState {
@@ -16,12 +17,11 @@ interface CreateDialogState {
 }
 
 export function useCreateDialogState(
-  currentNodeIds: PairState<string>,
   resetCurrentSelection: () => void,
   refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
-  const selectedSide = useAppSelector(state => state.side)
+  const currentNodeId = useAppSelector(selectCurrentNodeId)
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -49,7 +49,7 @@ export function useCreateDialogState(
 
     handleConfirm: useCallback(
       (title: string, url?: string): void => {
-        const parentId = currentNodeIds[selectedSide].state
+        const parentId = currentNodeId
         if (parentId === undefined) {
           console.log('The current panel current node id is unknown (undefined).')
           setBookmarkOpen(false)
@@ -77,7 +77,7 @@ export function useCreateDialogState(
             .catch(e => console.log(e))
         }
       },
-      [currentNodeIds, selectedSide, resetCurrentSelection, refreshRows],
+      [currentNodeId, resetCurrentSelection, refreshRows],
     ),
 
     handleClose: useCallback((): void => {

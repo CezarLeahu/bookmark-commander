@@ -1,10 +1,12 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit'
 
-import sideReducer from './sideReducers'
+import currentNodeIdsReducer from './currentNodeIdsReducer'
+import sideReducer from './sideReducer'
 
 export const store = configureStore({
   reducer: {
     side: sideReducer,
+    currentNodeIds: currentNodeIdsReducer,
   },
 })
 

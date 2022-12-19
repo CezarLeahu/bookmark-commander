@@ -1,6 +1,11 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../folder-panel/panel'
 import {
+  updateCurrentNodeIdLeft,
+  updateCurrentNodeIdRight,
+} from '../../store/currentNodeIdsReducer'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import {
   useJumpToParent,
   useLastSelectedIds,
   usePanelHighlight,
@@ -9,7 +14,6 @@ import {
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
 import { useMemo, useRef } from 'react'
-import { usePairRef, usePairState } from '../../services/utils/hooks'
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
@@ -19,13 +23,13 @@ import EditDialog from '../dialogs/edit-dialog'
 import { FolderPanelHandle } from '../folder-panel/panel-commands'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/tabs/tabs'
-import { useAppSelector } from '../../store/hooks'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDocumentKeyListener } from './app-key-events'
 import { useDragAndDropPanelBinder } from './app-drag-and-drop-panel-binders'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './app-move-button-handlers'
+import { usePairRef } from '../../services/utils/hooks'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
 
@@ -34,31 +38,27 @@ const App: React.FC = () => {
   const themeContext = useThemeContext()
 
   const panelAreaRef = useRef<HTMLDivElement>(null)
-
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
+
+  const dispatch = useAppDispatch()
   const selectedSide = useAppSelector(state => state.side)
-  const currentNodeIds = usePairState<string>('1', '2')
+  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
 
   const [rowsOutdated, refreshRows] = useRefresh()
 
   const lastSelectedIds = useLastSelectedIds(panelRefs)
 
-  const resetCurrentSelection = useSelectionReset(panelRefs, currentNodeIds)
+  const resetCurrentSelection = useSelectionReset(panelRefs)
 
-  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded(currentNodeIds)
+  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded()
 
-  const jumpToParent = useJumpToParent(panelRefs, currentNodeIds)
+  const jumpToParent = useJumpToParent(panelRefs)
 
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
   const highlight = usePanelHighlight(panelRefs)
 
-  const createDialog = useCreateDialogState(
-    currentNodeIds,
-    resetCurrentSelection,
-    refreshRows,
-    panelRefs,
-  )
+  const createDialog = useCreateDialogState(resetCurrentSelection, refreshRows, panelRefs)
   const editDialog = useEditDialogState(resetCurrentSelection, refreshRows, panelRefs)
   const deleteDialog = useDeleteDialogState(
     lastSelectedIds,
@@ -80,7 +80,6 @@ const App: React.FC = () => {
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     panelRefs,
     highlight,
-    currentNodeIds,
     refreshRows,
   )
 
@@ -113,11 +112,10 @@ const App: React.FC = () => {
         <Grid item xs={6}>
           <FolderPanel
             ref={panelRefs.left}
+            side={'left'}
             highlighted={selectedSide === 'left'}
             highlightSide={highlight.left}
             highlightOtherSide={highlight.right}
-            currentNodeId={currentNodeIds.left.state}
-            setCurrentNodeId={currentNodeIds.left.setState}
             notifyGridReady={handleGridReadyLeft}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
@@ -128,11 +126,10 @@ const App: React.FC = () => {
         <Grid item xs={6}>
           <FolderPanel
             ref={panelRefs.right}
+            side={'right'}
             highlighted={selectedSide === 'right'}
             highlightSide={highlight.right}
             highlightOtherSide={highlight.left}
-            currentNodeId={currentNodeIds.right.state}
-            setCurrentNodeId={currentNodeIds.right.setState}
             notifyGridReady={handleGridReadyRight}
             rowsOutdated={rowsOutdated}
             refreshRows={refreshRows}
@@ -145,14 +142,14 @@ const App: React.FC = () => {
         <ButtonGroup variant='text' aria-label='Actions'>
           <Button
             onClick={createDialog.handleBookmarkOpen}
-            disabled={currentNodeIds[selectedSide].state === '0'}
+            disabled={currentNodeIds[selectedSide] === '0'}
           >
             New
           </Button>
 
           <Button
             onClick={createDialog.handleDirectoryOpen}
-            disabled={currentNodeIds[selectedSide].state === '0'}
+            disabled={currentNodeIds[selectedSide] === '0'}
           >
             New Folder
           </Button>
@@ -163,20 +160,20 @@ const App: React.FC = () => {
             Edit
           </Button>
           <Button
-            disabled={currentNodeIds.left.state === currentNodeIds.right.state}
-            onClick={() => currentNodeIds.right.setState(currentNodeIds.left.state)}
+            disabled={currentNodeIds.left === currentNodeIds.right}
+            onClick={() => dispatch(updateCurrentNodeIdRight(currentNodeIds.left))}
           >
             Mirror ({'\u2192'})
           </Button>
           <Button
-            disabled={currentNodeIds.left.state === currentNodeIds.right.state}
-            onClick={() => currentNodeIds.left.setState(currentNodeIds.right.state)}
+            disabled={currentNodeIds.left === currentNodeIds.right}
+            onClick={() => dispatch(updateCurrentNodeIdLeft(currentNodeIds.right))}
           >
             Mirror ({'\u2190'})
           </Button>
           <Button
             disabled={
-              currentNodeIds.left.state === currentNodeIds.right.state ||
+              currentNodeIds.left === currentNodeIds.right ||
               !(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)
             }
             onClick={handleMoveBetweenPanels}

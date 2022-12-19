@@ -1,7 +1,10 @@
 import { RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 
 import { BTN } from '../../services/bookmarks/types'
+import { Side } from '../../services/utils/types'
 import { openInNewTab } from '../../services/tabs/tabs'
+import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 
 interface ClickHandlers {
@@ -9,9 +12,9 @@ interface ClickHandlers {
   handleRowDoubleClick: (event: RowDoubleClickedEvent<BTN>) => void
 }
 
-export function useGridClickHandlers(
-  setCurrentNodeId: React.Dispatch<React.SetStateAction<string>>,
-): ClickHandlers {
+export function useGridClickHandlers(side: Side): ClickHandlers {
+  const dispatch = useAppDispatch()
+
   return {
     handleRowClick: useCallback((event: RowSelectedEvent<BTN>): void => {
       // TODO remove
@@ -28,13 +31,13 @@ export function useGridClickHandlers(
         }
         switch (node.url) {
           case undefined: // folder
-            setCurrentNodeId(String(node.id))
+            dispatch(updateCurrentNodeId({ side, id: String(node.id) }))
             break
           default: // actual bookmark - open in new tab
             openInNewTab(node.url, true)
         }
       },
-      [setCurrentNodeId],
+      [dispatch, side],
     ),
   }
 }

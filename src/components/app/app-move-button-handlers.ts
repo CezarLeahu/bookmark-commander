@@ -1,4 +1,4 @@
-import { PairCallback, PairRef, PairState } from '../../services/utils/hooks'
+import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
@@ -15,10 +15,10 @@ interface MoveHandlers {
 export function useMoveHandlers(
   panelRefs: PairRef<FolderPanelHandle | null>,
   highlight: PairCallback<() => void>,
-  currentNodeIds: PairState<string>,
   refreshRows: () => void,
 ): MoveHandlers {
   const selectedSide = useAppSelector(state => state.side)
+  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
 
   const lastSelectedIds = useLastSelectedIds(panelRefs)
 
@@ -29,14 +29,14 @@ export function useMoveHandlers(
         return
       }
 
-      if (currentNodeIds.left.state === currentNodeIds.right.state) {
+      if (currentNodeIds.left === currentNodeIds.right) {
         console.log('Source directory is the same as the target directory')
         return
       }
 
       const otherSide: Side = other(selectedSide)
 
-      moveAll(nodeIds, currentNodeIds[otherSide].state)
+      moveAll(nodeIds, currentNodeIds[otherSide])
         .then(() => {
           panelRefs[selectedSide].current?.clearSelection()
           panelRefs[otherSide].current?.setSelection(nodeIds)
