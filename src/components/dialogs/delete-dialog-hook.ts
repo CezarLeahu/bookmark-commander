@@ -1,10 +1,11 @@
+import { refreshRows, selectFocusedSide } from '../../store/app-state-reducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
-import { useAppSelector } from '../../store/hooks'
 
 interface DeleteDialogState {
   open: boolean
@@ -17,10 +18,10 @@ export function useDeleteDialogState(
   lastSelectedIds: () => string[],
   updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
-  refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
-  const selectedSide = useAppSelector(state => state.side)
+  const dispatch = useAppDispatch()
+  const focusedSide = useAppSelector(selectFocusedSide)
 
   const [open, setOpen] = useState(false)
 
@@ -28,11 +29,11 @@ export function useDeleteDialogState(
     open,
 
     handleOpen: useCallback((): void => {
-      panelRefs[selectedSide].current?.ensureAtLeastOneRowSelected()
+      panelRefs[focusedSide].current?.ensureAtLeastOneRowSelected()
       panelRefs.left.current?.clearFocus()
       panelRefs.right.current?.clearFocus()
       setOpen(true)
-    }, [selectedSide, panelRefs]),
+    }, [focusedSide, panelRefs]),
 
     handleConfirm: useCallback((): void => {
       const ids: string[] = lastSelectedIds()
@@ -52,13 +53,13 @@ export function useDeleteDialogState(
           removeAll(ids)
             .then(() => {
               setOpen(false)
-              refreshRows()
+              dispatch(refreshRows())
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
         })
         .catch(e => console.log(e))
-    }, [lastSelectedIds, updateCurrentPathsIfNeeded, resetCurrentSelection, refreshRows]),
+    }, [dispatch, lastSelectedIds, updateCurrentPathsIfNeeded, resetCurrentSelection]),
 
     handleClose: useCallback((): void => setOpen(false), []),
   }

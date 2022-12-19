@@ -1,12 +1,12 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit'
 
-import currentNodeIdsReducer from './panel-state-reducers'
-import sideReducer from './common-app-state-reducers'
+import appStateReducer from './app-state-reducers'
+import panelStateReducer from './panel-state-reducers'
 
 export const store = configureStore({
   reducer: {
-    side: sideReducer,
-    currentNodeIds: currentNodeIdsReducer,
+    app: appStateReducer,
+    panel: panelStateReducer,
   },
 })
 

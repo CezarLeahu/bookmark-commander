@@ -3,7 +3,7 @@ import { RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 import { BTN } from '../../services/bookmarks/types'
 import { Side } from '../../services/utils/types'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { updateCurrentNodeId } from '../../store/panel-state-reducers'
+import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 
@@ -31,7 +31,7 @@ export function useGridClickHandlers(side: Side): ClickHandlers {
         }
         switch (node.url) {
           case undefined: // folder
-            dispatch(updateCurrentNodeId({ side, id: String(node.id) }))
+            dispatch(updateNodeId({ side, id: String(node.id) }))
             break
           default: // actual bookmark - open in new tab
             openInNewTab(node.url, true)

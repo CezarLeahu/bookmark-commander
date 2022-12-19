@@ -1,12 +1,17 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import { updateCurrentNodeIdLeft, updateCurrentNodeIdRight } from '../../store/panel-state-reducers'
+import {
+  selectFocusedPanelInRootDir,
+  selectLeftNodeId,
+  selectSameNodeIds,
+  updateNodeIdLeft,
+  updateNodeIdRight,
+} from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import {
   useJumpToParent,
   useLastSelectedIds,
   usePanelHighlight,
-  useRefresh,
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
@@ -20,6 +25,7 @@ import EditDialog from '../dialogs/edit-dialog'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/tabs/tabs'
+import { selectFocusedSide } from '../../store/app-state-reducers'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDocumentKeyListener } from './app-key-events'
@@ -38,10 +44,11 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
 
   const dispatch = useAppDispatch()
-  const selectedSide = useAppSelector(state => state.side)
-  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
-
-  const [rowsOutdated, refreshRows] = useRefresh()
+  const selectedSide = useAppSelector(selectFocusedSide)
+  const leftNodeId = useAppSelector(selectLeftNodeId)
+  const rightNodeId = useAppSelector(selectLeftNodeId)
+  const focusedPanelInRootDir = useAppSelector(selectFocusedPanelInRootDir)
+  const sameNodeIds = useAppSelector(selectSameNodeIds)
 
   const lastSelectedIds = useLastSelectedIds(panelRefs)
 
@@ -55,13 +62,12 @@ const App: React.FC = () => {
 
   const highlight = usePanelHighlight(panelRefs)
 
-  const createDialog = useCreateDialogState(resetCurrentSelection, refreshRows, panelRefs)
-  const editDialog = useEditDialogState(resetCurrentSelection, refreshRows, panelRefs)
+  const createDialog = useCreateDialogState(resetCurrentSelection, panelRefs)
+  const editDialog = useEditDialogState(resetCurrentSelection, panelRefs)
   const deleteDialog = useDeleteDialogState(
     lastSelectedIds,
     updateCurrentPathsIfNeeded,
     resetCurrentSelection,
-    refreshRows,
     panelRefs,
   )
 
@@ -77,7 +83,6 @@ const App: React.FC = () => {
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
     panelRefs,
     highlight,
-    refreshRows,
   )
 
   useDocumentKeyListener(panelAreaRef.current, highlight)
@@ -114,8 +119,6 @@ const App: React.FC = () => {
             highlightSide={highlight.left}
             highlightOtherSide={highlight.right}
             notifyGridReady={handleGridReadyLeft}
-            rowsOutdated={rowsOutdated}
-            refreshRows={refreshRows}
             openDialogActions={dialogActions}
           />
         </Grid>
@@ -128,8 +131,6 @@ const App: React.FC = () => {
             highlightSide={highlight.right}
             highlightOtherSide={highlight.left}
             notifyGridReady={handleGridReadyRight}
-            rowsOutdated={rowsOutdated}
-            refreshRows={refreshRows}
             openDialogActions={dialogActions}
           />
         </Grid>
@@ -137,17 +138,11 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center' sx={{ padding: '5px' }}>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button
-            onClick={createDialog.handleBookmarkOpen}
-            disabled={currentNodeIds[selectedSide] === '0'}
-          >
+          <Button onClick={createDialog.handleBookmarkOpen} disabled={focusedPanelInRootDir}>
             New
           </Button>
 
-          <Button
-            onClick={createDialog.handleDirectoryOpen}
-            disabled={currentNodeIds[selectedSide] === '0'}
-          >
+          <Button onClick={createDialog.handleDirectoryOpen} disabled={focusedPanelInRootDir}>
             New Folder
           </Button>
           <Button
@@ -156,22 +151,15 @@ const App: React.FC = () => {
           >
             Edit
           </Button>
-          <Button
-            disabled={currentNodeIds.left === currentNodeIds.right}
-            onClick={() => dispatch(updateCurrentNodeIdRight(currentNodeIds.left))}
-          >
+          <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdRight(leftNodeId))}>
             Mirror ({'\u2192'})
           </Button>
-          <Button
-            disabled={currentNodeIds.left === currentNodeIds.right}
-            onClick={() => dispatch(updateCurrentNodeIdLeft(currentNodeIds.right))}
-          >
+          <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdLeft(rightNodeId))}>
             Mirror ({'\u2190'})
           </Button>
           <Button
             disabled={
-              currentNodeIds.left === currentNodeIds.right ||
-              !(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)
+              sameNodeIds || !(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)
             }
             onClick={handleMoveBetweenPanels}
           >

@@ -12,7 +12,7 @@ import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
 import { Side } from '../../services/utils/types'
-import { updateCurrentNodeId } from '../../store/panel-state-reducers'
+import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useOpenHighlightedRow } from './panel-commands'
 
@@ -74,7 +74,7 @@ export function usePanelKeyListener(
       switch (e.key) {
         case keys.BACKSPACE: {
           if (currentNode?.parentId !== undefined) {
-            dispatch(updateCurrentNodeId({ side, id: currentNode.parentId }))
+            dispatch(updateNodeId({ side, id: currentNode.parentId }))
           }
           break
         }

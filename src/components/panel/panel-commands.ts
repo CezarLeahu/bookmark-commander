@@ -6,7 +6,8 @@ import { MOUSEUP } from '../../services/utils/events'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { updateCurrentNodeId } from '../../store/panel-state-reducers'
+import { refreshRows } from '../../store/app-state-reducers'
+import { updateNodeId } from '../../store/panel-state-reducers'
 import { updateTitle } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
 
@@ -185,7 +186,7 @@ export function useOpenHighlightedRow(api: GridApi | undefined, side: Side): () 
 
     switch (node.url) {
       case undefined: // folder
-        dispatch(updateCurrentNodeId({ side, id: String(node.id) }))
+        dispatch(updateNodeId({ side, id: String(node.id) }))
         api.clearFocusedCell()
         api.deselectAll()
         break
@@ -195,9 +196,9 @@ export function useOpenHighlightedRow(api: GridApi | undefined, side: Side): () 
   }, [dispatch, api, side])
 }
 
-export function useCellEditingHandler(
-  refreshRows: () => void,
-): (event: CellEditRequestEvent<BTN, string>) => void {
+export function useCellEditingHandler(): (event: CellEditRequestEvent<BTN, string>) => void {
+  const dispatch = useAppDispatch()
+
   return useCallback(
     (event: CellEditRequestEvent<BTN, string>) => {
       if (event.colDef.field !== TITLE_COLUMN || event.newValue === undefined) {
@@ -212,11 +213,11 @@ export function useCellEditingHandler(
       updateTitle(event.data.id, newVal)
         .then(() => {
           console.log('Updated one title')
-          refreshRows()
+          dispatch(refreshRows())
         })
         .catch(e => console.log(e))
     },
-    [refreshRows],
+    [dispatch],
   )
 }
 

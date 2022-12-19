@@ -1,10 +1,11 @@
+import { refreshRows, selectFocusedSide } from '../../store/app-state-reducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { update } from '../../services/bookmarks/commands'
-import { useAppSelector } from '../../store/hooks'
 
 interface EditDialogState {
   open: boolean
@@ -15,10 +16,10 @@ interface EditDialogState {
 
 export function useEditDialogState(
   resetCurrentSelection: () => void,
-  refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): EditDialogState {
-  const selectedSide = useAppSelector(state => state.side)
+  const dispatch = useAppDispatch()
+  const focusedSide = useAppSelector(selectFocusedSide)
 
   const [open, setOpen] = useState(false)
 
@@ -26,23 +27,23 @@ export function useEditDialogState(
     open,
 
     handleOpen: useCallback((): void => {
-      panelRefs[selectedSide].current?.ensureAtLeastOneRowSelected()
+      panelRefs[focusedSide].current?.ensureAtLeastOneRowSelected()
       panelRefs.left.current?.clearFocus()
       panelRefs.right.current?.clearFocus()
       setOpen(true)
-    }, [selectedSide, panelRefs]),
+    }, [focusedSide, panelRefs]),
 
     handleConfirm: useCallback(
       (node: BTN): void => {
         update(node)
           .then(() => {
             setOpen(false)
-            refreshRows()
+            dispatch(refreshRows())
             resetCurrentSelection()
           })
           .catch(e => console.log(e))
       },
-      [resetCurrentSelection, refreshRows],
+      [dispatch, resetCurrentSelection],
     ),
 
     handleClose: useCallback((): void => setOpen(false), []),

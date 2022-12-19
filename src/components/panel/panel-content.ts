@@ -8,7 +8,12 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { ComponentStateChangedEvent } from 'ag-grid-community'
+import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
+import { selectNodeId } from '../../store/panel-state-reducers'
+import { selectRowsOutdated } from '../../store/app-state-reducers'
+import { shallowEqual } from 'react-redux'
+import { useAppSelector } from '../../store/hooks'
 
 interface FolderActiveContent {
   topNodes: BTN[]
@@ -17,10 +22,10 @@ interface FolderActiveContent {
   rows: BTN[]
 }
 
-export function useFolderContentEffect(
-  currentNodeId: string,
-  rowsOutdated: object,
-): FolderActiveContent {
+export function useFolderContentEffect(side: Side): FolderActiveContent {
+  const rowsOutdated = useAppSelector(selectRowsOutdated, shallowEqual)
+  const currentNodeId = useAppSelector(state => selectNodeId(state, side))
+
   const [topNodes, setTopNodes] = useState<BTN[]>([])
   const [currentNode, setCurrentNode] = useState<BTN>()
   const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])

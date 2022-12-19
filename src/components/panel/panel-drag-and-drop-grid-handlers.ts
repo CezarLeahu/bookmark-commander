@@ -1,9 +1,13 @@
 import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
 import { dropInfo, moveInfo } from './panel-drag-and-drop-calculations'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelMetadata } from './panel-metadata'
+import { Side } from '../../services/utils/types'
 import { moveAll } from '../../services/bookmarks/commands'
+import { refreshRows } from '../../store/app-state-reducers'
+import { selectNodeId } from '../../store/panel-state-reducers'
 import { useCallback } from 'react'
 
 export interface DragAndDropHandlers {
@@ -13,11 +17,13 @@ export interface DragAndDropHandlers {
 }
 
 export function useDragAndDropHandlers(
+  side: Side,
   meta: FolderPanelMetadata,
-  currentNodeId: string,
   rows: BTN[],
-  refreshRows: () => void,
 ): DragAndDropHandlers {
+  const dispatch = useAppDispatch()
+  const currentNodeId = useAppSelector(state => selectNodeId(state, side))
+
   return {
     handleRowDragMove: useCallback(
       (e: RowDragMoveEvent<BTN>): void => {
@@ -140,7 +146,7 @@ export function useDragAndDropHandlers(
           moveAll(ids, targetDir.id)
             .then(() => {
               console.log('Moved elements (into child dir)')
-              refreshRows()
+              dispatch(refreshRows())
             })
             .catch(e => console.log(e))
           return
@@ -159,7 +165,7 @@ export function useDragAndDropHandlers(
                 .map(id => e.api.getRowNode(id))
                 .filter(n => n !== undefined)
                 .forEach(n => n?.setSelected(true))
-              refreshRows()
+              dispatch(refreshRows())
             })
             .catch(e => console.log(e))
           return
@@ -173,11 +179,11 @@ export function useDragAndDropHandlers(
               .map(id => e.api.getRowNode(id))
               .filter(n => n !== undefined)
               .forEach(n => n?.setSelected(true))
-            refreshRows()
+            dispatch(refreshRows())
           })
           .catch(e => console.log(e))
       },
-      [meta, currentNodeId, rows, refreshRows],
+      [dispatch, meta, currentNodeId, rows],
     ),
   }
 }

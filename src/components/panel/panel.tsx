@@ -22,7 +22,6 @@ import {
 } from './panel-commands'
 import { GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
 import { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useComponenetStateChangedHandler, useFolderContentEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
@@ -30,8 +29,10 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
 import { Side } from '../../services/utils/types'
+import { refreshRows } from '../../store/app-state-reducers'
 import { rowIdProvider } from './grid-utils'
-import { updateCurrentNodeId } from '../../store/panel-state-reducers'
+import { updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
 import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
@@ -46,8 +47,6 @@ export interface FolderPanelProps {
   readonly highlightSide: () => void
   readonly highlightOtherSide: () => void
   readonly notifyGridReady: (params: GridReadyEvent) => void
-  readonly rowsOutdated: object
-  readonly refreshRows: () => void
   readonly openDialogActions: OpenDialogActions
 }
 
@@ -65,8 +64,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     highlightSide,
     highlightOtherSide,
     notifyGridReady,
-    rowsOutdated,
-    refreshRows,
     openDialogActions,
   }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
@@ -74,31 +71,20 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const theme = useTheme()
 
   const dispatch = useAppDispatch()
-  const currentNodeId = useAppSelector(state => state.currentNodeIds[side])
 
   const containerRef = useRef<HTMLDivElement>(null)
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
 
-  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(
-    currentNodeId,
-    rowsOutdated,
-  )
+  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(side)
 
-  const setCurrentNodeId = useCallback(
-    (id: string) => {
-      dispatch(updateCurrentNodeId({ side, id }))
-    },
-    [dispatch, side],
-  )
-
-  const navigation = useNavigation(currentNodeId, setCurrentNodeId)
+  const navigation = useNavigation(side)
 
   const clickHandlers = useGridClickHandlers(side)
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
-  const handleCellEditRequest = useCellEditingHandler(refreshRows)
+  const handleCellEditRequest = useCellEditingHandler()
 
   usePanelHandlers(ref, gridApi.current, highlighted, currentNode)
 
@@ -115,7 +101,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   )
   usePanelMouseListener(highlighted, containerRef.current, navigation)
 
-  const dndHandlers = useDragAndDropHandlers(meta, currentNodeId, rows, refreshRows)
+  const dndHandlers = useDragAndDropHandlers(side, meta, rows)
 
   const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted)
 
@@ -172,7 +158,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
               <Button
                 key={d.id}
                 sx={{ textTransform: 'none' }}
-                onClick={() => setCurrentNodeId(d.id)}
+                onClick={() => dispatch(updateNodeId({ side, id: d.id }))}
               >
                 {d.title}
               </Button>
@@ -184,7 +170,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       <Box>
         <Breadcrumbs aria-label='breadcrumb'>
           {breadcrumbs.map(d => (
-            <Link key={d.id} onClick={() => setCurrentNodeId(d.id)}>
+            <Link key={d.id} onClick={() => dispatch(updateNodeId({ side, id: d.id }))}>
               {d.title}
             </Link>
           ))}
@@ -228,7 +214,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             onRowDragLeave={dndHandlers.handleRowDragLeave}
             onRowDragEnd={dndHandlers.handleRowDragEnd}
             onComponentStateChanged={handleComponentStateChanged}
-            onSelectionChanged={refreshRows}
+            onSelectionChanged={() => dispatch(refreshRows())}
           />
         </Box>
       </Box>

@@ -1,10 +1,11 @@
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { selectCurrentNodeId } from '../../store/panel-state-reducers'
-import { useAppSelector } from '../../store/hooks'
+import { refreshRows } from '../../store/app-state-reducers'
+import { selectFocusedNodeId } from '../../store/panel-state-reducers'
 
 interface CreateDialogState {
   bookmarkOpen: boolean
@@ -18,10 +19,10 @@ interface CreateDialogState {
 
 export function useCreateDialogState(
   resetCurrentSelection: () => void,
-  refreshRows: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
-  const currentNodeId = useAppSelector(selectCurrentNodeId)
+  const dispatch = useAppDispatch()
+  const focusedNodeId = useAppSelector(selectFocusedNodeId)
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -49,7 +50,7 @@ export function useCreateDialogState(
 
     handleConfirm: useCallback(
       (title: string, url?: string): void => {
-        const parentId = currentNodeId
+        const parentId = focusedNodeId
         if (parentId === undefined) {
           console.log('The current panel current node id is unknown (undefined).')
           setBookmarkOpen(false)
@@ -62,7 +63,7 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
-              refreshRows()
+              dispatch(refreshRows())
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
@@ -71,13 +72,13 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
-              refreshRows()
+              dispatch(refreshRows())
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
         }
       },
-      [currentNodeId, resetCurrentSelection, refreshRows],
+      [dispatch, focusedNodeId, resetCurrentSelection],
     ),
 
     handleClose: useCallback((): void => {

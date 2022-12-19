@@ -1,21 +1,16 @@
 import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import { focusLeft, focusRight } from '../../store/common-app-state-reducers'
+import { focusLeft, focusRight, selectFocusedSide } from '../../store/app-state-reducers'
+import { selectNodeIds, updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { getNode } from '../../services/bookmarks/queries'
-import { updateCurrentNodeId } from '../../store/panel-state-reducers'
-
-export function useRefresh(): [object, () => void] {
-  const [refresh, setRefresh] = useState({})
-  return [refresh, useCallback(() => setRefresh({}), [])]
-}
+import { useCallback } from 'react'
 
 export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>): () => string[] {
-  const selectedSide = useAppSelector(state => state.side)
+  const selectedSide = useAppSelector(selectFocusedSide)
 
   return useCallback(
     (): string[] => panelRefs[selectedSide].current?.getSelectedNodeIds() ?? [],
@@ -24,22 +19,23 @@ export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>)
 }
 
 export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
-  const selectedSide = useAppSelector(state => state.side)
-  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
+  const focusedSide = useAppSelector(selectFocusedSide)
+  const nodeIds = useAppSelector(selectNodeIds)
 
   return useCallback((): void => {
-    panelRefs[selectedSide].current?.clearSelection()
-    const otherSide: Side = other(selectedSide)
-    if (currentNodeIds[otherSide] === currentNodeIds[selectedSide]) {
+    panelRefs[focusedSide].current?.clearSelection()
+    const otherSide: Side = other(focusedSide)
+    if (nodeIds[otherSide] === nodeIds[focusedSide]) {
       panelRefs[otherSide].current?.clearSelection()
     }
-  }, [panelRefs, selectedSide, currentNodeIds])
+  }, [panelRefs, focusedSide, nodeIds])
 }
 
 export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => void {
   const dispatch = useAppDispatch()
-  const selectedSide = useAppSelector(state => state.side)
-  const currentNodeIds = useAppSelector(state => state.currentNodeIds)
+  const focusedSide = useAppSelector(selectFocusedSide)
+
+  const currentNodeIds = useAppSelector(selectNodeIds)
 
   return useCallback(
     (idsToBeDeleted: string[]): void => {
@@ -48,39 +44,39 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
       }
 
       const ids = new Set<string>(idsToBeDeleted)
-      const otherSide: Side = other(selectedSide)
+      const otherSide: Side = other(focusedSide)
 
       const checkSide = (side: Side): void => {
         if (ids.has(currentNodeIds[side])) {
           getNode(currentNodeIds[side])
             .then(n => {
-              dispatch(updateCurrentNodeId({ side, id: n.parentId ?? '0' }))
+              dispatch(updateNodeId({ side, id: n.parentId ?? '0' }))
             })
             .catch(e => {
               console.log(e)
-              dispatch(updateCurrentNodeId({ side, id: '0' }))
+              dispatch(updateNodeId({ side, id: '0' }))
             })
         }
       }
 
       checkSide(otherSide)
-      checkSide(selectedSide)
+      checkSide(focusedSide)
     },
-    [dispatch, selectedSide, currentNodeIds],
+    [dispatch, focusedSide, currentNodeIds],
   )
 }
 
 export function useJumpToParent(panelRefs: PairRef<FolderPanelHandle | null>): (node: BTN) => void {
   const dispatch = useAppDispatch()
-  const selectedSide = useAppSelector(state => state.side)
+  const focusedSide = useAppSelector(selectFocusedSide)
 
   return useCallback(
     (node: BTN): void => {
       console.log(`jump to directory ${node.parentId ?? '0'}`)
-      panelRefs[selectedSide].current?.setSelection([node.id])
-      dispatch(updateCurrentNodeId({ side: selectedSide, id: node.parentId ?? '0' }))
+      panelRefs[focusedSide].current?.setSelection([node.id])
+      dispatch(updateNodeId({ side: focusedSide, id: node.parentId ?? '0' }))
     },
-    [dispatch, panelRefs, selectedSide],
+    [dispatch, panelRefs, focusedSide],
   )
 }
 
