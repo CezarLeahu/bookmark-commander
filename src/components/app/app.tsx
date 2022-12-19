@@ -1,9 +1,6 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
-import FolderPanel, { OpenDialogActions } from '../folder-panel/panel'
-import {
-  updateCurrentNodeIdLeft,
-  updateCurrentNodeIdRight,
-} from '../../store/currentNodeIdsReducer'
+import FolderPanel, { OpenDialogActions } from '../panel/panel'
+import { updateCurrentNodeIdLeft, updateCurrentNodeIdRight } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import {
   useJumpToParent,
@@ -20,7 +17,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7'
 import CreateDialog from '../dialogs/create-dialog'
 import DeleteConfirmationDialog from '../dialogs/delete-dialog'
 import EditDialog from '../dialogs/edit-dialog'
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/tabs/tabs'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'

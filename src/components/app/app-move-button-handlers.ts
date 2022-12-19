@@ -2,7 +2,7 @@ import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import { useAppSelector } from '../../store/hooks'
 import { useLastSelectedIds } from './app-content'
 

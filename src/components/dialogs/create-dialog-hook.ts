@@ -1,9 +1,9 @@
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
 import { useCallback, useState } from 'react'
 
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { selectCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { selectCurrentNodeId } from '../../store/panel-state-reducers'
 import { useAppSelector } from '../../store/hooks'
 
 interface CreateDialogState {

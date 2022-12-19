@@ -1,13 +1,13 @@
 import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import { focusLeft, focusRight } from '../../store/sideReducer'
+import { focusLeft, focusRight } from '../../store/common-app-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import { getNode } from '../../services/bookmarks/queries'
-import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { updateCurrentNodeId } from '../../store/panel-state-reducers'
 
 export function useRefresh(): [object, () => void] {
   const [refresh, setRefresh] = useState({})

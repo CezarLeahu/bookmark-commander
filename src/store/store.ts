@@ -1,7 +1,7 @@
 import { Action, ThunkAction, configureStore } from '@reduxjs/toolkit'
 
-import currentNodeIdsReducer from './currentNodeIdsReducer'
-import sideReducer from './sideReducer'
+import currentNodeIdsReducer from './panel-state-reducers'
+import sideReducer from './common-app-state-reducers'
 
 export const store = configureStore({
   reducer: {

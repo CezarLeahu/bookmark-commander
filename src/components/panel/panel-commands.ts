@@ -6,7 +6,7 @@ import { MOUSEUP } from '../../services/utils/events'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { updateCurrentNodeId } from '../../store/panel-state-reducers'
 import { updateTitle } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
 

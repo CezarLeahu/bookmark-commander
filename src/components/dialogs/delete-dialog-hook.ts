@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'

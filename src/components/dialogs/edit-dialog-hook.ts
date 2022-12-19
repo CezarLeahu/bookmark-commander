@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelHandle } from '../folder-panel/panel-commands'
+import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { update } from '../../services/bookmarks/commands'
 import { useAppSelector } from '../../store/hooks'

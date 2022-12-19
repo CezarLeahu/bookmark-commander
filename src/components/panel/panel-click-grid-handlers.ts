@@ -3,7 +3,7 @@ import { RowDoubleClickedEvent, RowSelectedEvent } from 'ag-grid-community'
 import { BTN } from '../../services/bookmarks/types'
 import { Side } from '../../services/utils/types'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { updateCurrentNodeId } from '../../store/currentNodeIdsReducer'
+import { updateCurrentNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 
