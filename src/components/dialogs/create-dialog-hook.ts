@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { refreshRows } from '../../store/app-state-reducers'
+import { refreshApp } from '../../store/app-state-reducers'
 import { selectFocusedNodeId } from '../../store/panel-state-reducers'
 
 interface CreateDialogState {
@@ -63,7 +63,7 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
-              dispatch(refreshRows())
+              dispatch(refreshApp())
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
@@ -72,7 +72,7 @@ export function useCreateDialogState(
             .then(() => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
-              dispatch(refreshRows())
+              dispatch(refreshApp())
               resetCurrentSelection()
             })
             .catch(e => console.log(e))

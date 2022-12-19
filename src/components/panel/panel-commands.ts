@@ -1,5 +1,5 @@
 import { CellEditRequestEvent, GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
-import { refreshRows, selectHighlighted } from '../../store/app-state-reducers'
+import { refreshApp, selectHighlighted } from '../../store/app-state-reducers'
 import { selectNode, updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect, useImperativeHandle } from 'react'
@@ -216,7 +216,7 @@ export function useCellEditingHandler(): (event: CellEditRequestEvent<BTN, strin
       updateTitle(event.data.id, newVal)
         .then(() => {
           console.log('Updated one title')
-          dispatch(refreshRows())
+          dispatch(refreshApp())
         })
         .catch(e => console.log(e))
     },

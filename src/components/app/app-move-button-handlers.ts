@@ -1,7 +1,7 @@
 import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
-import { refreshRows, selectFocusedSide } from '../../store/app-state-reducers'
+import { refreshApp, selectFocusedSide } from '../../store/app-state-reducers'
 import { selectFocusedNodeId, selectOtherNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 
@@ -43,7 +43,7 @@ export function useMoveHandlers(
           panelRefs[focusedSide].current?.clearSelection()
           panelRefs[otherSide].current?.setSelection(selectedIds)
           highlight[otherSide]()
-          dispatch(refreshRows())
+          dispatch(refreshApp())
         })
         .catch(e => console.log(e))
     },
@@ -56,7 +56,7 @@ export function useMoveHandlers(
       moveUp(selectedIds)
         .then(() => {
           panelRefs[focusedSide].current?.setSelection(selectedIds)
-          dispatch(refreshRows())
+          dispatch(refreshApp())
         })
         .catch(e => console.log(e))
     },
@@ -69,7 +69,7 @@ export function useMoveHandlers(
       moveDown(selectedIds)
         .then(() => {
           panelRefs[focusedSide].current?.setSelection(selectedIds)
-          dispatch(refreshRows())
+          dispatch(refreshApp())
         })
         .catch(e => console.log(e))
     },

@@ -1,8 +1,9 @@
 import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks/queries'
-import { selectHighlighted, selectRowsOutdated } from '../../store/app-state-reducers'
+import { selectAppOutdated, selectHighlighted } from '../../store/app-state-reducers'
 import {
   selectNode,
   selectNodeId,
+  selectPanelOutdated,
   updateBreadcrumbs,
   updateNode,
   updateRows,
@@ -18,7 +19,9 @@ import { shallowEqual } from 'react-redux'
 
 export function useLoadPanelContentEffect(side: Side): void {
   const dispatch = useAppDispatch()
-  const rowsOutdated = useAppSelector(selectRowsOutdated, shallowEqual)
+
+  const appOutdated = useAppSelector(selectAppOutdated)
+  const panelOutdated = useAppSelector(state => selectPanelOutdated(state, side), shallowEqual)
   const nodeId = useAppSelector(state => selectNodeId(state, side))
 
   const node = useAppSelector(state => selectNode(state, side), shallowEqual)
@@ -42,7 +45,7 @@ export function useLoadPanelContentEffect(side: Side): void {
       ([nodes]) => dispatch(updateRows({ side, nodes })),
       e => console.log(e),
     )
-  }, [dispatch, side, nodeId, rowsOutdated])
+  }, [dispatch, side, nodeId, appOutdated, panelOutdated])
 }
 
 export function useComponenetStateChangedHandler(

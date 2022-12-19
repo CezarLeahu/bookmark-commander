@@ -7,7 +7,7 @@ import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelMetadata } from './panel-metadata'
 import { Side } from '../../services/utils/types'
 import { moveAll } from '../../services/bookmarks/commands'
-import { refreshRows } from '../../store/app-state-reducers'
+import { refreshApp } from '../../store/app-state-reducers'
 import { shallowEqual } from 'react-redux'
 import { useCallback } from 'react'
 
@@ -144,7 +144,7 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
           moveAll(ids, targetDir.id)
             .then(() => {
               console.log('Moved elements (into child dir)')
-              dispatch(refreshRows())
+              dispatch(refreshApp())
             })
             .catch(e => console.log(e))
           return
@@ -163,7 +163,7 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
                 .map(id => e.api.getRowNode(id))
                 .filter(n => n !== undefined)
                 .forEach(n => n?.setSelected(true))
-              dispatch(refreshRows())
+              dispatch(refreshApp())
             })
             .catch(e => console.log(e))
           return
@@ -177,7 +177,7 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
               .map(id => e.api.getRowNode(id))
               .filter(n => n !== undefined)
               .forEach(n => n?.setSelected(true))
-            dispatch(refreshRows())
+            dispatch(refreshApp())
           })
           .catch(e => console.log(e))
       },

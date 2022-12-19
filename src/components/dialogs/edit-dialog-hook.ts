@@ -1,4 +1,4 @@
-import { refreshRows, selectFocusedSide } from '../../store/app-state-reducers'
+import { refreshApp, selectFocusedSide } from '../../store/app-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
@@ -38,7 +38,7 @@ export function useEditDialogState(
         update(node)
           .then(() => {
             setOpen(false)
-            dispatch(refreshRows())
+            dispatch(refreshApp())
             resetCurrentSelection()
           })
           .catch(e => console.log(e))

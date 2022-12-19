@@ -6,14 +6,14 @@ import { Side } from '../services/utils/types'
 
 export interface AppState {
   focusedSide: Side
-  rowsOutdated: object
   topNodes: BTN[]
+  outdated: object
 }
 
 const initialState: AppState = {
   focusedSide: 'left',
-  rowsOutdated: {},
   topNodes: [],
+  outdated: {},
 }
 
 export const appStateSlice = createSlice({
@@ -29,21 +29,21 @@ export const appStateSlice = createSlice({
     focusSide: (state, { payload }: PayloadAction<Side>) => {
       state.focusedSide = payload
     },
-    refreshRows: state => {
-      state.rowsOutdated = {}
-    },
     updateTopNodes: (state, { payload }: PayloadAction<{ nodes: BTN[] }>) => {
       state.topNodes = payload.nodes
+    },
+    refreshApp: state => {
+      state.outdated = {}
     },
   },
 })
 
-export const { focusLeft, focusRight, focusSide, refreshRows, updateTopNodes } =
+export const { focusLeft, focusRight, focusSide, refreshApp, updateTopNodes } =
   appStateSlice.actions
 
 export const selectFocusedSide = (state: RootState): Side => state.app.focusedSide
 
-export const selectRowsOutdated = (state: RootState): object => state.app.rowsOutdated
+export const selectAppOutdated = (state: RootState): object => state.app.outdated
 
 export const selectTopNodes = (state: RootState): BTN[] => state.app.topNodes
 

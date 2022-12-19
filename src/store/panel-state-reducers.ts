@@ -2,31 +2,36 @@ import { Pair, Side, other } from '../services/utils/types'
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 import { BTN } from '../services/bookmarks/types'
-import { GridApi } from 'ag-grid-community'
 import { RootState } from './store'
 
 interface PanelState {
+  outdated: object
   nodeId: string
   node: BTN | undefined
   breadcrumbs: BTN[]
   rows: BTN[]
-  api: GridApi<BTN> | undefined
+  selection: BTN[]
+  hilightedIndex: number | null
 }
 
 const initialState: Pair<PanelState> = {
   left: {
+    outdated: {},
     nodeId: '1',
     node: undefined,
     breadcrumbs: [],
     rows: [],
-    api: undefined,
+    selection: [],
+    hilightedIndex: null,
   },
   right: {
+    outdated: {},
     nodeId: '2',
     node: undefined,
     breadcrumbs: [],
     rows: [],
-    api: undefined,
+    selection: [],
+    hilightedIndex: null,
   },
 }
 
@@ -34,6 +39,9 @@ export const panelStateSlice = createSlice({
   name: 'currentNodeIds',
   initialState,
   reducers: {
+    refreshPanel: (state, { payload }: PayloadAction<{ side: Side }>) => {
+      state[payload.side].outdated = {}
+    },
     updateNodeIdLeft: (state, { payload }: PayloadAction<string>) => {
       state.left.nodeId = payload
     },
@@ -52,21 +60,32 @@ export const panelStateSlice = createSlice({
     updateRows: (state, { payload }: PayloadAction<{ side: Side; nodes: BTN[] }>) => {
       state[payload.side].rows = payload.nodes
     },
-    updateGridApi: (state, { payload }: PayloadAction<{ side: Side; api: GridApi<BTN> }>) => {
-      state[payload.side].api = payload.api
+    updateSelection: (state, { payload }: PayloadAction<{ side: Side; nodes: BTN[] }>) => {
+      state[payload.side].selection = payload.nodes
+    },
+    updateHighlightedIndex: (
+      state,
+      { payload }: PayloadAction<{ side: Side; index: number | null }>,
+    ) => {
+      state[payload.side].hilightedIndex = payload.index
     },
   },
 })
 
 export const {
+  refreshPanel,
   updateNodeIdLeft,
   updateNodeIdRight,
   updateNodeId,
   updateNode,
   updateBreadcrumbs,
   updateRows,
-  updateGridApi,
+  updateSelection,
+  updateHighlightedIndex,
 } = panelStateSlice.actions
+
+export const selectPanelOutdated = (state: RootState, side: Side): object =>
+  state.panel[side].outdated
 
 export const selectLeftNodeId = (state: RootState): string => state.panel.left.nodeId
 export const selectRightNodeId = (state: RootState): string => state.panel.right.nodeId
@@ -86,12 +105,8 @@ export const selectBreadcrumbs = (state: RootState, side: Side): BTN[] =>
   state.panel[side].breadcrumbs
 export const selectRows = (state: RootState, side: Side): BTN[] => state.panel[side].rows
 
-export const selectGridApi = (state: RootState, side: Side): GridApi<BTN> | undefined =>
-  state.panel[side].api
-
-export const selectLeftGridApi = (state: RootState): GridApi<BTN> | undefined =>
-  state.panel.left.api
-export const selectRightGridApi = (state: RootState): GridApi<BTN> | undefined =>
-  state.panel.right.api
+export const selectSelection = (state: RootState, side: Side): BTN[] => state.panel[side].selection
+export const selectHighlightedIndex = (state: RootState, side: Side): number | null =>
+  state.panel[side].hilightedIndex
 
 export default panelStateSlice.reducer

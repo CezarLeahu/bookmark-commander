@@ -5,16 +5,29 @@ import '../../styles/style.css'
 
 import { Box, Button, ButtonGroup, Container, IconButton } from '@mui/material'
 import {
+  CellFocusedEvent,
+  GridApi,
+  GridReadyEvent,
+  RowNode,
+  SelectionChangedEvent,
+} from 'ag-grid-community'
+import {
   FolderPanelHandle,
   useCellEditingHandler,
   useGridReadyHandle,
   useHighlightPanelOnClick,
   usePanelHandlers,
 } from './panel-commands'
-import { GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
 import { forwardRef, useCallback, useRef } from 'react'
-import { refreshRows, selectHighlighted, selectTopNodes } from '../../store/app-state-reducers'
-import { selectNode, selectRows, updateNodeId } from '../../store/panel-state-reducers'
+import {
+  refreshPanel,
+  selectNode,
+  selectRows,
+  updateHighlightedIndex,
+  updateNodeId,
+  updateSelection,
+} from '../../store/panel-state-reducers'
+import { selectHighlighted, selectTopNodes } from '../../store/app-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 
@@ -100,6 +113,21 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     (node: RowNode<BTN>): boolean =>
       currentNode?.parentId !== undefined && node.id !== currentNode?.parentId,
     [currentNode],
+  )
+
+  const handleSelectionChanged = useCallback(
+    (event: SelectionChangedEvent<BTN>): void => {
+      dispatch(refreshPanel({ side }))
+      dispatch(updateSelection({ side, nodes: event.api.getSelectedRows() }))
+    },
+    [dispatch, side],
+  )
+
+  const handleCellFocusChanged = useCallback(
+    (event: CellFocusedEvent<BTN>): void => {
+      dispatch(updateHighlightedIndex({ side, index: event.rowIndex }))
+    },
+    [dispatch, side],
   )
 
   return (
@@ -191,12 +219,13 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
             isRowSelectable={rowSelectable}
             rowDragEntireRow
             rowDragMultiRow
+            onCellFocused={handleCellFocusChanged}
             suppressMoveWhenRowDragging
             onRowDragMove={dndHandlers.handleRowDragMove}
             onRowDragLeave={dndHandlers.handleRowDragLeave}
             onRowDragEnd={dndHandlers.handleRowDragEnd}
             onComponentStateChanged={handleComponentStateChanged}
-            onSelectionChanged={() => dispatch(refreshRows())}
+            onSelectionChanged={handleSelectionChanged}
           />
         </Box>
       </Box>
