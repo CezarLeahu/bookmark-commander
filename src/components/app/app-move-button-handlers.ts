@@ -2,7 +2,7 @@ import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 import { refreshRows, selectFocusedSide } from '../../store/app-state-reducers'
-import { selectNodeIds, selectSameNodeIds } from '../../store/panel-state-reducers'
+import { selectFocusedNodeId, selectOtherNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
@@ -20,29 +20,28 @@ export function useMoveHandlers(
 ): MoveHandlers {
   const dispatch = useAppDispatch()
   const focusedSide = useAppSelector(selectFocusedSide)
-  const currentNodeIds = useAppSelector(selectNodeIds)
-  const sameNodeIds = useAppSelector(selectSameNodeIds)
+  const otherSide: Side = other(focusedSide)
+  const focusedNodeId = useAppSelector(selectFocusedNodeId)
+  const otherNodeId = useAppSelector(selectOtherNodeId)
 
   const lastSelectedIds = useLastSelectedIds(panelRefs)
 
   return {
     handleMoveBetweenPanels: (): void => {
-      const nodeIds = lastSelectedIds()
-      if (nodeIds === undefined || nodeIds.length === 0) {
-        return
-      }
-
-      if (sameNodeIds) {
+      if (focusedNodeId === otherNodeId) {
         console.log('Source directory is the same as the target directory')
         return
       }
 
-      const otherSide: Side = other(focusedSide)
+      const selectedIds = lastSelectedIds()
+      if (selectedIds === undefined || selectedIds.length === 0) {
+        return
+      }
 
-      moveAll(nodeIds, currentNodeIds[otherSide])
+      moveAll(selectedIds, otherNodeId)
         .then(() => {
           panelRefs[focusedSide].current?.clearSelection()
-          panelRefs[otherSide].current?.setSelection(nodeIds)
+          panelRefs[otherSide].current?.setSelection(selectedIds)
           highlight[otherSide]()
           dispatch(refreshRows())
         })
@@ -50,26 +49,26 @@ export function useMoveHandlers(
     },
 
     handleMoveUp: (): void => {
-      const nodeIds = lastSelectedIds()
-      if (nodeIds === undefined || nodeIds.length === 0) {
+      const selectedIds = lastSelectedIds()
+      if (selectedIds === undefined || selectedIds.length === 0) {
         return
       }
-      moveUp(nodeIds)
+      moveUp(selectedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(nodeIds)
+          panelRefs[focusedSide].current?.setSelection(selectedIds)
           dispatch(refreshRows())
         })
         .catch(e => console.log(e))
     },
 
     handleMoveDown: (): void => {
-      const nodeIds = lastSelectedIds()
-      if (nodeIds === undefined || nodeIds.length === 0) {
+      const selectedIds = lastSelectedIds()
+      if (selectedIds === undefined || selectedIds.length === 0) {
         return
       }
-      moveDown(nodeIds)
+      moveDown(selectedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(nodeIds)
+          panelRefs[focusedSide].current?.setSelection(selectedIds)
           dispatch(refreshRows())
         })
         .catch(e => console.log(e))

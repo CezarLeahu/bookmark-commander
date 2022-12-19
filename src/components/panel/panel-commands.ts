@@ -1,4 +1,7 @@
 import { CellEditRequestEvent, GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
+import { refreshRows, selectHighlighted } from '../../store/app-state-reducers'
+import { selectNode, updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect, useImperativeHandle } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
@@ -6,10 +9,8 @@ import { MOUSEUP } from '../../services/utils/events'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { refreshRows } from '../../store/app-state-reducers'
-import { updateNodeId } from '../../store/panel-state-reducers'
+import { shallowEqual } from 'react-redux'
 import { updateTitle } from '../../services/bookmarks/commands'
-import { useAppDispatch } from '../../store/hooks'
 
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
@@ -34,11 +35,13 @@ const startCellEdit = (api: GridApi<BTN>, id: string): void => {
 }
 
 export function usePanelHandlers(
+  side: Side,
   ref: React.ForwardedRef<FolderPanelHandle>,
   api: GridApi<BTN> | undefined,
-  highlighted: boolean,
-  currentNode: BTN | undefined,
 ): void {
+  const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
+  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+
   const getSelectedNodeIds = selectedNodeIdsProvider(api, currentNode)
   const getFocusedNodeId = focusedNodeIdProvider(api, currentNode)
 

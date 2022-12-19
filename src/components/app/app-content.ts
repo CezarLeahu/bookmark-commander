@@ -1,13 +1,33 @@
 import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import { focusLeft, focusRight, selectFocusedSide } from '../../store/app-state-reducers'
-import { selectNodeIds, updateNodeId } from '../../store/panel-state-reducers'
+import {
+  focusLeft,
+  focusRight,
+  selectFocusedSide,
+  updateTopNodes,
+} from '../../store/app-state-reducers'
+import { getNode, getTopNodes } from '../../services/bookmarks/queries'
+import {
+  selectFocusedNodeId,
+  selectOtherNodeId,
+  updateNodeId,
+} from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useCallback, useEffect } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
-import { getNode } from '../../services/bookmarks/queries'
-import { useCallback } from 'react'
+
+export function useLoadAppCommonStateEffect(): void {
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    getTopNodes().then(
+      nodes => dispatch(updateTopNodes({ nodes })),
+      e => console.log(e),
+    )
+  }, [dispatch])
+}
 
 export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>): () => string[] {
   const selectedSide = useAppSelector(selectFocusedSide)
@@ -20,22 +40,23 @@ export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>)
 
 export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
   const focusedSide = useAppSelector(selectFocusedSide)
-  const nodeIds = useAppSelector(selectNodeIds)
+  const otherSide: Side = other(focusedSide)
+  const focusedNodeId = useAppSelector(selectFocusedNodeId)
+  const otherNodeId = useAppSelector(selectOtherNodeId)
 
   return useCallback((): void => {
     panelRefs[focusedSide].current?.clearSelection()
-    const otherSide: Side = other(focusedSide)
-    if (nodeIds[otherSide] === nodeIds[focusedSide]) {
+    if (focusedNodeId === otherNodeId) {
       panelRefs[otherSide].current?.clearSelection()
     }
-  }, [panelRefs, focusedSide, nodeIds])
+  }, [panelRefs, focusedSide, otherSide, focusedNodeId, otherNodeId])
 }
 
 export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => void {
   const dispatch = useAppDispatch()
   const focusedSide = useAppSelector(selectFocusedSide)
-
-  const currentNodeIds = useAppSelector(selectNodeIds)
+  const focusedNodeId = useAppSelector(selectFocusedNodeId)
+  const otherNodeId = useAppSelector(selectOtherNodeId)
 
   return useCallback(
     (idsToBeDeleted: string[]): void => {
@@ -46,9 +67,9 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
       const ids = new Set<string>(idsToBeDeleted)
       const otherSide: Side = other(focusedSide)
 
-      const checkSide = (side: Side): void => {
-        if (ids.has(currentNodeIds[side])) {
-          getNode(currentNodeIds[side])
+      const checkSide = (side: Side, nodeId: string): void => {
+        if (ids.has(nodeId)) {
+          getNode(nodeId)
             .then(n => {
               dispatch(updateNodeId({ side, id: n.parentId ?? '0' }))
             })
@@ -59,10 +80,10 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
         }
       }
 
-      checkSide(otherSide)
-      checkSide(focusedSide)
+      checkSide(focusedSide, focusedNodeId)
+      checkSide(otherSide, otherNodeId)
     },
-    [dispatch, focusedSide, currentNodeIds],
+    [dispatch, focusedSide, focusedNodeId, otherNodeId],
   )
 }
 

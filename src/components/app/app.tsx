@@ -3,7 +3,7 @@ import FolderPanel, { OpenDialogActions } from '../panel/panel'
 import {
   selectFocusedPanelInRootDir,
   selectLeftNodeId,
-  selectSameNodeIds,
+  selectRightNodeId,
   updateNodeIdLeft,
   updateNodeIdRight,
 } from '../../store/panel-state-reducers'
@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import {
   useJumpToParent,
   useLastSelectedIds,
+  useLoadAppCommonStateEffect,
   usePanelHighlight,
   useSelectionReset,
   useUpdateCurrentPathsIfNeeded,
@@ -44,11 +45,11 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
 
   const dispatch = useAppDispatch()
-  const selectedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useAppSelector(selectFocusedSide)
   const leftNodeId = useAppSelector(selectLeftNodeId)
-  const rightNodeId = useAppSelector(selectLeftNodeId)
+  const rightNodeId = useAppSelector(selectRightNodeId)
   const focusedPanelInRootDir = useAppSelector(selectFocusedPanelInRootDir)
-  const sameNodeIds = useAppSelector(selectSameNodeIds)
+  const sameNodeIds = leftNodeId === rightNodeId
 
   const lastSelectedIds = useLastSelectedIds(panelRefs)
 
@@ -87,6 +88,8 @@ const App: React.FC = () => {
 
   useDocumentKeyListener(panelAreaRef.current, highlight)
 
+  useLoadAppCommonStateEffect()
+
   return (
     <Container
       maxWidth={false}
@@ -115,7 +118,6 @@ const App: React.FC = () => {
           <FolderPanel
             ref={panelRefs.left}
             side={'left'}
-            highlighted={selectedSide === 'left'}
             highlightSide={highlight.left}
             highlightOtherSide={highlight.right}
             notifyGridReady={handleGridReadyLeft}
@@ -127,7 +129,6 @@ const App: React.FC = () => {
           <FolderPanel
             ref={panelRefs.right}
             side={'right'}
-            highlighted={selectedSide === 'right'}
             highlightSide={highlight.right}
             highlightOtherSide={highlight.left}
             notifyGridReady={handleGridReadyRight}
@@ -146,7 +147,7 @@ const App: React.FC = () => {
             New Folder
           </Button>
           <Button
-            disabled={!(panelRefs[selectedSide].current?.singleRowSelectedOrFocused() ?? false)}
+            disabled={!(panelRefs[focusedSide].current?.singleRowSelectedOrFocused() ?? false)}
             onClick={editDialog.handleOpen}
           >
             Edit
@@ -159,26 +160,26 @@ const App: React.FC = () => {
           </Button>
           <Button
             disabled={
-              sameNodeIds || !(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)
+              sameNodeIds || !(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)
             }
             onClick={handleMoveBetweenPanels}
           >
             Move
           </Button>
           <Button
-            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
             onClick={handleMoveUp}
           >
             Move Up ({'\u2191'})
           </Button>
           <Button
-            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
             onClick={handleMoveDown}
           >
             Move Down ({'\u2193'})
           </Button>
           <Button
-            disabled={!(panelRefs[selectedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
             onClick={deleteDialog.handleOpen}
           >
             Delete
@@ -201,7 +202,7 @@ const App: React.FC = () => {
       {editDialog.open ? (
         <EditDialog
           open={editDialog.open}
-          nodeId={panelRefs[selectedSide].current?.getSelectedNodeIds()[0]}
+          nodeId={panelRefs[focusedSide].current?.getSelectedNodeIds()[0]}
           onConfirm={editDialog.handleConfirm}
           onCancel={editDialog.handleClose}
         />
@@ -212,7 +213,7 @@ const App: React.FC = () => {
       {deleteDialog.open ? (
         <DeleteConfirmationDialog
           open={deleteDialog.open}
-          nodeIds={panelRefs[selectedSide].current?.getSelectedNodeIds() ?? []}
+          nodeIds={panelRefs[focusedSide].current?.getSelectedNodeIds() ?? []}
           onConfirm={deleteDialog.handleConfirm}
           onCancel={deleteDialog.handleClose}
         />

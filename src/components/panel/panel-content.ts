@@ -1,75 +1,55 @@
+import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks/queries'
+import { selectHighlighted, selectRowsOutdated } from '../../store/app-state-reducers'
 import {
-  childrenAndParent,
-  getNode,
-  getTopNodes,
-  parentPath,
-} from '../../services/bookmarks/queries'
-import { useCallback, useEffect, useState } from 'react'
+  selectNode,
+  selectNodeId,
+  updateBreadcrumbs,
+  updateNode,
+  updateRows,
+} from '../../store/panel-state-reducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useCallback, useEffect } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { ComponentStateChangedEvent } from 'ag-grid-community'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
-import { selectNodeId } from '../../store/panel-state-reducers'
-import { selectRowsOutdated } from '../../store/app-state-reducers'
 import { shallowEqual } from 'react-redux'
-import { useAppSelector } from '../../store/hooks'
 
-interface FolderActiveContent {
-  topNodes: BTN[]
-  currentNode: BTN | undefined
-  breadcrumbs: BTN[]
-  rows: BTN[]
-}
-
-export function useFolderContentEffect(side: Side): FolderActiveContent {
+export function useLoadPanelContentEffect(side: Side): void {
+  const dispatch = useAppDispatch()
   const rowsOutdated = useAppSelector(selectRowsOutdated, shallowEqual)
-  const currentNodeId = useAppSelector(state => selectNodeId(state, side))
+  const nodeId = useAppSelector(state => selectNodeId(state, side))
 
-  const [topNodes, setTopNodes] = useState<BTN[]>([])
-  const [currentNode, setCurrentNode] = useState<BTN>()
-  const [breadcrumbs, setBreadcrumbs] = useState<BTN[]>([])
-  const [rows, setRows] = useState<BTN[]>([])
+  const node = useAppSelector(state => selectNode(state, side), shallowEqual)
 
   useEffect(() => {
-    getTopNodes().then(
-      r => setTopNodes(r),
+    getNode(nodeId).then(
+      node => dispatch(updateNode({ side, node })),
       e => console.log(e),
     )
-  }, [])
+  }, [dispatch, side, nodeId])
 
   useEffect(() => {
-    getNode(currentNodeId).then(
-      r => setCurrentNode(r),
+    parentPath(node).then(
+      nodes => dispatch(updateBreadcrumbs({ side, nodes })),
       e => console.log(e),
     )
-  }, [currentNodeId])
+  }, [dispatch, side, node])
 
   useEffect(() => {
-    parentPath(currentNode).then(
-      r => setBreadcrumbs(r),
+    childrenAndParent(nodeId).then(
+      ([nodes]) => dispatch(updateRows({ side, nodes })),
       e => console.log(e),
     )
-  }, [currentNode])
-
-  useEffect(() => {
-    childrenAndParent(currentNodeId).then(
-      ([r]) => setRows(r),
-      e => console.log(e),
-    )
-  }, [currentNodeId, rowsOutdated])
-
-  return {
-    topNodes,
-    currentNode,
-    breadcrumbs,
-    rows,
-  }
+  }, [dispatch, side, nodeId, rowsOutdated])
 }
 
 export function useComponenetStateChangedHandler(
-  highlighted: boolean,
+  side: Side,
 ): (event: ComponentStateChangedEvent<BTN>) => void {
+  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {
       console.log('[onComponentStateChanged]')

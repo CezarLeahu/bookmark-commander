@@ -1,5 +1,10 @@
 # Backlog
 
+- remove Pair fetching from redux -> it always generates new objects
+- add custom hooks for the callbacks that depend on a 'side' arg
+- check all useAppSelect for shallowEquals
+- maybe join some of the state updates (e.g., the ones in loadPanelContent)
+
 - rename gridApi
 - remove effects/callbacks on REFs
 

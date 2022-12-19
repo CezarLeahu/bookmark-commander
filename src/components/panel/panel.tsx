@@ -3,16 +3,7 @@ import 'ag-grid-community/dist/styles/ag-theme-alpine.css'
 import 'ag-grid-community/dist/styles/ag-theme-alpine-dark.css'
 import '../../styles/style.css'
 
-import {
-  Box,
-  Breadcrumbs,
-  Button,
-  ButtonGroup,
-  Container,
-  IconButton,
-  Link,
-  Typography,
-} from '@mui/material'
+import { Box, Button, ButtonGroup, Container, IconButton } from '@mui/material'
 import {
   FolderPanelHandle,
   useCellEditingHandler,
@@ -21,18 +12,20 @@ import {
   usePanelHandlers,
 } from './panel-commands'
 import { GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
-import { forwardRef, useCallback, useMemo, useRef } from 'react'
-import { useComponenetStateChangedHandler, useFolderContentEffect } from './panel-content'
+import { forwardRef, useCallback, useRef } from 'react'
+import { refreshRows, selectHighlighted, selectTopNodes } from '../../store/app-state-reducers'
+import { selectNode, selectRows, updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import { BTN } from '../../services/bookmarks/types'
+import Breadcrumbs from './breadcrumbs'
 import { Side } from '../../services/utils/types'
-import { refreshRows } from '../../store/app-state-reducers'
 import { rowIdProvider } from './grid-utils'
-import { updateNodeId } from '../../store/panel-state-reducers'
-import { useAppDispatch } from '../../store/hooks'
+import { shallowEqual } from 'react-redux'
 import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
@@ -43,7 +36,6 @@ import { useTheme } from '@mui/material/styles'
 
 export interface FolderPanelProps {
   readonly side: Side
-  readonly highlighted: boolean
   readonly highlightSide: () => void
   readonly highlightOtherSide: () => void
   readonly notifyGridReady: (params: GridReadyEvent) => void
@@ -58,14 +50,7 @@ export interface OpenDialogActions {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  {
-    side,
-    highlighted,
-    highlightSide,
-    highlightOtherSide,
-    notifyGridReady,
-    openDialogActions,
-  }: FolderPanelProps,
+  { side, highlightSide, highlightOtherSide, notifyGridReady, openDialogActions }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
@@ -76,7 +61,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
 
-  const { topNodes, currentNode, breadcrumbs, rows } = useFolderContentEffect(side)
+  const topNodes = useAppSelector(selectTopNodes, shallowEqual)
+
+  useLoadPanelContentEffect(side)
+
+  const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
+  const rows = useAppSelector(state => selectRows(state, side), shallowEqual)
 
   const navigation = useNavigation(side)
 
@@ -86,7 +76,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleCellEditRequest = useCellEditingHandler()
 
-  usePanelHandlers(ref, gridApi.current, highlighted, currentNode)
+  usePanelHandlers(side, ref, gridApi.current)
 
   useHighlightPanelOnClick(containerRef.current, highlightSide, notifyGridReady)
 
@@ -95,17 +85,16 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     containerRef.current,
     gridApi.current,
     highlightOtherSide,
-    currentNode,
     notifyGridReady,
     openDialogActions,
   )
-  usePanelMouseListener(highlighted, containerRef.current, navigation)
+  usePanelMouseListener(side, containerRef.current, navigation)
 
-  const dndHandlers = useDragAndDropHandlers(side, meta, rows)
+  const dndHandlers = useDragAndDropHandlers(side, meta)
 
-  const handleComponentStateChanged = useComponenetStateChangedHandler(highlighted)
+  const handleComponentStateChanged = useComponenetStateChangedHandler(side)
 
-  const isHighlighted: boolean = useMemo<boolean>(() => highlighted, [highlighted])
+  const highlighted = useAppSelector(state => selectHighlighted(state, side))
 
   const rowSelectable = useCallback(
     (node: RowNode<BTN>): boolean =>
@@ -168,14 +157,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         <Box />
       </Box>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb'>
-          {breadcrumbs.map(d => (
-            <Link key={d.id} onClick={() => dispatch(updateNodeId({ side, id: d.id }))}>
-              {d.title}
-            </Link>
-          ))}
-          <Typography color='text.primary'>{currentNode?.title}</Typography>
-        </Breadcrumbs>
+        <Breadcrumbs side={side} />
       </Box>
 
       <Box
@@ -184,7 +166,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         alignItems='center'
         sx={{
           border: 1,
-          borderColor: isHighlighted ? 'primary.main' : 'background.default',
+          borderColor: highlighted ? 'primary.main' : 'background.default',
           height: '100%',
         }}
       >
