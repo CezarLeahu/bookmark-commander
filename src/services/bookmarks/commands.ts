@@ -1,9 +1,9 @@
-import * as bookmarks from '../mocks/bookmarks'
+// import * as bookmarks from '../mocks/bookmarks'
 
 import { BTN } from './types'
 import { parentPath } from './queries'
 
-// import bookmarks = chrome.bookmarks
+import bookmarks = chrome.bookmarks
 
 export const updateTitle = async (id: string, title: string): Promise<void> => {
   console.log(`updateTitle(id: ${id}, title: ${title})`)
