@@ -23,11 +23,11 @@ import {
   refreshPanel,
   selectNode,
   selectRows,
-  updateHighlightedIndex,
+  updateHighlight,
   updateNodeId,
   updateSelection,
 } from '../../store/panel-state-reducers'
-import { selectHighlighted, selectTopNodes } from '../../store/app-state-reducers'
+import { selectIsHighlighted, selectTopNodes } from '../../store/app-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 
@@ -107,7 +107,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleComponentStateChanged = useComponenetStateChangedHandler(side)
 
-  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
 
   const rowSelectable = useCallback(
     (node: RowNode<BTN>): boolean =>
@@ -118,14 +118,17 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const handleSelectionChanged = useCallback(
     (event: SelectionChangedEvent<BTN>): void => {
       dispatch(refreshPanel({ side }))
-      dispatch(updateSelection({ side, nodes: event.api.getSelectedRows() }))
+      dispatch(updateSelection({ side, ids: event.api.getSelectedRows().map(r => r.id) }))
     },
     [dispatch, side],
   )
 
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
-      dispatch(updateHighlightedIndex({ side, index: event.rowIndex }))
+      const id: string | undefined =
+        event.rowIndex === null ? undefined : event.api.getModel().getRow(event.rowIndex)?.id
+
+      dispatch(updateHighlight({ side, id }))
     },
     [dispatch, side],
   )

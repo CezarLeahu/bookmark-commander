@@ -9,6 +9,7 @@ import {
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
 import {
   selectFocusedNodeId,
+  selectFocusedPanelSelectionIds,
   selectOtherNodeId,
   updateNodeId,
 } from '../../store/panel-state-reducers'
@@ -29,13 +30,10 @@ export function useLoadAppCommonStateEffect(): void {
   }, [dispatch])
 }
 
-export function useLastSelectedIds(panelRefs: PairRef<FolderPanelHandle | null>): () => string[] {
-  const selectedSide = useAppSelector(selectFocusedSide)
+export function useLastSelectedIds(): () => string[] {
+  const ids = useAppSelector(selectFocusedPanelSelectionIds)
 
-  return useCallback(
-    (): string[] => panelRefs[selectedSide].current?.getSelectedNodeIds() ?? [],
-    [selectedSide, panelRefs],
-  )
+  return useCallback((): string[] => ids, [ids])
 }
 
 export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {

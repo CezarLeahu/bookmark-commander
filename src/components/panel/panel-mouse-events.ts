@@ -3,7 +3,7 @@ import { useCallback, useEffect } from 'react'
 import { MOUSEUP } from '../../services/utils/events'
 import { Navigation } from './panel-history'
 import { Side } from '../../services/utils/types'
-import { selectHighlighted } from '../../store/app-state-reducers'
+import { selectIsHighlighted } from '../../store/app-state-reducers'
 import { useAppSelector } from '../../store/hooks'
 
 export function usePanelMouseListener(
@@ -11,7 +11,7 @@ export function usePanelMouseListener(
   container: HTMLDivElement | null,
   navigation: Navigation,
 ): void {
-  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
 
   const handleMouseButton: (e: MouseEvent) => void = useCallback(
     (e: MouseEvent): void => {

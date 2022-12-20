@@ -10,8 +10,8 @@ interface PanelState {
   node: BTN | undefined
   breadcrumbs: BTN[]
   rows: BTN[]
-  selection: BTN[]
-  hilightedIndex: number | null
+  selectionIds: string[]
+  highlightId: string | undefined
 }
 
 const initialState: Pair<PanelState> = {
@@ -21,8 +21,8 @@ const initialState: Pair<PanelState> = {
     node: undefined,
     breadcrumbs: [],
     rows: [],
-    selection: [],
-    hilightedIndex: null,
+    selectionIds: [],
+    highlightId: undefined,
   },
   right: {
     outdated: {},
@@ -30,8 +30,8 @@ const initialState: Pair<PanelState> = {
     node: undefined,
     breadcrumbs: [],
     rows: [],
-    selection: [],
-    hilightedIndex: null,
+    selectionIds: [],
+    highlightId: undefined,
   },
 }
 
@@ -60,14 +60,14 @@ export const panelStateSlice = createSlice({
     updateRows: (state, { payload }: PayloadAction<{ side: Side; nodes: BTN[] }>) => {
       state[payload.side].rows = payload.nodes
     },
-    updateSelection: (state, { payload }: PayloadAction<{ side: Side; nodes: BTN[] }>) => {
-      state[payload.side].selection = payload.nodes
+    updateSelection: (state, { payload }: PayloadAction<{ side: Side; ids: string[] }>) => {
+      state[payload.side].selectionIds = payload.ids
     },
-    updateHighlightedIndex: (
+    updateHighlight: (
       state,
-      { payload }: PayloadAction<{ side: Side; index: number | null }>,
+      { payload }: PayloadAction<{ side: Side; id: string | undefined }>,
     ) => {
-      state[payload.side].hilightedIndex = payload.index
+      state[payload.side].highlightId = payload.id
     },
   },
 })
@@ -81,7 +81,7 @@ export const {
   updateBreadcrumbs,
   updateRows,
   updateSelection,
-  updateHighlightedIndex,
+  updateHighlight,
 } = panelStateSlice.actions
 
 export const selectPanelOutdated = (state: RootState, side: Side): object =>
@@ -105,8 +105,17 @@ export const selectBreadcrumbs = (state: RootState, side: Side): BTN[] =>
   state.panel[side].breadcrumbs
 export const selectRows = (state: RootState, side: Side): BTN[] => state.panel[side].rows
 
-export const selectSelection = (state: RootState, side: Side): BTN[] => state.panel[side].selection
-export const selectHighlightedIndex = (state: RootState, side: Side): number | null =>
-  state.panel[side].hilightedIndex
+export const selectSelectionIds = (state: RootState, side: Side): string[] =>
+  state.panel[side].selectionIds
+export const selectHighlightId = (state: RootState, side: Side): string | undefined =>
+  state.panel[side].highlightId
+
+export const selectFocusedPanelSelectionIds = (state: RootState): string[] =>
+  state.panel[state.app.focusedSide].selectionIds
+
+export const selectFocusedPanelHasSelection = (state: RootState): boolean =>
+  state.panel[state.app.focusedSide].selectionIds.length > 0
+export const selectFocusedPanelHasHighlight = (state: RootState): boolean =>
+  state.panel[state.app.focusedSide].highlightId !== undefined
 
 export default panelStateSlice.reducer

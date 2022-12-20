@@ -1,5 +1,8 @@
 # Backlog
 
+- remove 'selectHighlightedRow'
+- remove 'ensureAtLeastOneRowSelected'
+
 - remove Pair fetching from redux -> it always generates new objects
 - add custom hooks for the callbacks that depend on a 'side' arg
 - check all useAppSelect for shallowEquals

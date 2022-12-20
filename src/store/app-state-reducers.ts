@@ -47,7 +47,7 @@ export const selectAppOutdated = (state: RootState): object => state.app.outdate
 
 export const selectTopNodes = (state: RootState): BTN[] => state.app.topNodes
 
-export const selectHighlighted = (state: RootState, side: Side): boolean =>
+export const selectIsHighlighted = (state: RootState, side: Side): boolean =>
   state.app.focusedSide === side
 
 export default appStateSlice.reducer

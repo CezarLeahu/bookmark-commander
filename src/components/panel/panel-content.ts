@@ -1,5 +1,5 @@
 import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks/queries'
-import { selectAppOutdated, selectHighlighted } from '../../store/app-state-reducers'
+import { selectAppOutdated, selectIsHighlighted } from '../../store/app-state-reducers'
 import {
   selectNode,
   selectNodeId,
@@ -51,7 +51,7 @@ export function useLoadPanelContentEffect(side: Side): void {
 export function useComponenetStateChangedHandler(
   side: Side,
 ): (event: ComponentStateChangedEvent<BTN>) => void {
-  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
 
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {

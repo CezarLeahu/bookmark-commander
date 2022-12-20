@@ -6,6 +6,7 @@ import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
 import { removeAll } from '../../services/bookmarks/commands'
+import { useLastSelectedIds } from '../app/app-content'
 
 interface DeleteDialogState {
   open: boolean
@@ -15,13 +16,13 @@ interface DeleteDialogState {
 }
 
 export function useDeleteDialogState(
-  lastSelectedIds: () => string[],
   updateCurrentPathsIfNeeded: (idsToBeDeleted: string[]) => void,
   resetCurrentSelection: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const dispatch = useAppDispatch()
   const focusedSide = useAppSelector(selectFocusedSide)
+  const lastSelectedIds = useLastSelectedIds()
 
   const [open, setOpen] = useState(false)
 

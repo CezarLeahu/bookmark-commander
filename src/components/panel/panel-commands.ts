@@ -1,5 +1,5 @@
 import { CellEditRequestEvent, GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
-import { refreshApp, selectHighlighted } from '../../store/app-state-reducers'
+import { refreshApp, selectIsHighlighted } from '../../store/app-state-reducers'
 import { selectNode, updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect, useImperativeHandle } from 'react'
@@ -40,7 +40,7 @@ export function usePanelHandlers(
   api: GridApi<BTN> | undefined,
 ): void {
   const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
-  const highlighted = useAppSelector(state => selectHighlighted(state, side))
+  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
 
   const getSelectedNodeIds = selectedNodeIdsProvider(api, currentNode)
   const getFocusedNodeId = focusedNodeIdProvider(api, currentNode)
@@ -63,7 +63,26 @@ export function usePanelHandlers(
         api?.deselectAll()
       },
 
-      setSelection: setSelectionProvider(api, highlighted, currentNode),
+      setSelection: (ids: string[]): void => {
+        if (api === undefined || currentNode?.parentId === undefined) {
+          return
+        }
+        api.deselectAll()
+
+        const rows = ids
+          .map(id => api.getRowNode(id))
+          .filter(n => n !== undefined && n.id !== currentNode.parentId)
+          .map(n => n as RowNode<BTN>)
+
+        rows.forEach(n => n.setSelected(true))
+
+        if (rows.length === 0 || !highlighted) {
+          return
+        }
+
+        api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
+        api.ensureNodeVisible(rows[0])
+      },
 
       singleRowSelectedOrFocused: (): boolean => {
         if (currentNode?.parentId === undefined) {
@@ -140,33 +159,6 @@ export function focusedNodeIdProvider(
     }
 
     return api?.getModel().getRow(rowIndex)?.id
-  }
-}
-
-export function setSelectionProvider(
-  api: GridApi<BTN> | undefined,
-  highlighted: boolean,
-  currentNode: BTN | undefined,
-): (ids: string[]) => void {
-  return (ids: string[]) => {
-    if (api === undefined || currentNode?.parentId === undefined) {
-      return
-    }
-    api.deselectAll()
-
-    const rows = ids
-      .map(id => api.getRowNode(id))
-      .filter(n => n !== undefined && n.id !== currentNode.parentId)
-      .map(n => n as RowNode<BTN>)
-
-    rows.forEach(n => n.setSelected(true))
-
-    if (rows.length === 0 || !highlighted) {
-      return
-    }
-
-    api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
-    api.ensureNodeVisible(rows[0])
   }
 }
 

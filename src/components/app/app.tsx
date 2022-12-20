@@ -1,6 +1,8 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
 import {
+  selectFocusedPanelHasHighlight,
+  selectFocusedPanelHasSelection,
   selectFocusedPanelInRootDir,
   selectLeftNodeId,
   selectRightNodeId,
@@ -10,7 +12,6 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import {
   useJumpToParent,
-  useLastSelectedIds,
   useLoadAppCommonStateEffect,
   usePanelHighlight,
   useSelectionReset,
@@ -51,7 +52,8 @@ const App: React.FC = () => {
   const focusedPanelInRootDir = useAppSelector(selectFocusedPanelInRootDir)
   const sameNodeIds = leftNodeId === rightNodeId
 
-  const lastSelectedIds = useLastSelectedIds(panelRefs)
+  const focusedPanelHasSelection = useAppSelector(selectFocusedPanelHasSelection)
+  const focusedPanelHasHighlight = useAppSelector(selectFocusedPanelHasHighlight)
 
   const resetCurrentSelection = useSelectionReset(panelRefs)
 
@@ -66,7 +68,6 @@ const App: React.FC = () => {
   const createDialog = useCreateDialogState(resetCurrentSelection, panelRefs)
   const editDialog = useEditDialogState(resetCurrentSelection, panelRefs)
   const deleteDialog = useDeleteDialogState(
-    lastSelectedIds,
     updateCurrentPathsIfNeeded,
     resetCurrentSelection,
     panelRefs,
@@ -146,10 +147,7 @@ const App: React.FC = () => {
           <Button onClick={createDialog.handleDirectoryOpen} disabled={focusedPanelInRootDir}>
             New Folder
           </Button>
-          <Button
-            disabled={!(panelRefs[focusedSide].current?.singleRowSelectedOrFocused() ?? false)}
-            onClick={editDialog.handleOpen}
-          >
+          <Button disabled={!focusedPanelHasHighlight} onClick={editDialog.handleOpen}>
             Edit
           </Button>
           <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdRight(leftNodeId))}>
@@ -159,27 +157,25 @@ const App: React.FC = () => {
             Mirror ({'\u2190'})
           </Button>
           <Button
-            disabled={
-              sameNodeIds || !(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)
-            }
+            disabled={sameNodeIds || !(focusedPanelHasHighlight || focusedPanelHasSelection)}
             onClick={handleMoveBetweenPanels}
           >
             Move
           </Button>
           <Button
-            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
             onClick={handleMoveUp}
           >
             Move Up ({'\u2191'})
           </Button>
           <Button
-            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
             onClick={handleMoveDown}
           >
             Move Down ({'\u2193'})
           </Button>
           <Button
-            disabled={!(panelRefs[focusedSide].current?.rowsSelectedOrFocused() ?? false)}
+            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
             onClick={deleteDialog.handleOpen}
           >
             Delete

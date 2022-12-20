@@ -24,7 +24,7 @@ export function useMoveHandlers(
   const focusedNodeId = useAppSelector(selectFocusedNodeId)
   const otherNodeId = useAppSelector(selectOtherNodeId)
 
-  const lastSelectedIds = useLastSelectedIds(panelRefs)
+  const lastSelectedIds = useLastSelectedIds()
 
   return {
     handleMoveBetweenPanels: (): void => {
