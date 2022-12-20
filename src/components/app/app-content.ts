@@ -1,23 +1,19 @@
 import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import {
-  focusLeft,
-  focusRight,
-  selectFocusedSide,
-  updateTopNodes,
-} from '../../store/app-state-reducers'
+import { focusLeft, focusRight, updateTopNodes } from '../../store/app-state-reducers'
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
-import {
-  selectFocusedNodeId,
-  selectFocusedPanelSelectionIds,
-  selectOtherNodeId,
-  updateNodeId,
-} from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect } from 'react'
+import {
+  useSelectFocusedNodeId,
+  useSelectFocusedPanelSelectionIds,
+  useSelectOtherNodeId,
+} from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
+import { updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 export function useLoadAppCommonStateEffect(): void {
   const dispatch = useAppDispatch()
@@ -31,16 +27,16 @@ export function useLoadAppCommonStateEffect(): void {
 }
 
 export function useLastSelectedIds(): () => string[] {
-  const ids = useAppSelector(selectFocusedPanelSelectionIds)
+  const ids = useSelectFocusedPanelSelectionIds()
 
   return useCallback((): string[] => ids, [ids])
 }
 
 export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
-  const focusedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useSelectFocusedSide()
   const otherSide: Side = other(focusedSide)
-  const focusedNodeId = useAppSelector(selectFocusedNodeId)
-  const otherNodeId = useAppSelector(selectOtherNodeId)
+  const focusedNodeId = useSelectFocusedNodeId()
+  const otherNodeId = useSelectOtherNodeId()
 
   return useCallback((): void => {
     panelRefs[focusedSide].current?.clearSelection()
@@ -52,9 +48,9 @@ export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>):
 
 export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => void {
   const dispatch = useAppDispatch()
-  const focusedSide = useAppSelector(selectFocusedSide)
-  const focusedNodeId = useAppSelector(selectFocusedNodeId)
-  const otherNodeId = useAppSelector(selectOtherNodeId)
+  const focusedSide = useSelectFocusedSide()
+  const focusedNodeId = useSelectFocusedNodeId()
+  const otherNodeId = useSelectOtherNodeId()
 
   return useCallback(
     (idsToBeDeleted: string[]): void => {
@@ -87,7 +83,7 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
 
 export function useJumpToParent(panelRefs: PairRef<FolderPanelHandle | null>): (node: BTN) => void {
   const dispatch = useAppDispatch()
-  const focusedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useSelectFocusedSide()
 
   return useCallback(
     (node: BTN): void => {

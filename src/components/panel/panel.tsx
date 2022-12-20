@@ -21,15 +21,13 @@ import {
 import { forwardRef, useCallback, useRef } from 'react'
 import {
   refreshPanel,
-  selectNode,
-  selectRows,
   updateHighlight,
   updateNodeId,
   updateSelection,
 } from '../../store/panel-state-reducers'
-import { selectIsHighlighted, selectTopNodes } from '../../store/app-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
+import { useSelectIsHighlighted, useSelectTopNodes } from '../../store/app-state-hooks'
+import { useSelectNode, useSelectRows } from '../../store/panel-state-hooks'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -38,7 +36,7 @@ import { BTN } from '../../services/bookmarks/types'
 import Breadcrumbs from './breadcrumbs'
 import { Side } from '../../services/utils/types'
 import { rowIdProvider } from './grid-utils'
-import { shallowEqual } from 'react-redux'
+import { useAppDispatch } from '../../store/hooks'
 import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
@@ -74,12 +72,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
 
-  const topNodes = useAppSelector(selectTopNodes, shallowEqual)
+  const topNodes = useSelectTopNodes()
 
   useLoadPanelContentEffect(side)
 
-  const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
-  const rows = useAppSelector(state => selectRows(state, side), shallowEqual)
+  const currentNode = useSelectNode(side)
+  const rows = useSelectRows(side)
 
   const navigation = useNavigation(side)
 
@@ -107,7 +105,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleComponentStateChanged = useComponenetStateChangedHandler(side)
 
-  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
+  const highlighted = useSelectIsHighlighted(side)
 
   const rowSelectable = useCallback(
     (node: RowNode<BTN>): boolean =>

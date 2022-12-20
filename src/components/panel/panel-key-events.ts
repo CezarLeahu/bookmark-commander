@@ -6,16 +6,16 @@ import {
   SuppressHeaderKeyboardEventParams,
   SuppressKeyboardEventParams,
 } from 'ag-grid-community'
-import { selectNode, updateNodeId } from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
 import { Side } from '../../services/utils/types'
-import { shallowEqual } from 'react-redux'
+import { updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
 import { useOpenHighlightedRow } from './panel-commands'
+import { useSelectNode } from '../../store/panel-state-hooks'
 
 export function suppressHeaderKeys(params: SuppressHeaderKeyboardEventParams): boolean {
   return true
@@ -47,7 +47,7 @@ export function usePanelKeyListener(
   openDialogActions: OpenDialogActions,
 ): void {
   const dispatch = useAppDispatch()
-  const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
+  const currentNode = useSelectNode(side)
 
   const openHighlightedRow = useOpenHighlightedRow(api, side)
 

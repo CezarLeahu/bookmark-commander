@@ -1,14 +1,13 @@
 import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
 import { dropInfo, moveInfo } from './panel-drag-and-drop-calculations'
-import { selectNodeId, selectRows } from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useSelectNodeId, useSelectRows } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelMetadata } from './panel-metadata'
 import { Side } from '../../services/utils/types'
 import { moveAll } from '../../services/bookmarks/commands'
 import { refreshApp } from '../../store/app-state-reducers'
-import { shallowEqual } from 'react-redux'
+import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 
 export interface DragAndDropHandlers {
@@ -19,8 +18,8 @@ export interface DragAndDropHandlers {
 
 export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): DragAndDropHandlers {
   const dispatch = useAppDispatch()
-  const currentNodeId = useAppSelector(state => selectNodeId(state, side))
-  const rows = useAppSelector(state => selectRows(state, side), shallowEqual)
+  const currentNodeId = useSelectNodeId(side)
+  const rows = useSelectRows(side)
 
   return {
     handleRowDragMove: useCallback(

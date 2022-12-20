@@ -1,12 +1,13 @@
-import { refreshApp, selectFocusedSide } from '../../store/app-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { containsNonEmptyDirectories } from '../../services/bookmarks/queries'
+import { refreshApp } from '../../store/app-state-reducers'
 import { removeAll } from '../../services/bookmarks/commands'
+import { useAppDispatch } from '../../store/hooks'
 import { useLastSelectedIds } from '../app/app-content'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface DeleteDialogState {
   open: boolean
@@ -21,7 +22,7 @@ export function useDeleteDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const dispatch = useAppDispatch()
-  const focusedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useSelectFocusedSide()
   const lastSelectedIds = useLastSelectedIds()
 
   const [open, setOpen] = useState(false)

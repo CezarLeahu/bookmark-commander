@@ -1,30 +1,27 @@
 import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks/queries'
-import { selectAppOutdated, selectIsHighlighted } from '../../store/app-state-reducers'
-import {
-  selectNode,
-  selectNodeId,
-  selectPanelOutdated,
-  updateBreadcrumbs,
-  updateNode,
-  updateRows,
-} from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { updateBreadcrumbs, updateNode, updateRows } from '../../store/panel-state-reducers'
 import { useCallback, useEffect } from 'react'
+import { useSelectAppOutdated, useSelectIsHighlighted } from '../../store/app-state-hooks'
+import {
+  useSelectNode,
+  useSelectNodeId,
+  useSelectPanelOutdated,
+} from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { ComponentStateChangedEvent } from 'ag-grid-community'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
-import { shallowEqual } from 'react-redux'
+import { useAppDispatch } from '../../store/hooks'
 
 export function useLoadPanelContentEffect(side: Side): void {
   const dispatch = useAppDispatch()
 
-  const appOutdated = useAppSelector(selectAppOutdated)
-  const panelOutdated = useAppSelector(state => selectPanelOutdated(state, side), shallowEqual)
-  const nodeId = useAppSelector(state => selectNodeId(state, side))
+  const appOutdated = useSelectAppOutdated()
+  const panelOutdated = useSelectPanelOutdated(side)
+  const nodeId = useSelectNodeId(side)
 
-  const node = useAppSelector(state => selectNode(state, side), shallowEqual)
+  const node = useSelectNode(side)
 
   useEffect(() => {
     getNode(nodeId).then(
@@ -51,7 +48,7 @@ export function useLoadPanelContentEffect(side: Side): void {
 export function useComponenetStateChangedHandler(
   side: Side,
 ): (event: ComponentStateChangedEvent<BTN>) => void {
-  const highlighted = useAppSelector(state => selectIsHighlighted(state, side))
+  const highlighted = useSelectIsHighlighted(side)
 
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {

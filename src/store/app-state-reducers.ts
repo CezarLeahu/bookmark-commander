@@ -1,7 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 import { BTN } from '../services/bookmarks/types'
-import { RootState } from './store'
 import { Side } from '../services/utils/types'
 
 export interface AppState {
@@ -40,14 +39,5 @@ export const appStateSlice = createSlice({
 
 export const { focusLeft, focusRight, focusSide, refreshApp, updateTopNodes } =
   appStateSlice.actions
-
-export const selectFocusedSide = (state: RootState): Side => state.app.focusedSide
-
-export const selectAppOutdated = (state: RootState): object => state.app.outdated
-
-export const selectTopNodes = (state: RootState): BTN[] => state.app.topNodes
-
-export const selectIsHighlighted = (state: RootState, side: Side): boolean =>
-  state.app.focusedSide === side
 
 export default appStateSlice.reducer

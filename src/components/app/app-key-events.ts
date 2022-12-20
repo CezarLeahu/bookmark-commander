@@ -5,8 +5,7 @@ import { Side, other } from '../../services/utils/types'
 import { useCallback, useEffect } from 'react'
 
 import { PairCallback } from '../../services/utils/hooks'
-import { selectFocusedSide } from '../../store/app-state-reducers'
-import { useAppSelector } from '../../store/hooks'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 const handleKeyUp = (
   e: KeyboardEvent,
@@ -31,7 +30,7 @@ export function useDocumentKeyListener(
   area: HTMLDivElement | null,
   highlight: PairCallback<() => void>,
 ): void {
-  const focusedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useSelectFocusedSide()
 
   const handleKeyUpCallback = useCallback(
     (e: KeyboardEvent): void => handleKeyUp(e, focusedSide, highlight),

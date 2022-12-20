@@ -1,8 +1,7 @@
-import { Pair, Side, other } from '../services/utils/types'
+import { Pair, Side } from '../services/utils/types'
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 
 import { BTN } from '../services/bookmarks/types'
-import { RootState } from './store'
 
 interface PanelState {
   outdated: object
@@ -83,39 +82,5 @@ export const {
   updateSelection,
   updateHighlight,
 } = panelStateSlice.actions
-
-export const selectPanelOutdated = (state: RootState, side: Side): object =>
-  state.panel[side].outdated
-
-export const selectLeftNodeId = (state: RootState): string => state.panel.left.nodeId
-export const selectRightNodeId = (state: RootState): string => state.panel.right.nodeId
-
-export const selectFocusedPanelInRootDir = (state: RootState): boolean =>
-  state.panel[state.app.focusedSide].nodeId === '0'
-
-export const selectNodeId = (state: RootState, side: Side): string => state.panel[side].nodeId
-
-export const selectFocusedNodeId = (state: RootState): string =>
-  state.panel[state.app.focusedSide].nodeId
-export const selectOtherNodeId = (state: RootState): string =>
-  state.panel[other(state.app.focusedSide)].nodeId
-
-export const selectNode = (state: RootState, side: Side): BTN | undefined => state.panel[side].node
-export const selectBreadcrumbs = (state: RootState, side: Side): BTN[] =>
-  state.panel[side].breadcrumbs
-export const selectRows = (state: RootState, side: Side): BTN[] => state.panel[side].rows
-
-export const selectSelectionIds = (state: RootState, side: Side): string[] =>
-  state.panel[side].selectionIds
-export const selectHighlightId = (state: RootState, side: Side): string | undefined =>
-  state.panel[side].highlightId
-
-export const selectFocusedPanelSelectionIds = (state: RootState): string[] =>
-  state.panel[state.app.focusedSide].selectionIds
-
-export const selectFocusedPanelHasSelection = (state: RootState): boolean =>
-  state.panel[state.app.focusedSide].selectionIds.length > 0
-export const selectFocusedPanelHasHighlight = (state: RootState): boolean =>
-  state.panel[state.app.focusedSide].highlightId !== undefined
 
 export default panelStateSlice.reducer

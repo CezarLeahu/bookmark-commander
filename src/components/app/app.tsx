@@ -1,15 +1,6 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import {
-  selectFocusedPanelHasHighlight,
-  selectFocusedPanelHasSelection,
-  selectFocusedPanelInRootDir,
-  selectLeftNodeId,
-  selectRightNodeId,
-  updateNodeIdLeft,
-  updateNodeIdRight,
-} from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { updateNodeIdLeft, updateNodeIdRight } from '../../store/panel-state-reducers'
 import {
   useJumpToParent,
   useLoadAppCommonStateEffect,
@@ -18,6 +9,13 @@ import {
   useUpdateCurrentPathsIfNeeded,
 } from './app-content'
 import { useMemo, useRef } from 'react'
+import {
+  useSelectFocusedPanelHasHighlight,
+  useSelectFocusedPanelHasSelection,
+  useSelectFocusedPanelInRootDir,
+  useSelectLeftNodeId,
+  useSelectRightNodeId,
+} from '../../store/panel-state-hooks'
 
 import Brightness4Icon from '@mui/icons-material/Brightness4'
 import Brightness7Icon from '@mui/icons-material/Brightness7'
@@ -27,7 +25,7 @@ import EditDialog from '../dialogs/edit-dialog'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/tabs/tabs'
-import { selectFocusedSide } from '../../store/app-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDocumentKeyListener } from './app-key-events'
@@ -35,6 +33,7 @@ import { useDragAndDropPanelBinder } from './app-drag-and-drop-panel-binders'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
 import { useMoveHandlers } from './app-move-button-handlers'
 import { usePairRef } from '../../services/utils/hooks'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 import { useTheme } from '@mui/material/styles'
 import { useThemeContext } from './theme-context'
 
@@ -46,14 +45,14 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
 
   const dispatch = useAppDispatch()
-  const focusedSide = useAppSelector(selectFocusedSide)
-  const leftNodeId = useAppSelector(selectLeftNodeId)
-  const rightNodeId = useAppSelector(selectRightNodeId)
-  const focusedPanelInRootDir = useAppSelector(selectFocusedPanelInRootDir)
+  const focusedSide = useSelectFocusedSide()
+  const leftNodeId = useSelectLeftNodeId()
+  const rightNodeId = useSelectRightNodeId()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const sameNodeIds = leftNodeId === rightNodeId
 
-  const focusedPanelHasSelection = useAppSelector(selectFocusedPanelHasSelection)
-  const focusedPanelHasHighlight = useAppSelector(selectFocusedPanelHasHighlight)
+  const focusedPanelHasSelection = useSelectFocusedPanelHasSelection()
+  const focusedPanelHasHighlight = useSelectFocusedPanelHasHighlight()
 
   const resetCurrentSelection = useSelectionReset(panelRefs)
 

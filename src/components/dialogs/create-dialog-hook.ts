@@ -1,11 +1,11 @@
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { refreshApp } from '../../store/app-state-reducers'
-import { selectFocusedNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
+import { useSelectFocusedNodeId } from '../../store/panel-state-hooks'
 
 interface CreateDialogState {
   bookmarkOpen: boolean
@@ -22,7 +22,7 @@ export function useCreateDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const dispatch = useAppDispatch()
-  const focusedNodeId = useAppSelector(selectFocusedNodeId)
+  const focusedNodeId = useSelectFocusedNodeId()
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)

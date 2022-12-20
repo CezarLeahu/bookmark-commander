@@ -1,12 +1,13 @@
 import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
-import { refreshApp, selectFocusedSide } from '../../store/app-state-reducers'
-import { selectFocusedNodeId, selectOtherNodeId } from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
+import { refreshApp } from '../../store/app-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
 import { useLastSelectedIds } from './app-content'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface MoveHandlers {
   handleMoveBetweenPanels: () => void
@@ -19,10 +20,10 @@ export function useMoveHandlers(
   highlight: PairCallback<() => void>,
 ): MoveHandlers {
   const dispatch = useAppDispatch()
-  const focusedSide = useAppSelector(selectFocusedSide)
+  const focusedSide = useSelectFocusedSide()
   const otherSide: Side = other(focusedSide)
-  const focusedNodeId = useAppSelector(selectFocusedNodeId)
-  const otherNodeId = useAppSelector(selectOtherNodeId)
+  const focusedNodeId = useSelectFocusedNodeId()
+  const otherNodeId = useSelectOtherNodeId()
 
   const lastSelectedIds = useLastSelectedIds()
 

@@ -1,9 +1,9 @@
 import { Breadcrumbs, Link, Typography } from '@mui/material'
-import { selectBreadcrumbs, selectNode, updateNodeId } from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useSelectBreadcrumbs, useSelectNode } from '../../store/panel-state-hooks'
 
 import { Side } from '../../services/utils/types'
-import { shallowEqual } from 'react-redux'
+import { updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
 
 export interface BreadcrumbsProps {
   readonly side: Side
@@ -11,8 +11,8 @@ export interface BreadcrumbsProps {
 
 const BreadcrumbsFC: React.FC<{ side: Side }> = ({ side }: BreadcrumbsProps) => {
   const dispatch = useAppDispatch()
-  const currentNode = useAppSelector(state => selectNode(state, side), shallowEqual)
-  const breadcrumbs = useAppSelector(state => selectBreadcrumbs(state, side), shallowEqual)
+  const currentNode = useSelectNode(side)
+  const breadcrumbs = useSelectBreadcrumbs(side)
 
   return (
     <Breadcrumbs aria-label='breadcrumb'>

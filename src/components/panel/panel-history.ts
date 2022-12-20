@@ -1,9 +1,10 @@
 import { History, history } from '../../services/utils/history'
-import { selectNodeId, updateNodeId } from '../../store/panel-state-reducers'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { useCallback, useEffect, useMemo } from 'react'
 
 import { Side } from '../../services/utils/types'
+import { updateNodeId } from '../../store/panel-state-reducers'
+import { useAppDispatch } from '../../store/hooks'
+import { useSelectNodeId } from '../../store/panel-state-hooks'
 
 export interface Navigation {
   back: () => void
@@ -15,7 +16,7 @@ export interface Navigation {
 export function useNavigation(side: Side): Navigation {
   const dispatch = useAppDispatch()
 
-  const currentNodeId = useAppSelector(state => selectNodeId(state, side))
+  const currentNodeId = useSelectNodeId(side)
 
   const nodeIdHistory = useMemo<History<string>>(() => history<string>(10), [])
 
