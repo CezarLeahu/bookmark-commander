@@ -6,11 +6,6 @@ import { shallowEqual } from 'react-redux'
 import { useAppSelector } from './hooks'
 import { useCallback } from 'react'
 
-export function useSelectPanelOutdated(side: Side): object {
-  const selector = useCallback((state: RootState) => state.panel[side].outdated, [side])
-  return useAppSelector(selector, shallowEqual)
-}
-
 export function useSelectLeftNodeId(): string {
   const selector = useCallback((state: RootState) => state.panel.left.nodeId, [])
   return useAppSelector(selector)
@@ -82,6 +77,13 @@ export function useSelectFocusedPanelSelectionIds(): string[] {
 export function useSelectFocusedPanelHasSelection(): boolean {
   const selector = useCallback(
     (state: RootState) => state.panel[state.app.focusedSide].selectionIds.length > 0,
+    [],
+  )
+  return useAppSelector(selector)
+}
+export function useSelectFocusedPanelHasSingleSelection(): boolean {
+  const selector = useCallback(
+    (state: RootState) => state.panel[state.app.focusedSide].selectionIds.length === 1,
     [],
   )
   return useAppSelector(selector)

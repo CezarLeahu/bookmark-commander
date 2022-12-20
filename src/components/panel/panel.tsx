@@ -19,12 +19,7 @@ import {
   usePanelHandlers,
 } from './panel-commands'
 import { forwardRef, useCallback, useRef } from 'react'
-import {
-  refreshPanel,
-  updateHighlight,
-  updateNodeId,
-  updateSelection,
-} from '../../store/panel-state-reducers'
+import { updateHighlight, updateNodeId, updateSelection } from '../../store/panel-state-reducers'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 import { useSelectIsHighlighted, useSelectTopNodes } from '../../store/app-state-hooks'
 import { useSelectNode, useSelectRows } from '../../store/panel-state-hooks'
@@ -115,16 +110,18 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleSelectionChanged = useCallback(
     (event: SelectionChangedEvent<BTN>): void => {
-      dispatch(refreshPanel({ side }))
       dispatch(updateSelection({ side, ids: event.api.getSelectedRows().map(r => r.id) }))
     },
     [dispatch, side],
   )
 
+  // todo we should probably stop handling these events
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
       const id: string | undefined =
-        event.rowIndex === null ? undefined : event.api.getModel().getRow(event.rowIndex)?.id
+        event.rowIndex === null || event.rowIndex === 0
+          ? undefined
+          : event.api.getModel().getRow(event.rowIndex)?.id
 
       dispatch(updateHighlight({ side, id }))
     },

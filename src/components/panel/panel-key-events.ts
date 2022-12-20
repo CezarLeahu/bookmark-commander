@@ -52,8 +52,7 @@ export function usePanelKeyListener(
   const openHighlightedRow = useOpenHighlightedRow(api, side)
 
   const selectHighlightedRow: () => boolean = useCallback((): boolean => {
-    // TODO replace with actually getting the FocusedRow
-    if (api === undefined) {
+    if (api === undefined || currentNode?.parentId === undefined) {
       return false
     }
     const rowIndex = api.getFocusedCell()?.rowIndex
@@ -66,9 +65,34 @@ export function usePanelKeyListener(
       return false
     }
 
+    if (row.id === currentNode?.parentId) {
+      return false
+    }
+
     row.setSelected(true)
     return true
-  }, [api])
+  }, [api, currentNode])
+
+  const toggleHighlightedRowSelection: () => void = useCallback((): void => {
+    if (api === undefined || currentNode?.parentId === undefined) {
+      return
+    }
+    const rowIndex = api.getFocusedCell()?.rowIndex
+    if (rowIndex === undefined || rowIndex === 0) {
+      return
+    }
+
+    const row = api?.getModel().getRow(rowIndex)
+    if (row === undefined || row.id === undefined || row.id === currentNode?.parentId) {
+      return
+    }
+    const selected = row.isSelected()
+    if (selected === undefined) {
+      return
+    }
+
+    row.setSelected(!selected)
+  }, [api, currentNode])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
@@ -92,6 +116,10 @@ export function usePanelKeyListener(
           }
           break
         }
+        case keys.SPACE: {
+          toggleHighlightedRowSelection()
+          break
+        }
         case keys.TAB: {
           api?.clearFocusedCell()
           highlightOtherSide()
@@ -112,6 +140,7 @@ export function usePanelKeyListener(
       highlightOtherSide,
       openHighlightedRow,
       selectHighlightedRow,
+      toggleHighlightedRowSelection,
     ],
   )
 

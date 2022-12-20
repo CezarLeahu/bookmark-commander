@@ -6,6 +6,7 @@ import { openInNewTab } from '../../services/tabs/tabs'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
+import { useSelectSelectionIds } from '../../store/panel-state-hooks'
 
 interface ClickHandlers {
   handleRowClick: (event: RowSelectedEvent<BTN>) => void
@@ -15,13 +16,22 @@ interface ClickHandlers {
 export function useGridClickHandlers(side: Side): ClickHandlers {
   const dispatch = useAppDispatch()
 
+  const oldSelectionIds: string[] = useSelectSelectionIds(side)
+
   return {
-    handleRowClick: useCallback((event: RowSelectedEvent<BTN>): void => {
-      // TODO remove
-      if (event.node === undefined) {
-        console.log('Clicked into the void...')
-      }
-    }, []),
+    handleRowClick: useCallback(
+      (event: RowSelectedEvent<BTN>): void => {
+        const id = event.node.id
+        if (id === undefined) {
+          return
+        }
+        const oldIds = new Set<string>(oldSelectionIds)
+        if (oldIds.has(id)) {
+          event.node.setSelected(false)
+        }
+      },
+      [oldSelectionIds],
+    ),
 
     handleRowDoubleClick: useCallback(
       (event: RowDoubleClickedEvent<BTN>): void => {

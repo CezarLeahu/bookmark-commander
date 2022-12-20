@@ -10,8 +10,8 @@ import {
 } from './app-content'
 import { useMemo, useRef } from 'react'
 import {
-  useSelectFocusedPanelHasHighlight,
   useSelectFocusedPanelHasSelection,
+  useSelectFocusedPanelHasSingleSelection,
   useSelectFocusedPanelInRootDir,
   useSelectLeftNodeId,
   useSelectRightNodeId,
@@ -52,7 +52,7 @@ const App: React.FC = () => {
   const sameNodeIds = leftNodeId === rightNodeId
 
   const focusedPanelHasSelection = useSelectFocusedPanelHasSelection()
-  const focusedPanelHasHighlight = useSelectFocusedPanelHasHighlight()
+  const focusedPanelHasSingleSelection = useSelectFocusedPanelHasSingleSelection()
 
   const resetCurrentSelection = useSelectionReset(panelRefs)
 
@@ -146,7 +146,7 @@ const App: React.FC = () => {
           <Button onClick={createDialog.handleDirectoryOpen} disabled={focusedPanelInRootDir}>
             New Folder
           </Button>
-          <Button disabled={!focusedPanelHasHighlight} onClick={editDialog.handleOpen}>
+          <Button disabled={!focusedPanelHasSingleSelection} onClick={editDialog.handleOpen}>
             Edit
           </Button>
           <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdRight(leftNodeId))}>
@@ -156,27 +156,18 @@ const App: React.FC = () => {
             Mirror ({'\u2190'})
           </Button>
           <Button
-            disabled={sameNodeIds || !(focusedPanelHasHighlight || focusedPanelHasSelection)}
+            disabled={sameNodeIds || !focusedPanelHasSelection}
             onClick={handleMoveBetweenPanels}
           >
             Move
           </Button>
-          <Button
-            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
-            onClick={handleMoveUp}
-          >
+          <Button disabled={!focusedPanelHasSelection} onClick={handleMoveUp}>
             Move Up ({'\u2191'})
           </Button>
-          <Button
-            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
-            onClick={handleMoveDown}
-          >
+          <Button disabled={!focusedPanelHasSelection} onClick={handleMoveDown}>
             Move Down ({'\u2193'})
           </Button>
-          <Button
-            disabled={!focusedPanelHasHighlight && !focusedPanelHasSelection}
-            onClick={deleteDialog.handleOpen}
-          >
+          <Button disabled={!focusedPanelHasSelection} onClick={deleteDialog.handleOpen}>
             Delete
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>

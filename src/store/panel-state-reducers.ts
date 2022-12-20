@@ -4,7 +4,6 @@ import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 import { BTN } from '../services/bookmarks/types'
 
 interface PanelState {
-  outdated: object
   nodeId: string
   node: BTN | undefined
   breadcrumbs: BTN[]
@@ -15,7 +14,6 @@ interface PanelState {
 
 const initialState: Pair<PanelState> = {
   left: {
-    outdated: {},
     nodeId: '1',
     node: undefined,
     breadcrumbs: [],
@@ -24,7 +22,6 @@ const initialState: Pair<PanelState> = {
     highlightId: undefined,
   },
   right: {
-    outdated: {},
     nodeId: '2',
     node: undefined,
     breadcrumbs: [],
@@ -38,9 +35,6 @@ export const panelStateSlice = createSlice({
   name: 'currentNodeIds',
   initialState,
   reducers: {
-    refreshPanel: (state, { payload }: PayloadAction<{ side: Side }>) => {
-      state[payload.side].outdated = {}
-    },
     updateNodeIdLeft: (state, { payload }: PayloadAction<string>) => {
       state.left.nodeId = payload
     },
@@ -72,7 +66,6 @@ export const panelStateSlice = createSlice({
 })
 
 export const {
-  refreshPanel,
   updateNodeIdLeft,
   updateNodeIdRight,
   updateNodeId,

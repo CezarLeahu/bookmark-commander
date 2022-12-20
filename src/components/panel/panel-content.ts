@@ -2,11 +2,7 @@ import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks
 import { updateBreadcrumbs, updateNode, updateRows } from '../../store/panel-state-reducers'
 import { useCallback, useEffect } from 'react'
 import { useSelectAppOutdated, useSelectIsHighlighted } from '../../store/app-state-hooks'
-import {
-  useSelectNode,
-  useSelectNodeId,
-  useSelectPanelOutdated,
-} from '../../store/panel-state-hooks'
+import { useSelectNode, useSelectNodeId } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { ComponentStateChangedEvent } from 'ag-grid-community'
@@ -18,7 +14,6 @@ export function useLoadPanelContentEffect(side: Side): void {
   const dispatch = useAppDispatch()
 
   const appOutdated = useSelectAppOutdated()
-  const panelOutdated = useSelectPanelOutdated(side)
   const nodeId = useSelectNodeId(side)
 
   const node = useSelectNode(side)
@@ -42,7 +37,7 @@ export function useLoadPanelContentEffect(side: Side): void {
       ([nodes]) => dispatch(updateRows({ side, nodes })),
       e => console.log(e),
     )
-  }, [dispatch, side, nodeId, appOutdated, panelOutdated])
+  }, [dispatch, side, nodeId, appOutdated])
 }
 
 export function useComponenetStateChangedHandler(
