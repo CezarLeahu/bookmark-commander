@@ -56,7 +56,7 @@ export function usePanelKeyListener(
       return false
     }
     const rowIndex = api.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0) {
+    if (rowIndex === undefined || rowIndex === 0 || rowIndex < 0) {
       return false
     }
 
@@ -78,7 +78,7 @@ export function usePanelKeyListener(
       return
     }
     const rowIndex = api.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0) {
+    if (rowIndex === undefined || rowIndex === 0 || rowIndex < 0) {
       return
     }
 
@@ -121,7 +121,6 @@ export function usePanelKeyListener(
           break
         }
         case keys.TAB: {
-          api?.clearFocusedCell()
           highlightOtherSide()
           break
         }
@@ -134,7 +133,6 @@ export function usePanelKeyListener(
     [
       dispatch,
       side,
-      api,
       currentNode,
       openDialogActions,
       highlightOtherSide,

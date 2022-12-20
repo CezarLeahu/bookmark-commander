@@ -6,7 +6,6 @@ import { PairRef } from '../../services/utils/hooks'
 import { refreshApp } from '../../store/app-state-reducers'
 import { update } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
-import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface EditDialogState {
   open: boolean
@@ -20,7 +19,6 @@ export function useEditDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): EditDialogState {
   const dispatch = useAppDispatch()
-  const focusedSide = useSelectFocusedSide()
 
   const [open, setOpen] = useState(false)
 
@@ -28,11 +26,10 @@ export function useEditDialogState(
     open,
 
     handleOpen: useCallback((): void => {
-      panelRefs[focusedSide].current?.ensureAtLeastOneRowSelected()
       panelRefs.left.current?.clearFocus()
       panelRefs.right.current?.clearFocus()
       setOpen(true)
-    }, [focusedSide, panelRefs]),
+    }, [panelRefs]),
 
     handleConfirm: useCallback(
       (node: BTN): void => {

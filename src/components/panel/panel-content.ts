@@ -7,7 +7,6 @@ import { useSelectNode, useSelectNodeId } from '../../store/panel-state-hooks'
 import { BTN } from '../../services/bookmarks/types'
 import { ComponentStateChangedEvent } from 'ag-grid-community'
 import { Side } from '../../services/utils/types'
-import { TITLE_COLUMN } from './panel-metadata'
 import { useAppDispatch } from '../../store/hooks'
 
 export function useLoadPanelContentEffect(side: Side): void {
@@ -47,8 +46,6 @@ export function useComponenetStateChangedHandler(
 
   return useCallback(
     (event: ComponentStateChangedEvent<BTN>) => {
-      console.log('[onComponentStateChanged]')
-
       if (!highlighted) {
         event.api.clearFocusedCell()
         return
@@ -57,19 +54,10 @@ export function useComponenetStateChangedHandler(
         return
       }
 
-      if (event.api.getFocusedCell() !== null) {
-        event.api.ensureIndexVisible(event.api.getFocusedCell()?.rowIndex ?? 0)
-        return
+      const cell = event.api.getFocusedCell()
+      if (cell !== undefined && cell !== null && cell.rowIndex >= 0) {
+        event.api.ensureIndexVisible(cell.rowIndex)
       }
-
-      if (!highlighted) {
-        return
-      }
-
-      // TODO hopefully not  really needed - we might need to set a current focused cell as a Ref
-      console.log('[onComponentStateChanged(): Focusing on the first row')
-      event.api.setFocusedCell(0, TITLE_COLUMN)
-      event.api.ensureIndexVisible(0)
     },
     [highlighted],
   )

@@ -114,7 +114,7 @@ const menuForSingleSelection = (
 
 const getHighlightedRow = (api: GridApi): RowNode<BTN> | undefined => {
   const rowIndex = api.getFocusedCell()?.rowIndex
-  if (rowIndex === undefined) {
+  if (rowIndex === undefined || rowIndex < 0) {
     return undefined
   }
   return api.getModel().getRow(rowIndex)

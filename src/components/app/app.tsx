@@ -1,12 +1,10 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import { updateNodeIdLeft, updateNodeIdRight } from '../../store/panel-state-reducers'
 import {
   useJumpToParent,
   useLoadAppCommonStateEffect,
   usePanelHighlight,
   useSelectionReset,
-  useUpdateCurrentPathsIfNeeded,
 } from './app-content'
 import { useMemo, useRef } from 'react'
 import {
@@ -25,6 +23,7 @@ import EditDialog from '../dialogs/edit-dialog'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import Search from '../search/search'
 import { closeCurrentTab } from '../../services/tabs/tabs'
+import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useCreateDialogState } from '../dialogs/create-dialog-hook'
 import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
@@ -41,37 +40,27 @@ const App: React.FC = () => {
   const theme = useTheme()
   const themeContext = useThemeContext()
 
-  const panelAreaRef = useRef<HTMLDivElement>(null)
-  const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
-
   const dispatch = useAppDispatch()
   const focusedSide = useSelectFocusedSide()
   const leftNodeId = useSelectLeftNodeId()
   const rightNodeId = useSelectRightNodeId()
   const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const sameNodeIds = leftNodeId === rightNodeId
-
   const focusedPanelHasSelection = useSelectFocusedPanelHasSelection()
   const focusedPanelHasSingleSelection = useSelectFocusedPanelHasSingleSelection()
 
-  const resetCurrentSelection = useSelectionReset(panelRefs)
-
-  const updateCurrentPathsIfNeeded = useUpdateCurrentPathsIfNeeded()
+  const panelAreaRef = useRef<HTMLDivElement>(null)
+  const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
+  const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
   const jumpToParent = useJumpToParent(panelRefs)
 
-  const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
-
   const highlight = usePanelHighlight(panelRefs)
 
+  const resetCurrentSelection = useSelectionReset(panelRefs)
   const createDialog = useCreateDialogState(resetCurrentSelection, panelRefs)
   const editDialog = useEditDialogState(resetCurrentSelection, panelRefs)
-  const deleteDialog = useDeleteDialogState(
-    updateCurrentPathsIfNeeded,
-    resetCurrentSelection,
-    panelRefs,
-  )
-
+  const deleteDialog = useDeleteDialogState(resetCurrentSelection, panelRefs)
   const dialogActions = useMemo<OpenDialogActions>(() => {
     return {
       openNewBookmark: createDialog.handleBookmarkOpen,
@@ -149,10 +138,16 @@ const App: React.FC = () => {
           <Button disabled={!focusedPanelHasSingleSelection} onClick={editDialog.handleOpen}>
             Edit
           </Button>
-          <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdRight(leftNodeId))}>
+          <Button
+            disabled={sameNodeIds}
+            onClick={() => dispatch(updateNodeId({ side: 'right', id: leftNodeId }))}
+          >
             Mirror ({'\u2192'})
           </Button>
-          <Button disabled={sameNodeIds} onClick={() => dispatch(updateNodeIdLeft(rightNodeId))}>
+          <Button
+            disabled={sameNodeIds}
+            onClick={() => dispatch(updateNodeId({ side: 'left', id: rightNodeId }))}
+          >
             Mirror ({'\u2190'})
           </Button>
           <Button

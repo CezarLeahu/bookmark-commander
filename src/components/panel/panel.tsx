@@ -19,7 +19,11 @@ import {
   usePanelHandlers,
 } from './panel-commands'
 import { forwardRef, useCallback, useRef } from 'react'
-import { updateHighlight, updateNodeId, updateSelection } from '../../store/panel-state-reducers'
+import {
+  updateLastHighlight,
+  updateNodeId,
+  updateSelection,
+} from '../../store/panel-state-reducers'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 import { useSelectIsHighlighted, useSelectTopNodes } from '../../store/app-state-hooks'
 import { useSelectNode, useSelectRows } from '../../store/panel-state-hooks'
@@ -60,19 +64,17 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
+  useLoadPanelContentEffect(side)
 
   const dispatch = useAppDispatch()
+  const highlighted = useSelectIsHighlighted(side)
+  const currentNode = useSelectNode(side)
+  const rows = useSelectRows(side)
+  const topNodes = useSelectTopNodes()
 
   const containerRef = useRef<HTMLDivElement>(null)
   const gridApi = useRef<GridApi<BTN>>()
   const meta = usePanelMetadataWithDragAndDrop()
-
-  const topNodes = useSelectTopNodes()
-
-  useLoadPanelContentEffect(side)
-
-  const currentNode = useSelectNode(side)
-  const rows = useSelectRows(side)
 
   const navigation = useNavigation(side)
 
@@ -100,8 +102,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleComponentStateChanged = useComponenetStateChangedHandler(side)
 
-  const highlighted = useSelectIsHighlighted(side)
-
   const rowSelectable = useCallback(
     (node: RowNode<BTN>): boolean =>
       currentNode?.parentId !== undefined && node.id !== currentNode?.parentId,
@@ -115,17 +115,22 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     [dispatch, side],
   )
 
-  // todo we should probably stop handling these events
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
-      const id: string | undefined =
-        event.rowIndex === null || event.rowIndex === 0
-          ? undefined
-          : event.api.getModel().getRow(event.rowIndex)?.id
+      const cell = event.api.getFocusedCell()
+      if (cell !== undefined && cell !== null && cell.rowIndex >= 0) {
+        const id = event.api.getModel().getRow(cell.rowIndex)?.id
+        if (id !== undefined) {
+          dispatch(updateLastHighlight({ side, id }))
+        }
+      }
 
-      dispatch(updateHighlight({ side, id }))
+      if (!highlighted && cell !== null) {
+        event.api.clearFocusedCell()
+        highlightOtherSide()
+      }
     },
-    [dispatch, side],
+    [dispatch, side, highlighted, highlightOtherSide],
   )
 
   return (

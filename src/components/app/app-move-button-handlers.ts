@@ -1,12 +1,16 @@
 import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
-import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
+import {
+  useSelectFocusedNodeId,
+  useSelectFocusedPanelSelectionIds,
+  useSelectOtherNodeId,
+} from '../../store/panel-state-hooks'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { refreshApp } from '../../store/app-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
-import { useLastSelectedIds } from './app-content'
+import { useCallback } from 'react'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface MoveHandlers {
@@ -24,8 +28,7 @@ export function useMoveHandlers(
   const otherSide: Side = other(focusedSide)
   const focusedNodeId = useSelectFocusedNodeId()
   const otherNodeId = useSelectOtherNodeId()
-
-  const lastSelectedIds = useLastSelectedIds()
+  const focusedIds = useSelectFocusedPanelSelectionIds()
 
   return {
     handleMoveBetweenPanels: (): void => {
@@ -34,45 +37,42 @@ export function useMoveHandlers(
         return
       }
 
-      const selectedIds = lastSelectedIds()
-      if (selectedIds === undefined || selectedIds.length === 0) {
+      if (focusedIds.length === 0) {
         return
       }
 
-      moveAll(selectedIds, otherNodeId)
+      moveAll(focusedIds, otherNodeId)
         .then(() => {
           panelRefs[focusedSide].current?.clearSelection()
-          panelRefs[otherSide].current?.setSelection(selectedIds)
+          panelRefs[otherSide].current?.setSelection(focusedIds)
           highlight[otherSide]()
           dispatch(refreshApp())
         })
         .catch(e => console.log(e))
     },
 
-    handleMoveUp: (): void => {
-      const selectedIds = lastSelectedIds()
-      if (selectedIds === undefined || selectedIds.length === 0) {
+    handleMoveUp: useCallback((): void => {
+      if (focusedIds.length === 0) {
         return
       }
-      moveUp(selectedIds)
+      moveUp(focusedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(selectedIds)
+          panelRefs[focusedSide].current?.setSelection(focusedIds)
           dispatch(refreshApp())
         })
         .catch(e => console.log(e))
-    },
+    }, [dispatch, focusedSide, focusedIds, panelRefs]),
 
-    handleMoveDown: (): void => {
-      const selectedIds = lastSelectedIds()
-      if (selectedIds === undefined || selectedIds.length === 0) {
+    handleMoveDown: useCallback((): void => {
+      if (focusedIds === undefined || focusedIds.length === 0) {
         return
       }
-      moveDown(selectedIds)
+      moveDown(focusedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(selectedIds)
+          panelRefs[focusedSide].current?.setSelection(focusedIds)
           dispatch(refreshApp())
         })
         .catch(e => console.log(e))
-    },
+    }, [dispatch, focusedSide, focusedIds, panelRefs]),
   }
 }

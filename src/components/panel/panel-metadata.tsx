@@ -119,7 +119,7 @@ const middleClickHandle = (
   if (event?.type === MOUSEUP && event.button === 1) {
     // Middle click
     const rowIndex = api?.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0) {
+    if (rowIndex === undefined || rowIndex === 0 || rowIndex < 0) {
       return
     }
     const focusedNode: BTN = api?.getModel().getRow(rowIndex)?.data

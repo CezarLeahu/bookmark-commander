@@ -61,8 +61,8 @@ export function useSelectSelectionIds(side: Side): string[] {
   return useAppSelector(selector, shallowEqual)
 }
 
-export function useSelectHighlightId(side: Side): string | undefined {
-  const selector = useCallback((state: RootState) => state.panel[side].highlightId, [side])
+export function useSelectLastHighlightId(side: Side): string | undefined {
+  const selector = useCallback((state: RootState) => state.panel[side].lastHighlightId, [side])
   return useAppSelector(selector)
 }
 
@@ -84,14 +84,6 @@ export function useSelectFocusedPanelHasSelection(): boolean {
 export function useSelectFocusedPanelHasSingleSelection(): boolean {
   const selector = useCallback(
     (state: RootState) => state.panel[state.app.focusedSide].selectionIds.length === 1,
-    [],
-  )
-  return useAppSelector(selector)
-}
-
-export function useSelectFocusedPanelHasHighlight(): boolean {
-  const selector = useCallback(
-    (state: RootState) => state.panel[state.app.focusedSide].highlightId !== undefined,
     [],
   )
   return useAppSelector(selector)

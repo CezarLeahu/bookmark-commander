@@ -9,7 +9,7 @@ interface PanelState {
   breadcrumbs: BTN[]
   rows: BTN[]
   selectionIds: string[]
-  highlightId: string | undefined
+  lastHighlightId: string | undefined
 }
 
 const initialState: Pair<PanelState> = {
@@ -19,7 +19,7 @@ const initialState: Pair<PanelState> = {
     breadcrumbs: [],
     rows: [],
     selectionIds: [],
-    highlightId: undefined,
+    lastHighlightId: undefined,
   },
   right: {
     nodeId: '2',
@@ -27,7 +27,7 @@ const initialState: Pair<PanelState> = {
     breadcrumbs: [],
     rows: [],
     selectionIds: [],
-    highlightId: undefined,
+    lastHighlightId: undefined,
   },
 }
 
@@ -35,13 +35,10 @@ export const panelStateSlice = createSlice({
   name: 'currentNodeIds',
   initialState,
   reducers: {
-    updateNodeIdLeft: (state, { payload }: PayloadAction<string>) => {
-      state.left.nodeId = payload
-    },
-    updateNodeIdRight: (state, { payload }: PayloadAction<string>) => {
-      state.right.nodeId = payload
-    },
     updateNodeId: (state, { payload }: PayloadAction<{ side: Side; id: string }>) => {
+      if (state[payload.side].nodeId !== payload.id) {
+        state[payload.side].lastHighlightId = undefined
+      }
       state[payload.side].nodeId = payload.id
     },
     updateNode: (state, { payload }: PayloadAction<{ side: Side; node: BTN }>) => {
@@ -56,24 +53,22 @@ export const panelStateSlice = createSlice({
     updateSelection: (state, { payload }: PayloadAction<{ side: Side; ids: string[] }>) => {
       state[payload.side].selectionIds = payload.ids
     },
-    updateHighlight: (
+    updateLastHighlight: (
       state,
       { payload }: PayloadAction<{ side: Side; id: string | undefined }>,
     ) => {
-      state[payload.side].highlightId = payload.id
+      state[payload.side].lastHighlightId = payload.id
     },
   },
 })
 
 export const {
-  updateNodeIdLeft,
-  updateNodeIdRight,
   updateNodeId,
   updateNode,
   updateBreadcrumbs,
   updateRows,
   updateSelection,
-  updateHighlight,
+  updateLastHighlight,
 } = panelStateSlice.actions
 
 export default panelStateSlice.reducer

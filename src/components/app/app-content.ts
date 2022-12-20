@@ -3,11 +3,7 @@ import { Side, other } from '../../services/utils/types'
 import { focusLeft, focusRight, updateTopNodes } from '../../store/app-state-reducers'
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
 import { useCallback, useEffect } from 'react'
-import {
-  useSelectFocusedNodeId,
-  useSelectFocusedPanelSelectionIds,
-  useSelectOtherNodeId,
-} from '../../store/panel-state-hooks'
+import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
@@ -24,12 +20,6 @@ export function useLoadAppCommonStateEffect(): void {
       e => console.log(e),
     )
   }, [dispatch])
-}
-
-export function useLastSelectedIds(): () => string[] {
-  const ids = useSelectFocusedPanelSelectionIds()
-
-  return useCallback((): string[] => ids, [ids])
 }
 
 export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
@@ -103,10 +93,12 @@ export function usePanelHighlight(
   return usePairCallbacks(
     () => {
       panelRefs.right.current?.clearFocus()
+      panelRefs.left.current?.focus()
       dispatch(focusLeft())
     },
     () => {
       panelRefs.left.current?.clearFocus()
+      panelRefs.right.current?.focus()
       dispatch(focusRight())
     },
     [panelRefs.left, panelRefs.right],
