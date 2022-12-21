@@ -64,7 +64,6 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
-  useLoadPanelContentEffect(side)
 
   const dispatch = useAppDispatch()
   const highlighted = useSelectIsHighlighted(side)
@@ -132,6 +131,8 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     },
     [dispatch, side, highlighted, highlightOtherSide],
   )
+
+  useLoadPanelContentEffect(side)
 
   return (
     <Container

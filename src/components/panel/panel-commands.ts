@@ -63,7 +63,12 @@ export function usePanelHandlers(
         }
 
         const cell = api.getFocusedCell()
-        if (cell !== undefined && cell !== null && cell.rowIndex >= 0) {
+        if (
+          cell !== undefined &&
+          cell !== null &&
+          cell.rowIndex >= 0 &&
+          cell.rowIndex < api.getModel().getRowCount()
+        ) {
           api.setFocusedCell(cell.rowIndex, TITLE_COLUMN)
           api.ensureIndexVisible(cell.rowIndex)
           return

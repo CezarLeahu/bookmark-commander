@@ -7,7 +7,7 @@ import { useCallback } from 'react'
 
 export function useSelectAppOutdated(): object {
   const selector = useCallback((state: RootState) => state.app.outdated, [])
-  return useAppSelector(selector, shallowEqual)
+  return useAppSelector(selector, Object.is)
 }
 
 export function useSelectFocusedSide(): Side {
