@@ -32,7 +32,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
   const [title, setTitle] = useState<string>('')
   const [validTitle, setValidTitle] = useState<boolean>(true)
-  const [url, setUrl] = useState<string | undefined>()
+  const [url, setUrl] = useState<string>('')
   const [validUrl, setValidUrl] = useState<boolean>(isDir)
 
   useEffect(() => {
@@ -43,8 +43,8 @@ const EditDialog: React.FC<EditDialogProps> = ({
         setIsDir(isDirectory(n))
         setTitle(n.title)
         setValidTitle(true)
-        setUrl(n.url)
-        setValidUrl(n.url === undefined || n.url.length > 0)
+        setUrl(n.url ?? '')
+        setValidUrl(isDirectory(n) || (n.url !== undefined && n.url.length > 0))
       })
       .catch(e => console.log(e))
   }, [nodeId])
@@ -64,9 +64,9 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
   const handleConfirm = useCallback((): void => {
     if (node !== undefined && validTitle && validUrl) {
-      onConfirm({ ...node, title, url })
+      onConfirm({ ...node, title, url: isDir ? undefined : url })
     }
-  }, [onConfirm, node, title, url, validTitle, validUrl])
+  }, [onConfirm, isDir, node, title, url, validTitle, validUrl])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {

@@ -23,7 +23,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
   const [title, setTitle] = useState<string>('')
   const [validTitle, setValidTitle] = useState<boolean>(false)
 
-  const [url, setUrl] = useState<string | undefined>()
+  const [url, setUrl] = useState<string>('')
   const [validUrl, setValidUrl] = useState<boolean>(isDirectory)
 
   const handleTitleValidation = (
@@ -41,9 +41,9 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
 
   const handleConfirm = useCallback((): void => {
     if (validTitle && validUrl) {
-      onConfirm(title, url)
+      onConfirm(title, isDirectory ? undefined : url)
     }
-  }, [onConfirm, title, url, validTitle, validUrl])
+  }, [onConfirm, isDirectory, title, url, validTitle, validUrl])
 
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
