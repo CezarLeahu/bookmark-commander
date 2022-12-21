@@ -12,6 +12,7 @@ import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
 import { Side } from '../../services/utils/types'
+import { TITLE_COLUMN } from './panel-metadata'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useOpenHighlightedRow } from './panel-commands'
@@ -94,6 +95,21 @@ export function usePanelKeyListener(
     row.setSelected(!selected)
   }, [api, currentNode])
 
+  const handleKeyUpCapture = useCallback(
+    (e: KeyboardEvent): void => {
+      switch (e.key) {
+        case keys.UP: {
+          const index = api?.getFocusedCell()?.rowIndex ?? -1
+          if (index <= 0 && api !== undefined) {
+            e.stopImmediatePropagation()
+            api.setFocusedCell(0, TITLE_COLUMN)
+          }
+        }
+      }
+    },
+    [api],
+  )
+
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
       e.stopImmediatePropagation()
@@ -146,9 +162,11 @@ export function usePanelKeyListener(
     if (container === null) {
       return
     }
+    container.addEventListener(KEYUP, handleKeyUpCapture, { capture: true })
     container.addEventListener(KEYUP, handleKeyUp)
     return () => {
       container.removeEventListener(KEYUP, handleKeyUp)
+      container.removeEventListener(KEYUP, handleKeyUpCapture, { capture: true })
     }
-  }, [container, handleKeyUp, notifyGridReady])
+  }, [container, handleKeyUpCapture, handleKeyUp, notifyGridReady])
 }
