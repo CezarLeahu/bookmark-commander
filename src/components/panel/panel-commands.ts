@@ -65,18 +65,21 @@ export function usePanelHandlers(
         const cell = api.getFocusedCell()
         if (cell !== undefined && cell !== null && cell.rowIndex >= 0) {
           api.setFocusedCell(cell.rowIndex, TITLE_COLUMN)
+          api.ensureIndexVisible(cell.rowIndex)
           return
         }
 
         if (lastHighlightId !== undefined) {
           const index = api.getRowNode(lastHighlightId)?.rowIndex ?? 0
           api.setFocusedCell(index, TITLE_COLUMN)
+          api.ensureIndexVisible(index)
           return
         }
 
         const rows = api.getSelectedNodes()
         const index = rows.length === 0 ? 0 : rows[0].rowIndex ?? 0
         api.setFocusedCell(index, TITLE_COLUMN)
+        api.ensureIndexVisible(index)
       },
 
       clearSelection: (): void => {

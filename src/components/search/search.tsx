@@ -22,13 +22,13 @@ import SearchIcon from '@mui/icons-material/Search'
 import { getFaviconUrl } from '../../services/favicons/favicons'
 import { isDirectory } from '../../services/bookmarks/utils'
 import { search } from '../../services/bookmarks/commands'
+import { useJumpToParent } from '../app/app-content'
 
 export interface SearchProps {
-  onJumpTo: (node: BTN) => void
   goAway: () => void
 }
 
-const Search: React.FC<SearchProps> = ({ onJumpTo, goAway }: SearchProps) => {
+const Search: React.FC<SearchProps> = ({ goAway }: SearchProps) => {
   const [open, setOpen] = useState(false)
   const inputBoxEl = useRef<HTMLElement>(null)
   const inputEl = useRef<HTMLInputElement>(null)
@@ -40,8 +40,9 @@ const Search: React.FC<SearchProps> = ({ onJumpTo, goAway }: SearchProps) => {
   const [searchResults, setSearchResults] = useState<BTN[]>([])
   const focusedIndex = useRef<number>(-1)
 
+  const jumpToParent = useJumpToParent()
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    console.log('Searched for something...')
     setSearchValue(event.target.value)
     handleSearch(event.target.value)
   }
@@ -105,10 +106,7 @@ const Search: React.FC<SearchProps> = ({ onJumpTo, goAway }: SearchProps) => {
   }, [])
 
   const handleFocus = useCallback(
-    (event: FocusEvent<HTMLInputElement>): void => {
-      console.log('Focus on search...')
-      handleSearch(event.target.value)
-    },
+    (event: FocusEvent<HTMLInputElement>): void => handleSearch(event.target.value),
     [handleSearch],
   )
 
@@ -121,9 +119,9 @@ const Search: React.FC<SearchProps> = ({ onJumpTo, goAway }: SearchProps) => {
     (node: BTN): void => {
       setOpen(false)
       setSearchResults([])
-      onJumpTo(node)
+      jumpToParent(node)
     },
-    [onJumpTo],
+    [jumpToParent],
   )
 
   const handleListOnKeyUp = useCallback(

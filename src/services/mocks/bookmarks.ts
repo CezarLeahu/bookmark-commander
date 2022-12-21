@@ -179,6 +179,12 @@ export async function getChildren(id: string): Promise<BTN[]> {
 export async function search(query: string): Promise<BTN[]> {
   return [
     {
+      parentId: '1',
+      id: '7',
+      title: 'Link F',
+      url: 'https://link-f',
+    },
+    {
       id: '1',
       title: 'Rez 1',
     },
@@ -205,11 +211,6 @@ export async function search(query: string): Promise<BTN[]> {
       id: '6',
       title: 'Rez 6',
       url: 'https://rez.link.blu/foo/bar',
-    },
-    {
-      id: '7',
-      title: 'Rez 7',
-      url: 'https://rez.link.bla',
     },
     {
       id: '8',

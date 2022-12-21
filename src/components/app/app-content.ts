@@ -1,6 +1,11 @@
 import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import { focusLeft, focusRight, updateTopNodes } from '../../store/app-state-reducers'
+import {
+  focusLeft,
+  focusRight,
+  updateSearchResultSelection,
+  updateTopNodes,
+} from '../../store/app-state-reducers'
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
 import { useCallback, useEffect } from 'react'
 import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
@@ -71,17 +76,16 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
   )
 }
 
-export function useJumpToParent(panelRefs: PairRef<FolderPanelHandle | null>): (node: BTN) => void {
+export function useJumpToParent(): (node: BTN) => void {
   const dispatch = useAppDispatch()
   const focusedSide = useSelectFocusedSide()
 
   return useCallback(
     (node: BTN): void => {
-      console.log(`jump to directory ${node.parentId ?? '0'}`)
-      panelRefs[focusedSide].current?.setSelection([node.id])
       dispatch(updateNodeId({ side: focusedSide, id: node.parentId ?? '0' }))
+      dispatch(updateSearchResultSelection(node))
     },
-    [dispatch, panelRefs, focusedSide],
+    [dispatch, focusedSide],
   )
 }
 

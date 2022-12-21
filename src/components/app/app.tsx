@@ -1,11 +1,6 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import {
-  useJumpToParent,
-  useLoadAppCommonStateEffect,
-  usePanelHighlight,
-  useSelectionReset,
-} from './app-content'
+import { useLoadAppCommonStateEffect, usePanelHighlight, useSelectionReset } from './app-content'
 import { useMemo, useRef } from 'react'
 import {
   useSelectFocusedPanelHasSelection,
@@ -53,8 +48,6 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const jumpToParent = useJumpToParent(panelRefs)
-
   const highlight = usePanelHighlight(panelRefs)
 
   const resetCurrentSelection = useSelectionReset(panelRefs)
@@ -86,7 +79,7 @@ const App: React.FC = () => {
       sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}
     >
       <Box display='flex' justifyContent='center' alignItems='center'>
-        <Search onJumpTo={jumpToParent} goAway={() => panelAreaRef.current?.focus()} />
+        <Search goAway={() => panelAreaRef.current?.focus()} />
         <IconButton
           sx={{ ml: 1, justifySelf: 'right' }}
           onClick={themeContext.toggleColorMode}

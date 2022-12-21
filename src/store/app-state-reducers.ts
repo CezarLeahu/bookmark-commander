@@ -4,21 +4,28 @@ import { BTN } from '../services/bookmarks/types'
 import { Side } from '../services/utils/types'
 
 export interface AppState {
+  outdated: object
   focusedSide: Side
   topNodes: BTN[]
-  outdated: object
+  searchResultSelection: {
+    current: BTN | undefined
+  }
 }
 
 const initialState: AppState = {
+  outdated: {},
   focusedSide: 'left',
   topNodes: [],
-  outdated: {},
+  searchResultSelection: { current: undefined },
 }
 
 export const appStateSlice = createSlice({
   name: 'side',
   initialState,
   reducers: {
+    refreshApp: state => {
+      state.outdated = {}
+    },
     focusLeft: state => {
       state.focusedSide = 'left'
     },
@@ -31,13 +38,23 @@ export const appStateSlice = createSlice({
     updateTopNodes: (state, { payload }: PayloadAction<{ nodes: BTN[] }>) => {
       state.topNodes = payload.nodes
     },
-    refreshApp: state => {
-      state.outdated = {}
+    updateSearchResultSelection: (state, { payload }: PayloadAction<BTN>) => {
+      state.searchResultSelection.current = payload
+    },
+    clearSearchResultSelection: state => {
+      state.searchResultSelection.current = undefined
     },
   },
 })
 
-export const { focusLeft, focusRight, focusSide, refreshApp, updateTopNodes } =
-  appStateSlice.actions
+export const {
+  refreshApp,
+  focusLeft,
+  focusRight,
+  focusSide,
+  updateTopNodes,
+  updateSearchResultSelection,
+  clearSearchResultSelection,
+} = appStateSlice.actions
 
 export default appStateSlice.reducer
