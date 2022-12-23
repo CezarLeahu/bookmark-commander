@@ -1,7 +1,7 @@
 import * as keys from '../../services/utils/keys'
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import { KeyboardEvent, useCallback, useState } from 'react'
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { useKeyDownCallback } from './dialog-keys'
 
@@ -19,6 +19,8 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
   onCancel,
 }: CreateDialogProps) => {
   console.log('CreateDialog')
+
+  const ref = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState<string>('')
   const [validTitle, setValidTitle] = useState<boolean>(false)
@@ -58,6 +60,18 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
   )
   const handleKeyDown = useKeyDownCallback()
 
+  useEffect(() => {
+    ref.current?.focus()
+
+    const timeout = setTimeout(() => {
+      ref.current?.focus()
+    }, 100)
+
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [])
+
   return (
     <Dialog
       open={open}
@@ -73,7 +87,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
         <TextField
           id='name'
           autoFocus
-          inputRef={input => input?.focus()}
+          inputRef={ref}
           margin='dense'
           label='Name'
           type='text'

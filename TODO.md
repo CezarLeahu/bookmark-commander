@@ -1,18 +1,13 @@
 # Backlog
 
-- remove 'selectHighlightedRow'
+- one common method for setting the highlight/selection - On component ready most likely
 
-- remove Pair fetching from redux -> it always generates new objects
-- add custom hooks for the callbacks that depend on a 'side' arg
-- check all useAppSelect for shallowEquals
-- maybe join some of the state updates (e.g., the ones in loadPanelContent)
+- fix scroll to row on search
+
+- remove 'selectHighlightedRow'
 
 - rename gridApi
 - remove effects/callbacks on REFs
-
-- SPLIT FOCUS FROM SELECTION!!!
-
-- fix scroll to row on search
 
 - fix delete
 
@@ -22,12 +17,11 @@
 
 - handle case when selection exists, but no highlight - can we use keys - Up/Down
 
-- actually fix the ('goAway') focus on search cancelation
+- actually fix the ('goAway') focus on search cancellation
 - handle Ctrl+A key (or command)
 
 - Copy & Paste events
 
-- [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
 - [Extension] Check what else is needed to publish the extension
 - [Extension] Actually publish the extension
 - [Extension] Check if tabs permissions are needed - ask for them anyway
@@ -53,6 +47,15 @@
 -
 
 ## Done
+
+- focus input an new Dialog
+
+- [Extension] Redraw extension icon in Paint (as PNG) to avoid any copyright issues
+
+- remove Pair fetching from redux -> it always generates new objects
+- add custom hooks for the callbacks that depend on a 'side' arg
+- check all useAppSelect for shallowEquals
+- maybe join some of the state updates (e.g., the ones in loadPanelContent)
 
 - on empty dirs disable the buttons (when the highlighted row is the parent)
 

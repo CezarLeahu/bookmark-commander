@@ -1,7 +1,7 @@
 import * as keys from '../../services/utils/keys'
 
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
-import { KeyboardEvent, useCallback, useEffect, useState } from 'react'
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { getNode } from '../../services/bookmarks/queries'
@@ -27,6 +27,8 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
   console.log(`EditDialog - id: ${nodeId}`)
 
+  const ref = useRef<HTMLInputElement>(null)
+
   const [node, setNode] = useState<BTN>()
   const [isDir, setIsDir] = useState(false)
 
@@ -45,6 +47,15 @@ const EditDialog: React.FC<EditDialogProps> = ({
         setValidTitle(true)
         setUrl(n.url ?? '')
         setValidUrl(isDirectory(n) || (n.url !== undefined && n.url.length > 0))
+        ref.current?.focus()
+
+        const timeout = setTimeout(() => {
+          ref.current?.focus()
+        }, 100)
+
+        return () => {
+          clearTimeout(timeout)
+        }
       })
       .catch(e => console.log(e))
   }, [nodeId])
@@ -94,7 +105,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
         <TextField
           id='name'
           autoFocus
-          inputRef={input => input?.focus()}
+          inputRef={ref}
           margin='dense'
           label='Name'
           type='text'
