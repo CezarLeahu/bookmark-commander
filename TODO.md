@@ -4,18 +4,9 @@
 
 - fix scroll to row on search
 
-- remove 'selectHighlightedRow'
-
-- rename gridApi
 - remove effects/callbacks on REFs
 
 - fix delete
-
-- consider handling row de-selection (regardless of highlighting) - onClick prevent default?
-
-- handle 'Enter' on '..' parent dir (when highlighted)
-
-- handle case when selection exists, but no highlight - can we use keys - Up/Down
 
 - actually fix the ('goAway') focus on search cancellation
 - handle Ctrl+A key (or command)
@@ -47,6 +38,14 @@
 -
 
 ## Done
+
+- handle case when selection exists, but no highlight - can we use keys - Up/Down
+
+- handle 'Enter' on '..' parent dir (when highlighted)
+
+- consider handling row de-selection (regardless of highlighting) - onClick prevent default?
+
+- remove 'selectHighlightedRow'
 
 - focus input an new Dialog
 
@@ -124,6 +123,8 @@
 - Use the currently-selected side as the target for opening up _Directory_ search results
 
 ## Scrapped
+
+- rename gridApi
 
 - add context menu's ("Open in new tab", "Open all in new tab", "Rename", "Edit bookmark...", "Delete...")
 

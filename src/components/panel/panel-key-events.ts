@@ -52,28 +52,6 @@ export function usePanelKeyListener(
 
   const openHighlightedRow = useOpenHighlightedRow(api, side)
 
-  const selectHighlightedRow: () => boolean = useCallback((): boolean => {
-    if (api === undefined || currentNode?.parentId === undefined) {
-      return false
-    }
-    const rowIndex = api.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0 || rowIndex < 0) {
-      return false
-    }
-
-    const row = api?.getModel().getRow(rowIndex)
-    if (row === undefined || row.id === undefined) {
-      return false
-    }
-
-    if (row.id === currentNode?.parentId) {
-      return false
-    }
-
-    row.setSelected(true)
-    return true
-  }, [api, currentNode])
-
   const toggleHighlightedRowSelection: () => void = useCallback((): void => {
     if (api === undefined || currentNode?.parentId === undefined) {
       return
@@ -121,15 +99,11 @@ export function usePanelKeyListener(
           break
         }
         case keys.F2: {
-          if (selectHighlightedRow()) {
-            openDialogActions.openEdit()
-          }
+          openDialogActions.openEdit()
           break
         }
         case keys.DELETE: {
-          if (selectHighlightedRow()) {
-            openDialogActions.openDelete()
-          }
+          openDialogActions.openDelete()
           break
         }
         case keys.SPACE: {
@@ -153,7 +127,6 @@ export function usePanelKeyListener(
       openDialogActions,
       highlightOtherSide,
       openHighlightedRow,
-      selectHighlightedRow,
       toggleHighlightedRowSelection,
     ],
   )
