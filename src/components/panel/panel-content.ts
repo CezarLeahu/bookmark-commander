@@ -62,16 +62,20 @@ export function useComponenetStateChangedHandler(
         return
       }
 
-      if (highlighted && searchResultSelection.current !== undefined) {
-        dispatch(clearSearchResultSelection())
-
-        const row = event.api.getRowNode(searchResultSelection.current.id)
-        if (row === undefined) {
-          return
-        }
-        event.api.setFocusedCell(row.rowIndex ?? 0, TITLE_COLUMN)
-        event.api.ensureNodeVisible(row)
-        row.setSelected(true)
+      if (searchResultSelection.current !== undefined) {
+        setTimeout(() => {
+          if (searchResultSelection.current === undefined) {
+            return
+          }
+          dispatch(clearSearchResultSelection())
+          const row = event.api.getRowNode(searchResultSelection.current.id)
+          if (row === undefined) {
+            return
+          }
+          event.api.setFocusedCell(row.rowIndex ?? 0, TITLE_COLUMN)
+          event.api.ensureNodeVisible(row)
+          row.setSelected(true)
+        }, 100)
         return
       }
 
