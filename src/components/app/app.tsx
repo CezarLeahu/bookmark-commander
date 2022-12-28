@@ -176,7 +176,7 @@ const App: React.FC = () => {
       {editDialog.open ? (
         <EditDialog
           open={editDialog.open}
-          nodeId={panelRefs[focusedSide].current?.getSelectedNodeIds()[0]}
+          side={focusedSide}
           onConfirm={editDialog.handleConfirm}
           onCancel={editDialog.handleClose}
         />
@@ -187,7 +187,7 @@ const App: React.FC = () => {
       {deleteDialog.open ? (
         <DeleteConfirmationDialog
           open={deleteDialog.open}
-          nodeIds={panelRefs[focusedSide].current?.getSelectedNodeIds() ?? []}
+          side={focusedSide}
           onConfirm={deleteDialog.handleConfirm}
           onCancel={deleteDialog.handleClose}
         />

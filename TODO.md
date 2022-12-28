@@ -1,8 +1,9 @@
 # Backlog
 
-- one common method for setting the highlight/selection - On component ready most likely
+- moving of element should result in the element remaining selected
+- after deletion the focus should go a nearby row
 
-- fix scroll to row on search
+- one common method for setting the highlight/selection - On component ready most likely
 
 - remove effects/callbacks on REFs
 
@@ -38,6 +39,10 @@
 -
 
 ## Done
+
+- delete non-empty folders has enabled 'Yes' button
+
+- fix scroll to row on search
 
 - handle case when selection exists, but no highlight - can we use keys - Up/Down
 

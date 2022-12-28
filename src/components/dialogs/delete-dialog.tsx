@@ -12,8 +12,10 @@ import { KeyboardEvent, useCallback, useEffect, useState } from 'react'
 import { containsNonEmptyDirectories, isDirectory } from '../../services/bookmarks/utils'
 
 import { BTN } from '../../services/bookmarks/types'
+import { Side } from '../../services/utils/types'
 import { getNodesWithImmediateChildren } from '../../services/bookmarks/queries'
 import { useKeyDownCallback } from './dialog-keys'
+import { useSelectSelectionIds } from '../../store/panel-state-hooks'
 
 const dialogTitleAndMessage = (nodes: BTN[], nonEmptyDirs: boolean): [string, string] => {
   if (nodes.length !== 1) {
@@ -39,14 +41,14 @@ const dialogTitleAndMessage = (nodes: BTN[], nonEmptyDirs: boolean): [string, st
 
 interface DeleteConfirmationDialogProps {
   readonly open: boolean
-  readonly nodeIds: string[]
+  readonly side: Side
   onConfirm: () => void
   onCancel: () => void
 }
 
 const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   open,
-  nodeIds,
+  side,
   onConfirm,
   onCancel,
 }: DeleteConfirmationDialogProps) => {
@@ -55,6 +57,8 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
     'Delete items?',
   ])
   const [nonEmptyDirs, setNonEmptyDirs] = useState<boolean>(false)
+
+  const nodeIds = useSelectSelectionIds(side)
 
   useEffect(() => {
     getNodesWithImmediateChildren(nodeIds)

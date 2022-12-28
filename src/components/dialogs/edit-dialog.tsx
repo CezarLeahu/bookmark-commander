@@ -4,23 +4,27 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } 
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
+import { Side } from '../../services/utils/types'
 import { getNode } from '../../services/bookmarks/queries'
 import { isDirectory } from '../../services/bookmarks/utils'
 import { useKeyDownCallback } from './dialog-keys'
+import { useSelectSelectionIds } from '../../store/panel-state-hooks'
 
 interface EditDialogProps {
   readonly open: boolean
-  readonly nodeId?: string
+  readonly side: Side
   onConfirm: (node: BTN) => void
   onCancel: () => void
 }
 
 const EditDialog: React.FC<EditDialogProps> = ({
   open,
-  nodeId,
+  side,
   onConfirm,
   onCancel,
 }: EditDialogProps) => {
+  const nodeId = useSelectSelectionIds(side)[0]
+
   if (nodeId === undefined) {
     throw new Error('The "nodeId" argument should never be undefined')
   }

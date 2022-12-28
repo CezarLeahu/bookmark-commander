@@ -15,7 +15,6 @@ import { useSelectIsHighlighted } from '../../store/app-state-hooks'
 
 export interface FolderPanelHandle {
   readonly renameCell: (id: string | undefined) => void
-  readonly getSelectedNodeIds: () => string[]
   readonly clearFocus: () => void
   readonly focus: () => void
   readonly clearSelection: () => void
@@ -42,8 +41,6 @@ export function usePanelHandlers(
   const highlighted = useSelectIsHighlighted(side)
   const lastHighlightId = useSelectLastHighlightId(side)
 
-  const getSelectedNodeIds = selectedNodeIdsProvider(api, currentNode)
-
   useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
     () => ({
@@ -52,8 +49,6 @@ export function usePanelHandlers(
           startCellEdit(api, id)
         }
       },
-
-      getSelectedNodeIds,
 
       clearFocus: (): void => api?.clearFocusedCell(),
 
@@ -113,25 +108,8 @@ export function usePanelHandlers(
         api.ensureNodeVisible(rows[0])
       },
     }),
-    [api, highlighted, lastHighlightId, currentNode, getSelectedNodeIds],
+    [api, highlighted, lastHighlightId, currentNode],
   )
-}
-
-export function selectedNodeIdsProvider(
-  api: GridApi<BTN> | undefined,
-  currentNode: BTN | undefined,
-): () => string[] {
-  return (): string[] => {
-    if (currentNode?.parentId === undefined) {
-      return []
-    }
-    return (
-      api
-        ?.getSelectedRows()
-        .filter(r => r.index !== 0)
-        .map(r => r.id) ?? []
-    )
-  }
 }
 
 export function useOpenHighlightedRow(api: GridApi | undefined, side: Side): () => void {
