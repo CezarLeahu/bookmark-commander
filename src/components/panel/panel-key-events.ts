@@ -105,6 +105,15 @@ export function usePanelKeyListener(
         case keys.BACKSPACE: {
           if (currentNode?.parentId !== undefined) {
             dispatch(updateNodeId({ side, id: currentNode.parentId }))
+            setTimeout(() => {
+              if (api === undefined) {
+                return
+              }
+              const index = api.getRowNode(currentNode.id)?.rowIndex ?? undefined
+              if (index !== undefined) {
+                api.setFocusedCell(index, TITLE_COLUMN)
+              }
+            }, 100)
           }
           break
         }

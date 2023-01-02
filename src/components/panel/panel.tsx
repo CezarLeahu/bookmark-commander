@@ -80,7 +80,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const navigation = useNavigation(side)
 
-  const clickHandlers = useGridClickHandlers(side)
+  const clickHandlers = useGridClickHandlers(side, gridApi.current)
 
   const handleGridReady = useGridReadyHandle(notifyGridReady, gridApi)
 
