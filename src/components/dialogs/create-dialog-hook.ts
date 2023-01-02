@@ -1,11 +1,14 @@
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
 import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useState } from 'react'
+import {
+  useSelectFocusedNodeId,
+  useSelectFocusedPanelInRootDir,
+} from '../../store/panel-state-hooks'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
 import { useAppDispatch } from '../../store/hooks'
-import { useSelectFocusedNodeId } from '../../store/panel-state-hooks'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface CreateDialogState {
@@ -22,6 +25,7 @@ export function useCreateDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const dispatch = useAppDispatch()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedSide = useSelectFocusedSide()
   const focusedNodeId = useSelectFocusedNodeId()
 
@@ -37,9 +41,17 @@ export function useCreateDialogState(
       [bookmarkOpen, directoryOpen],
     ),
 
-    handleBookmarkOpen: useCallback((): void => setBookmarkOpen(true), []),
+    handleBookmarkOpen: useCallback((): void => {
+      if (!focusedPanelInRootDir) {
+        setBookmarkOpen(true)
+      }
+    }, [focusedPanelInRootDir]),
 
-    handleDirectoryOpen: useCallback((): void => setDirectoryOpen(true), []),
+    handleDirectoryOpen: useCallback((): void => {
+      if (!focusedPanelInRootDir) {
+        setDirectoryOpen(true)
+      }
+    }, [focusedPanelInRootDir]),
 
     handleConfirm: useCallback(
       (title: string, url?: string): void => {

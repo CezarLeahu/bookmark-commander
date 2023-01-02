@@ -1,5 +1,9 @@
 import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useState } from 'react'
+import {
+  useSelectFocusedPanelHasSingleSelection,
+  useSelectFocusedPanelInRootDir,
+} from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
@@ -17,6 +21,8 @@ interface EditDialogState {
 
 export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>): EditDialogState {
   const dispatch = useAppDispatch()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
+  const focusedPanelHasSingleSelection = useSelectFocusedPanelHasSingleSelection()
   const focusedSide = useSelectFocusedSide()
 
   const [open, setOpen] = useState(false)
@@ -24,7 +30,11 @@ export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>)
   return {
     open,
 
-    handleOpen: useCallback((): void => setOpen(true), []),
+    handleOpen: useCallback((): void => {
+      if (!focusedPanelInRootDir && focusedPanelHasSingleSelection) {
+        setOpen(true)
+      }
+    }, [focusedPanelInRootDir, focusedPanelHasSingleSelection]),
 
     handleConfirm: useCallback(
       (node: BTN): void => {

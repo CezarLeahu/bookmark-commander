@@ -177,11 +177,24 @@ export function useGridReadyHandle(
 
 export function useHighlightPanelOnClick(
   side: Side,
+  api: GridApi<BTN> | undefined,
   container: HTMLDivElement | null,
   notifyGridReady: (params: GridReadyEvent) => void,
 ): void {
   const dispatch = useAppDispatch()
-  const highlightSide = useCallback(() => dispatch(focusSide(side)), [dispatch, side])
+
+  const highlightSide = useCallback(() => {
+    dispatch(focusSide(side))
+
+    if (api === undefined) {
+      return
+    }
+    // reselect cell in case the mouse click event is not on a top of a grid row/cell
+    const index: number = api.getFocusedCell()?.rowIndex ?? -1
+    if (index >= 0) {
+      api.setFocusedCell(index, TITLE_COLUMN)
+    }
+  }, [dispatch, api, side])
 
   useEffect(() => {
     if (container === null) {

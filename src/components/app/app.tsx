@@ -1,6 +1,6 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import { useMemo, useRef } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import {
   useSelectFocusedPanelHasSelection,
   useSelectFocusedPanelHasSingleSelection,
@@ -66,6 +66,13 @@ const App: React.FC = () => {
 
   useLoadAppCommonStateEffect()
 
+  const moveItemsBetweenPanels: () => void = useCallback(() => {
+    if (sameNodeIds || !focusedPanelHasSelection) {
+      return
+    }
+    handleMoveBetweenPanels()
+  }, [sameNodeIds, focusedPanelHasSelection, handleMoveBetweenPanels])
+
   return (
     <Container
       maxWidth={false}
@@ -96,6 +103,7 @@ const App: React.FC = () => {
             side={'left'}
             notifyGridReady={handleGridReadyLeft}
             openDialogActions={dialogActions}
+            moveItemsBetweenPanels={moveItemsBetweenPanels}
           />
         </Grid>
 
@@ -105,6 +113,7 @@ const App: React.FC = () => {
             side={'right'}
             notifyGridReady={handleGridReadyRight}
             openDialogActions={dialogActions}
+            moveItemsBetweenPanels={moveItemsBetweenPanels}
           />
         </Grid>
       </Grid>
@@ -116,10 +125,10 @@ const App: React.FC = () => {
           </Button>
 
           <Button onClick={createDialog.handleDirectoryOpen} disabled={focusedPanelInRootDir}>
-            New Folder
+            New Folder (F1)
           </Button>
           <Button disabled={!focusedPanelHasSingleSelection} onClick={editDialog.handleOpen}>
-            Edit
+            Edit (F2)
           </Button>
           <Button
             disabled={sameNodeIds}
@@ -137,7 +146,7 @@ const App: React.FC = () => {
             disabled={sameNodeIds || !focusedPanelHasSelection}
             onClick={handleMoveBetweenPanels}
           >
-            Move
+            Move (F6)
           </Button>
           <Button disabled={!focusedPanelHasSelection} onClick={handleMoveUp}>
             Move Up ({'\u2191'})
@@ -146,7 +155,7 @@ const App: React.FC = () => {
             Move Down ({'\u2193'})
           </Button>
           <Button disabled={!focusedPanelHasSelection} onClick={deleteDialog.handleOpen}>
-            Delete
+            Delete (F8)
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>
         </ButtonGroup>

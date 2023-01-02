@@ -52,6 +52,7 @@ export interface FolderPanelProps {
   readonly side: Side
   readonly notifyGridReady: (params: GridReadyEvent) => void
   readonly openDialogActions: OpenDialogActions
+  readonly moveItemsBetweenPanels: () => void
 }
 
 export interface OpenDialogActions {
@@ -62,7 +63,7 @@ export interface OpenDialogActions {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  { side, notifyGridReady, openDialogActions }: FolderPanelProps,
+  { side, notifyGridReady, openDialogActions, moveItemsBetweenPanels }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
@@ -87,7 +88,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   usePanelHandlers(side, ref, gridApi.current)
 
-  useHighlightPanelOnClick(side, containerRef.current, notifyGridReady)
+  useHighlightPanelOnClick(side, gridApi.current, containerRef.current, notifyGridReady)
 
   usePanelKeyListener(
     side,
@@ -95,6 +96,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     gridApi.current,
     notifyGridReady,
     openDialogActions,
+    moveItemsBetweenPanels,
   )
   usePanelMouseListener(side, containerRef.current, navigation)
 
@@ -115,7 +117,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     [dispatch, side],
   )
 
-  const lasthighlightId = useSelectLastHighlightId(side)
+  const lastHighlightId = useSelectLastHighlightId(side)
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
       const cell = event.api.getFocusedCell()
@@ -126,12 +128,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
         }
 
         const id = event.api.getModel().getRow(cell.rowIndex)?.id
-        if (id !== undefined && id !== lasthighlightId) {
+        if (id !== undefined && id !== lastHighlightId) {
           dispatch(updateLastHighlight({ side, id }))
         }
       }
     },
-    [dispatch, side, lasthighlightId],
+    [dispatch, side, lastHighlightId],
   )
 
   useEffect(() => {
@@ -140,14 +142,14 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
       return
     }
 
-    if (lasthighlightId !== undefined && gridApi.current?.getFocusedCell() === null) {
-      const row = gridApi.current?.getRowNode(lasthighlightId)
+    if (lastHighlightId !== undefined && gridApi.current?.getFocusedCell() === null) {
+      const row = gridApi.current?.getRowNode(lastHighlightId)
       if (row === undefined || row.rowIndex === null) {
         return
       }
       gridApi.current?.setFocusedCell(row.rowIndex, TITLE_COLUMN)
     }
-  }, [highlighted, lasthighlightId])
+  }, [highlighted, lastHighlightId])
 
   useLoadPanelContentEffect(side)
 

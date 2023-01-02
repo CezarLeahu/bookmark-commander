@@ -46,6 +46,7 @@ export function usePanelKeyListener(
   api: GridApi<BTN> | undefined,
   notifyGridReady: (params: GridReadyEvent) => void,
   openDialogActions: OpenDialogActions,
+  moveItemsBetweenPanels: () => void,
 ): void {
   const dispatch = useAppDispatch()
   const currentNode = useSelectNode(side)
@@ -91,6 +92,15 @@ export function usePanelKeyListener(
   const handleKeyUp = useCallback(
     (e: KeyboardEvent): void => {
       e.stopImmediatePropagation()
+      if (e.metaKey || e.altKey || e.shiftKey) {
+        return
+      }
+      if (e.ctrlKey) {
+        if (e.key === keys.A || e.key === keys.a) {
+          api?.selectAll()
+        }
+        return
+      }
       switch (e.key) {
         case keys.BACKSPACE: {
           if (currentNode?.parentId !== undefined) {
@@ -98,10 +108,20 @@ export function usePanelKeyListener(
           }
           break
         }
+        case keys.F1: {
+          openDialogActions.openNewDirectory()
+          break
+        }
         case keys.F2: {
           openDialogActions.openEdit()
           break
         }
+        case keys.F5:
+        case keys.F6: {
+          moveItemsBetweenPanels()
+          break
+        }
+        case keys.F8:
         case keys.DELETE: {
           openDialogActions.openDelete()
           break
@@ -122,11 +142,13 @@ export function usePanelKeyListener(
     },
     [
       dispatch,
+      api,
       side,
       currentNode,
       openDialogActions,
       openHighlightedRow,
       toggleHighlightedRowSelection,
+      moveItemsBetweenPanels,
     ],
   )
 

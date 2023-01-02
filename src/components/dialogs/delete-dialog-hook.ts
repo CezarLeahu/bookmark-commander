@@ -2,6 +2,7 @@ import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useState } from 'react'
 import {
   useSelectFocusedNodeId,
+  useSelectFocusedPanelInRootDir,
   useSelectFocusedPanelSelectionIds,
   useSelectOtherNodeId,
 } from '../../store/panel-state-hooks'
@@ -26,6 +27,7 @@ export function useDeleteDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const dispatch = useAppDispatch()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedSide = useSelectFocusedSide()
   const nodeId = useSelectFocusedNodeId()
   const otherNodeId = useSelectOtherNodeId()
@@ -40,11 +42,11 @@ export function useDeleteDialogState(
     open,
 
     handleOpen: useCallback((): void => {
-      if (selectedIds.length > 0) {
+      if (!focusedPanelInRootDir && selectedIds.length > 0) {
         setOpen(true)
         setNearbyRowId(panelRefs[focusedSide].current?.retrieveRowIdNearSelection())
       }
-    }, [panelRefs, selectedIds, focusedSide]),
+    }, [panelRefs, focusedPanelInRootDir, selectedIds, focusedSide]),
 
     handleConfirm: useCallback((): void => {
       if (selectedIds.length === 0) {
