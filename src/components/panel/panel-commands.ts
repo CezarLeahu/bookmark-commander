@@ -1,24 +1,22 @@
 import { CellEditRequestEvent, GridApi, GridReadyEvent, RowNode } from 'ag-grid-community'
+import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useEffect, useImperativeHandle } from 'react'
-import { useSelectLastHighlightId, useSelectNode } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { MOUSEUP } from '../../services/utils/events'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { openInNewTab } from '../../services/tabs/tabs'
-import { refreshApp } from '../../store/app-state-reducers'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { updateTitle } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
-import { useSelectIsHighlighted } from '../../store/app-state-hooks'
+import { useSelectNode } from '../../store/panel-state-hooks'
 
 export interface FolderPanelHandle {
-  readonly renameCell: (id: string | undefined) => void
   readonly clearFocus: () => void
-  readonly focus: () => void
+  readonly focus: (id?: string | undefined) => void
   readonly clearSelection: () => void
-  readonly setSelection: (ids: string[]) => void
+  readonly select: (ids: string[]) => void
 }
 
 const startCellEdit = (api: GridApi<BTN>, id: string): void => {
@@ -38,8 +36,6 @@ export function usePanelHandlers(
   api: GridApi<BTN> | undefined,
 ): void {
   const currentNode = useSelectNode(side)
-  const highlighted = useSelectIsHighlighted(side)
-  const lastHighlightId = useSelectLastHighlightId(side)
 
   useImperativeHandle<FolderPanelHandle, FolderPanelHandle>(
     ref,
@@ -52,8 +48,17 @@ export function usePanelHandlers(
 
       clearFocus: (): void => api?.clearFocusedCell(),
 
-      focus: (): void => {
+      // only called after Move or after Drag&Drop between panels
+      focus: (id: string | undefined = undefined): void => {
         if (api === undefined) {
+          return
+        }
+        if (id !== undefined) {
+          const row = api.getRowNode(id)
+          if (row === undefined || row.rowIndex === null) {
+            return
+          }
+          api.setFocusedCell(row.rowIndex, TITLE_COLUMN)
           return
         }
 
@@ -65,50 +70,32 @@ export function usePanelHandlers(
           cell.rowIndex < api.getModel().getRowCount()
         ) {
           api.setFocusedCell(cell.rowIndex, TITLE_COLUMN)
-          api.ensureIndexVisible(cell.rowIndex)
-          return
-        }
-
-        if (lastHighlightId !== undefined) {
-          const index = api.getRowNode(lastHighlightId)?.rowIndex ?? 0
-          api.setFocusedCell(index, TITLE_COLUMN)
-          api.ensureIndexVisible(index)
           return
         }
 
         const rows = api.getSelectedNodes()
         const index = rows.length === 0 ? 0 : rows[0].rowIndex ?? 0
         api.setFocusedCell(index, TITLE_COLUMN)
-        api.ensureIndexVisible(index)
       },
 
       clearSelection: (): void => {
-        api?.clearFocusedCell()
         api?.deselectAll()
       },
 
-      setSelection: (ids: string[]): void => {
+      select: (ids: string[]): void => {
         if (api === undefined || currentNode?.parentId === undefined) {
           return
         }
         api.deselectAll()
 
-        const rows = ids
+        ids
           .map(id => api.getRowNode(id))
           .filter(n => n !== undefined && n.id !== currentNode.parentId)
           .map(n => n as RowNode<BTN>)
-
-        rows.forEach(n => n.setSelected(true))
-
-        if (rows.length === 0 || !highlighted) {
-          return
-        }
-
-        api.setFocusedCell(rows[0].rowIndex ?? 0, TITLE_COLUMN)
-        api.ensureNodeVisible(rows[0])
+          .forEach(n => n.setSelected(true))
       },
     }),
-    [api, highlighted, lastHighlightId, currentNode],
+    [api, currentNode],
   )
 }
 
@@ -180,10 +167,13 @@ export function useGridReadyHandle(
 }
 
 export function useHighlightPanelOnClick(
+  side: Side,
   container: HTMLDivElement | null,
-  highlightSide: () => void,
   notifyGridReady: (params: GridReadyEvent) => void,
 ): void {
+  const dispatch = useAppDispatch()
+  const highlightSide = useCallback(() => dispatch(focusSide(side)), [dispatch, side])
+
   useEffect(() => {
     if (container === null) {
       return

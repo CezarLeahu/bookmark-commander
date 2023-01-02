@@ -1,6 +1,5 @@
 import { Box, Button, ButtonGroup, Container, Grid, IconButton } from '@mui/material'
 import FolderPanel, { OpenDialogActions } from '../panel/panel'
-import { useLoadAppCommonStateEffect, usePanelHighlight, useSelectionReset } from './app-content'
 import { useMemo, useRef } from 'react'
 import {
   useSelectFocusedPanelHasSelection,
@@ -25,6 +24,7 @@ import { useDeleteDialogState } from '../dialogs/delete-dialog-hook'
 import { useDocumentKeyListener } from './app-key-events'
 import { useDragAndDropPanelBinder } from './app-drag-and-drop-panel-binders'
 import { useEditDialogState } from '../dialogs/edit-dialog-hook'
+import { useLoadAppCommonStateEffect } from './app-content'
 import { useMoveHandlers } from './app-move-button-handlers'
 import { usePairRef } from '../../services/utils/hooks'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
@@ -48,12 +48,9 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const highlight = usePanelHighlight(panelRefs)
-
-  const resetCurrentSelection = useSelectionReset(panelRefs)
-  const createDialog = useCreateDialogState(resetCurrentSelection, panelRefs)
-  const editDialog = useEditDialogState(resetCurrentSelection, panelRefs)
-  const deleteDialog = useDeleteDialogState(resetCurrentSelection, panelRefs)
+  const createDialog = useCreateDialogState(panelRefs)
+  const editDialog = useEditDialogState(panelRefs)
+  const deleteDialog = useDeleteDialogState(panelRefs)
   const dialogActions = useMemo<OpenDialogActions>(() => {
     return {
       openNewBookmark: createDialog.handleBookmarkOpen,
@@ -63,12 +60,9 @@ const App: React.FC = () => {
     }
   }, [createDialog, editDialog, deleteDialog])
 
-  const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(
-    panelRefs,
-    highlight,
-  )
+  const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(panelRefs)
 
-  useDocumentKeyListener(panelAreaRef.current, highlight)
+  useDocumentKeyListener(panelAreaRef.current)
 
   useLoadAppCommonStateEffect()
 
@@ -100,8 +94,6 @@ const App: React.FC = () => {
           <FolderPanel
             ref={panelRefs.left}
             side={'left'}
-            highlightSide={highlight.left}
-            highlightOtherSide={highlight.right}
             notifyGridReady={handleGridReadyLeft}
             openDialogActions={dialogActions}
           />
@@ -111,8 +103,6 @@ const App: React.FC = () => {
           <FolderPanel
             ref={panelRefs.right}
             side={'right'}
-            highlightSide={highlight.right}
-            highlightOtherSide={highlight.left}
             notifyGridReady={handleGridReadyRight}
             openDialogActions={dialogActions}
           />

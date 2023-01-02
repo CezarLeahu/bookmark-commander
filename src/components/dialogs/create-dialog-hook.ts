@@ -6,6 +6,7 @@ import { PairRef } from '../../services/utils/hooks'
 import { refreshApp } from '../../store/app-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedNodeId } from '../../store/panel-state-hooks'
+import { useSelectionReset } from '../app/app-content'
 
 interface CreateDialogState {
   bookmarkOpen: boolean
@@ -18,11 +19,12 @@ interface CreateDialogState {
 }
 
 export function useCreateDialogState(
-  resetCurrentSelection: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const dispatch = useAppDispatch()
   const focusedNodeId = useSelectFocusedNodeId()
+
+  const resetCurrentSelection = useSelectionReset(panelRefs)
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -64,6 +66,8 @@ export function useCreateDialogState(
               setBookmarkOpen(false)
               setDirectoryOpen(false)
               dispatch(refreshApp())
+
+              // todo clear highlight&selection + dispatch updateLastHighlight to new node
               resetCurrentSelection()
             })
             .catch(e => console.log(e))
@@ -73,6 +77,8 @@ export function useCreateDialogState(
               setBookmarkOpen(false)
               setDirectoryOpen(false)
               dispatch(refreshApp())
+
+              // todo clear highlight&selection + dispatch updateLastHighlight to new node
               resetCurrentSelection()
             })
             .catch(e => console.log(e))

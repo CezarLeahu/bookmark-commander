@@ -1,9 +1,11 @@
 # Backlog
 
-- moving of element should result in the element remaining selected
+- TODO: highlight row after edit/create confirmation or cancelation
+- TODO: highlight nearby row after delete confirmation or same old row on cancelation
+
 - after deletion the focus should go a nearby row
 
-- one common method for setting the highlight/selection - On component ready most likely
+- one common method for setting the highlight/selection - for Move/DnD/Dialog result
 
 - remove effects/callbacks on REFs
 
@@ -14,31 +16,71 @@
 
 - Copy & Paste events
 
+- replace resetSelection... with actual panelRefs calls
+
 - [Extension] Check what else is needed to publish the extension
 - [Extension] Actually publish the extension
 - [Extension] Check if tabs permissions are needed - ask for them anyway
 
-# EVENTS
+# Normal flow of events
 
-## Create
+1. API/Mouse/Key triggers
+2. onFocusedCell/onSelectionChanged events -> update AG grid + update Redux state
+3. onComponentReady -> ensure everything is ok
 
-## Edit
+Also:
 
-## Delete
+- focus()/clearFocus() calls need to be tied to the panel **side** focus (especially the former)
+- recheck all 'clearFocus'
+- select() calls need to be decoupled from all highlight/focus actions
+- move actions (all 3) must _update highlight_
+- dnd actions (all 3) must _update highlight_
+- check 'useSelectionReset' - check if clear focus is needed as well - since now selection was decoupled from focus
+- ensure focused row is also set when selection is changed - if needed
+- check if focus needs to be reset after dialogs
 
-## JumpTo (Search)
+## Selection - independent&separate from Focus/Highlight
 
-## OnSelect (panel)
+- Mouse Selection Event
+- Key Selection Event
+- AG api.setSelection
+  - -> onSelectionChanged -> updatePanelState (Redux) -> componenetStateChangedHandler
 
-## OnKeyUp (panel)
+## Highlight - depends on app side Focus/Highlight
+
+- Mouse Highlight Event
+- Key Highlight Event
+- AG api.setFocusedCell
+  - -> onCellFocused
+    1. -> updatePanelState (Redux) -> componenetStateChangedHandler
+    2. -> updateAppState (Redux) -> componenetStateChangedHandler
+- key events: Up, Down, Left, Right, Backspace, Enter, Delete, F2, Tab
+- key events on Dialogs: Escape, Enter, Tab
+- key events on Search: Escape, Up, Down, Enter, Escape (while in dropdown list)
+- mouse events:
+  - select, deselect
+  - drag-and-drop same panel, drag-and-drop between panels
+  - dnd single element, dnd multiple elements
+  - double click on Dir, double click on bookmark
+  - M3 on single element (highlighted)
+  - M3 on multiple selected elements
+  - M3 on element when other elements selected (do nothing)
 
 # TESTS
 
 - check search item "enter"
   - target highlighted and selected
--
+- check DND selection & highlight
+- check move buttons selection & highlight
+- check focus on new dialogs
+- check selection/highlight afer dialog Ok/Cancel
 
 ## Done
+
+- onMove or on DND between panels lastHighlightId (in the source panel) should be cleared - it no longer exists
+- moving of element should result in the element remaining selected
+- on Move events: fix Selection, fix Focus, change highlighted panel on move (dnd)
+- Replace highlightSide & highlightOtherSide with dispatch(focusSide()) calls
 
 - delete non-empty folders has enabled 'Yes' button
 

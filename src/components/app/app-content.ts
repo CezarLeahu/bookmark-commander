@@ -1,17 +1,12 @@
-import { PairCallback, PairRef, usePairCallbacks } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
-import {
-  focusLeft,
-  focusRight,
-  updateSearchResultSelection,
-  updateTopNodes,
-} from '../../store/app-state-reducers'
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
+import { updateSearchResultSelection, updateTopNodes } from '../../store/app-state-reducers'
 import { useCallback, useEffect } from 'react'
 import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
+import { PairRef } from '../../services/utils/hooks'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
@@ -37,6 +32,7 @@ export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>):
     panelRefs[focusedSide].current?.clearSelection()
     if (focusedNodeId === otherNodeId) {
       panelRefs[otherSide].current?.clearSelection()
+      panelRefs[otherSide].current?.clearFocus()
     }
   }, [panelRefs, focusedSide, otherSide, focusedNodeId, otherNodeId])
 }
@@ -86,25 +82,5 @@ export function useJumpToParent(): (node: BTN) => void {
       dispatch(updateSearchResultSelection(node))
     },
     [dispatch, focusedSide],
-  )
-}
-
-export function usePanelHighlight(
-  panelRefs: PairRef<FolderPanelHandle | null>,
-): PairCallback<() => void> {
-  const dispatch = useAppDispatch()
-
-  return usePairCallbacks(
-    () => {
-      panelRefs.right.current?.clearFocus()
-      panelRefs.left.current?.focus()
-      dispatch(focusLeft())
-    },
-    () => {
-      panelRefs.left.current?.clearFocus()
-      panelRefs.right.current?.focus()
-      dispatch(focusRight())
-    },
-    [panelRefs.left, panelRefs.right],
   )
 }

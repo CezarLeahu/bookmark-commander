@@ -6,6 +6,7 @@ import { PairRef } from '../../services/utils/hooks'
 import { refreshApp } from '../../store/app-state-reducers'
 import { update } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
+import { useSelectionReset } from '../app/app-content'
 
 interface EditDialogState {
   open: boolean
@@ -14,11 +15,10 @@ interface EditDialogState {
   handleClose: () => void
 }
 
-export function useEditDialogState(
-  resetCurrentSelection: () => void,
-  panelRefs: PairRef<FolderPanelHandle | null>,
-): EditDialogState {
+export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>): EditDialogState {
   const dispatch = useAppDispatch()
+
+  const resetCurrentSelection = useSelectionReset(panelRefs)
 
   const [open, setOpen] = useState(false)
 
@@ -37,6 +37,8 @@ export function useEditDialogState(
           .then(() => {
             setOpen(false)
             dispatch(refreshApp())
+
+            // todo clear highlight&selection + dispatch updateLastHighlight to edited node
             resetCurrentSelection()
           })
           .catch(e => console.log(e))

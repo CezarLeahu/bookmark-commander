@@ -1,12 +1,12 @@
+import { FolderPanelMetadata, TITLE_COLUMN } from './panel-metadata'
 import { RowDragEndEvent, RowDragLeaveEvent, RowDragMoveEvent, RowNode } from 'ag-grid-community'
 import { dropInfo, moveInfo } from './panel-drag-and-drop-calculations'
+import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useSelectNodeId, useSelectRows } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelMetadata } from './panel-metadata'
 import { Side } from '../../services/utils/types'
 import { moveAll } from '../../services/bookmarks/commands'
-import { refreshApp } from '../../store/app-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 
@@ -18,6 +18,7 @@ export interface DragAndDropHandlers {
 
 export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): DragAndDropHandlers {
   const dispatch = useAppDispatch()
+
   const currentNodeId = useSelectNodeId(side)
   const rows = useSelectRows(side)
 
@@ -143,7 +144,15 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
           moveAll(ids, targetDir.id)
             .then(() => {
               console.log('Moved elements (into child dir)')
+              dispatch(focusSide(side))
               dispatch(refreshApp())
+              setTimeout(() => {
+                const row = e.api.getRowNode(targetDir.id)
+                if (row === undefined || row.rowIndex === null) {
+                  return
+                }
+                e.api.setFocusedCell(row.rowIndex, TITLE_COLUMN)
+              }, 100)
             })
             .catch(e => console.log(e))
           return
@@ -158,11 +167,19 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
           moveAll(directionUp ? ids.reverse() : ids, undefined, dropAtIndex)
             .then(() => {
               console.log('Moved elements (same directory)')
-              ids
-                .map(id => e.api.getRowNode(id))
-                .filter(n => n !== undefined)
-                .forEach(n => n?.setSelected(true))
+              dispatch(focusSide(side))
               dispatch(refreshApp())
+              setTimeout(() => {
+                ids
+                  .map(id => e.api.getRowNode(id))
+                  .filter(n => n !== undefined)
+                  .forEach(n => n?.setSelected(true))
+                const row = e.api.getSelectedNodes()[0]
+                if (row === undefined || row.rowIndex === null) {
+                  return
+                }
+                e.api.setFocusedCell(row.rowIndex, TITLE_COLUMN)
+              }, 100)
             })
             .catch(e => console.log(e))
           return
@@ -172,15 +189,23 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
         moveAll(ids.reverse(), currentNodeId, dropAtIndex)
           .then(() => {
             console.log('Moved elements (into dir)')
-            ids
-              .map(id => e.api.getRowNode(id))
-              .filter(n => n !== undefined)
-              .forEach(n => n?.setSelected(true))
+            dispatch(focusSide(side))
             dispatch(refreshApp())
+            setTimeout(() => {
+              ids
+                .map(id => e.api.getRowNode(id))
+                .filter(n => n !== undefined)
+                .forEach(n => n?.setSelected(true))
+              const row = e.api.getSelectedNodes()[0]
+              if (row === undefined || row.rowIndex === null) {
+                return
+              }
+              e.api.setFocusedCell(row.rowIndex, TITLE_COLUMN)
+            }, 100)
           })
           .catch(e => console.log(e))
       },
-      [dispatch, meta, currentNodeId, rows],
+      [dispatch, side, meta, currentNodeId, rows],
     ),
   }
 }

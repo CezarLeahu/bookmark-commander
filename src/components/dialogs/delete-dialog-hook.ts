@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { useSelectionReset, useUpdateCurrentPathsIfNeeded } from '../app/app-content'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
@@ -7,7 +8,6 @@ import { refreshApp } from '../../store/app-state-reducers'
 import { removeAll } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedPanelSelectionIds } from '../../store/panel-state-hooks'
-import { useUpdateCurrentPathsIfNeeded } from '../app/app-content'
 
 interface DeleteDialogState {
   open: boolean
@@ -17,11 +17,12 @@ interface DeleteDialogState {
 }
 
 export function useDeleteDialogState(
-  resetCurrentSelection: () => void,
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const dispatch = useAppDispatch()
   const focusedIds = useSelectFocusedPanelSelectionIds()
+
+  const resetCurrentSelection = useSelectionReset(panelRefs)
 
   const [open, setOpen] = useState(false)
 
@@ -56,6 +57,8 @@ export function useDeleteDialogState(
             .then(() => {
               setOpen(false)
               dispatch(refreshApp())
+
+              // todo clear highlight&selection + dispatch updateLastHighlight to a NEARBY node (first node index - 1)
               resetCurrentSelection()
             })
             .catch(e => console.log(e))

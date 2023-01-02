@@ -26,12 +26,6 @@ export const appStateSlice = createSlice({
     refreshApp: state => {
       state.outdated = {}
     },
-    focusLeft: state => {
-      state.focusedSide = 'left'
-    },
-    focusRight: state => {
-      state.focusedSide = 'right'
-    },
     focusSide: (state, { payload }: PayloadAction<Side>) => {
       state.focusedSide = payload
     },
@@ -49,8 +43,6 @@ export const appStateSlice = createSlice({
 
 export const {
   refreshApp,
-  focusLeft,
-  focusRight,
   focusSide,
   updateTopNodes,
   updateSearchResultSelection,

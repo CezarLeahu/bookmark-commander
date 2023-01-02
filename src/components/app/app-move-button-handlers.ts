@@ -1,5 +1,5 @@
-import { PairCallback, PairRef } from '../../services/utils/hooks'
 import { Side, other } from '../../services/utils/types'
+import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { moveAll, moveDown, moveUp } from '../../services/bookmarks/commands'
 import {
   useSelectFocusedNodeId,
@@ -8,7 +8,7 @@ import {
 } from '../../store/panel-state-hooks'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
-import { refreshApp } from '../../store/app-state-reducers'
+import { PairRef } from '../../services/utils/hooks'
 import { useAppDispatch } from '../../store/hooks'
 import { useCallback } from 'react'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
@@ -19,10 +19,7 @@ interface MoveHandlers {
   handleMoveDown: () => void
 }
 
-export function useMoveHandlers(
-  panelRefs: PairRef<FolderPanelHandle | null>,
-  highlight: PairCallback<() => void>,
-): MoveHandlers {
+export function useMoveHandlers(panelRefs: PairRef<FolderPanelHandle | null>): MoveHandlers {
   const dispatch = useAppDispatch()
   const focusedSide = useSelectFocusedSide()
   const otherSide: Side = other(focusedSide)
@@ -44,9 +41,15 @@ export function useMoveHandlers(
       moveAll(focusedIds, otherNodeId)
         .then(() => {
           panelRefs[focusedSide].current?.clearSelection()
-          panelRefs[otherSide].current?.setSelection(focusedIds)
-          highlight[otherSide]()
+          panelRefs[focusedSide].current?.clearFocus()
+          // no point in actually clearing the value since it gets immediately updated anyway
+          // dispatch(updateLastHighlight({ side: focusedSide, id: undefined }))
+          dispatch(focusSide(otherSide))
           dispatch(refreshApp())
+          setTimeout(() => {
+            panelRefs[otherSide].current?.select(focusedIds)
+            panelRefs[otherSide].current?.focus(focusedIds[0])
+          }, 100)
         })
         .catch(e => console.log(e))
     },
@@ -57,7 +60,8 @@ export function useMoveHandlers(
       }
       moveUp(focusedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(focusedIds)
+          panelRefs[focusedSide].current?.select(focusedIds)
+          setTimeout(() => panelRefs[focusedSide].current?.focus(focusedIds[0]), 100)
           dispatch(refreshApp())
         })
         .catch(e => console.log(e))
@@ -69,7 +73,8 @@ export function useMoveHandlers(
       }
       moveDown(focusedIds)
         .then(() => {
-          panelRefs[focusedSide].current?.setSelection(focusedIds)
+          panelRefs[focusedSide].current?.select(focusedIds)
+          setTimeout(() => panelRefs[focusedSide].current?.focus(focusedIds[0]), 100)
           dispatch(refreshApp())
         })
         .catch(e => console.log(e))

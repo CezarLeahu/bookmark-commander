@@ -6,13 +6,14 @@ import {
   SuppressHeaderKeyboardEventParams,
   SuppressKeyboardEventParams,
 } from 'ag-grid-community'
+import { Side, other } from '../../services/utils/types'
 import { useCallback, useEffect } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { KEYUP } from '../../services/utils/events'
 import { OpenDialogActions } from './panel'
-import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
+import { focusSide } from '../../store/app-state-reducers'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useOpenHighlightedRow } from './panel-commands'
@@ -43,7 +44,6 @@ export function usePanelKeyListener(
   side: Side,
   container: HTMLDivElement | null,
   api: GridApi<BTN> | undefined,
-  highlightOtherSide: () => void,
   notifyGridReady: (params: GridReadyEvent) => void,
   openDialogActions: OpenDialogActions,
 ): void {
@@ -111,7 +111,7 @@ export function usePanelKeyListener(
           break
         }
         case keys.TAB: {
-          highlightOtherSide()
+          dispatch(focusSide(other(side)))
           break
         }
         case keys.ENTER: {
@@ -125,7 +125,6 @@ export function usePanelKeyListener(
       side,
       currentNode,
       openDialogActions,
-      highlightOtherSide,
       openHighlightedRow,
       toggleHighlightedRowSelection,
     ],

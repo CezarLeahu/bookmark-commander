@@ -1,23 +1,12 @@
 import * as keys from '../../services/utils/keys'
 
 import { KEYDOWN, KEYUP } from '../../services/utils/events'
-import { Side, other } from '../../services/utils/types'
 import { useCallback, useEffect } from 'react'
 
-import { PairCallback } from '../../services/utils/hooks'
+import { focusSide } from '../../store/app-state-reducers'
+import { other } from '../../services/utils/types'
+import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
-
-const handleKeyUp = (
-  e: KeyboardEvent,
-  selectedSide: Side,
-  highlight: PairCallback<() => void>,
-): void => {
-  if (e.key === keys.TAB) {
-    e.preventDefault()
-    e.stopImmediatePropagation()
-    highlight[other(selectedSide)]()
-  }
-}
 
 const handleKeyDown = (e: KeyboardEvent): void => {
   if (e.key === keys.TAB) {
@@ -26,15 +15,19 @@ const handleKeyDown = (e: KeyboardEvent): void => {
   }
 }
 
-export function useDocumentKeyListener(
-  area: HTMLDivElement | null,
-  highlight: PairCallback<() => void>,
-): void {
+export function useDocumentKeyListener(area: HTMLDivElement | null): void {
+  const dispatch = useAppDispatch()
   const focusedSide = useSelectFocusedSide()
 
   const handleKeyUpCallback = useCallback(
-    (e: KeyboardEvent): void => handleKeyUp(e, focusedSide, highlight),
-    [focusedSide, highlight],
+    (e: KeyboardEvent): void => {
+      if (e.key === keys.TAB) {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        dispatch(focusSide(other(focusedSide)))
+      }
+    },
+    [dispatch, focusedSide],
   )
 
   useEffect(() => {

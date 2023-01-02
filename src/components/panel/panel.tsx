@@ -18,7 +18,8 @@ import {
   useHighlightPanelOnClick,
   usePanelHandlers,
 } from './panel-commands'
-import { forwardRef, useCallback, useRef } from 'react'
+import { TITLE_COLUMN, usePanelMetadataWithDragAndDrop } from './panel-metadata'
+import { forwardRef, useCallback, useEffect, useRef } from 'react'
 import {
   updateLastHighlight,
   updateNodeId,
@@ -26,7 +27,11 @@ import {
 } from '../../store/panel-state-reducers'
 import { useComponenetStateChangedHandler, useLoadPanelContentEffect } from './panel-content'
 import { useSelectIsHighlighted, useSelectTopNodes } from '../../store/app-state-hooks'
-import { useSelectNode, useSelectRows } from '../../store/panel-state-hooks'
+import {
+  useSelectLastHighlightId,
+  useSelectNode,
+  useSelectRows,
+} from '../../store/panel-state-hooks'
 
 import { AgGridReact } from 'ag-grid-react'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -40,14 +45,11 @@ import { useDragAndDropHandlers } from './panel-drag-and-drop-grid-handlers'
 import { useGridClickHandlers } from './panel-click-grid-handlers'
 import { useNavigation } from './panel-history'
 import { usePanelKeyListener } from './panel-key-events'
-import { usePanelMetadataWithDragAndDrop } from './panel-metadata'
 import { usePanelMouseListener } from './panel-mouse-events'
 import { useTheme } from '@mui/material/styles'
 
 export interface FolderPanelProps {
   readonly side: Side
-  readonly highlightSide: () => void
-  readonly highlightOtherSide: () => void
   readonly notifyGridReady: (params: GridReadyEvent) => void
   readonly openDialogActions: OpenDialogActions
 }
@@ -60,7 +62,7 @@ export interface OpenDialogActions {
 }
 
 const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanelProps> = (
-  { side, highlightSide, highlightOtherSide, notifyGridReady, openDialogActions }: FolderPanelProps,
+  { side, notifyGridReady, openDialogActions }: FolderPanelProps,
   ref: React.ForwardedRef<FolderPanelHandle>,
 ) => {
   const theme = useTheme()
@@ -85,13 +87,12 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   usePanelHandlers(side, ref, gridApi.current)
 
-  useHighlightPanelOnClick(containerRef.current, highlightSide, notifyGridReady)
+  useHighlightPanelOnClick(side, containerRef.current, notifyGridReady)
 
   usePanelKeyListener(
     side,
     containerRef.current,
     gridApi.current,
-    highlightOtherSide,
     notifyGridReady,
     openDialogActions,
   )
@@ -114,23 +115,39 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
     [dispatch, side],
   )
 
+  const lasthighlightId = useSelectLastHighlightId(side)
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
       const cell = event.api.getFocusedCell()
-      if (cell !== undefined && cell !== null && cell.rowIndex >= 0) {
+      if (cell !== undefined && cell !== null) {
+        if (cell.rowIndex === -1) {
+          event.api.setFocusedCell(0, TITLE_COLUMN)
+          return
+        }
+
         const id = event.api.getModel().getRow(cell.rowIndex)?.id
-        if (id !== undefined) {
+        if (id !== undefined && id !== lasthighlightId) {
           dispatch(updateLastHighlight({ side, id }))
         }
       }
-
-      if (!highlighted && cell !== null) {
-        event.api.clearFocusedCell()
-        highlightOtherSide()
-      }
     },
-    [dispatch, side, highlighted, highlightOtherSide],
+    [dispatch, side, lasthighlightId],
   )
+
+  useEffect(() => {
+    if (!highlighted) {
+      gridApi.current?.clearFocusedCell()
+      return
+    }
+
+    if (lasthighlightId !== undefined && gridApi.current?.getFocusedCell() === null) {
+      const row = gridApi.current?.getRowNode(lasthighlightId)
+      if (row === undefined || row.rowIndex === null) {
+        return
+      }
+      gridApi.current?.setFocusedCell(row.rowIndex, TITLE_COLUMN)
+    }
+  }, [highlighted, lasthighlightId])
 
   useLoadPanelContentEffect(side)
 

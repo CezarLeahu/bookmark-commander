@@ -1,3 +1,4 @@
+import { ComponentStateChangedEvent, GridApi, RowNode } from 'ag-grid-community'
 import { childrenAndParent, getNode, parentPath } from '../../services/bookmarks/queries'
 import { updateBreadcrumbs, updateNode, updateRows } from '../../store/panel-state-reducers'
 import { useCallback, useEffect } from 'react'
@@ -9,7 +10,6 @@ import {
 import { useSelectNode, useSelectNodeId } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
-import { ComponentStateChangedEvent } from 'ag-grid-community'
 import { Side } from '../../services/utils/types'
 import { TITLE_COLUMN } from './panel-metadata'
 import { clearSearchResultSelection } from '../../store/app-state-reducers'
@@ -72,19 +72,30 @@ export function useComponenetStateChangedHandler(
           if (row === undefined) {
             return
           }
-          event.api.setFocusedCell(row.rowIndex ?? 0, TITLE_COLUMN)
-          event.api.ensureNodeVisible(row)
-          row.setSelected(true)
+          focusRow(event.api, row)
+          row.setSelected(true, true)
         }, 100)
         return
       }
 
-      const currentIndex = event.api.getFocusedCell()?.rowIndex ?? -1
-      const index =
-        currentIndex < 0 || currentIndex >= event.api.getModel().getRowCount() ? 0 : currentIndex
-      event.api.setFocusedCell(index, TITLE_COLUMN)
-      event.api.ensureIndexVisible(index)
+      const oldFocusedIndex = retrieveFocusedIndexOrZero(event.api)
+      focusIndex(event.api, oldFocusedIndex)
     },
     [dispatch, highlighted, searchResultSelection],
   )
+}
+
+function retrieveFocusedIndexOrZero(api: GridApi<chrome.bookmarks.BookmarkTreeNode>): number {
+  const index = api.getFocusedCell()?.rowIndex ?? -1
+  return index >= 0 && index < api.getModel().getRowCount() ? index : 0
+}
+
+function focusIndex(api: GridApi<chrome.bookmarks.BookmarkTreeNode>, index: number): void {
+  api.setFocusedCell(index, TITLE_COLUMN)
+  api.ensureIndexVisible(index)
+}
+
+function focusRow(api: GridApi<chrome.bookmarks.BookmarkTreeNode>, row: RowNode<BTN>): void {
+  api.setFocusedCell(row.rowIndex ?? 0, TITLE_COLUMN)
+  api.ensureNodeVisible(row)
 }
