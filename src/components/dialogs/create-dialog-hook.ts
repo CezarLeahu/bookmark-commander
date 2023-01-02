@@ -1,12 +1,12 @@
 import { createBookmark, createDir } from '../../services/bookmarks/commands'
+import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useState } from 'react'
 
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { refreshApp } from '../../store/app-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedNodeId } from '../../store/panel-state-hooks'
-import { useSelectionReset } from '../app/app-content'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface CreateDialogState {
   bookmarkOpen: boolean
@@ -22,9 +22,8 @@ export function useCreateDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const dispatch = useAppDispatch()
+  const focusedSide = useSelectFocusedSide()
   const focusedNodeId = useSelectFocusedNodeId()
-
-  const resetCurrentSelection = useSelectionReset(panelRefs)
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
   const [directoryOpen, setDirectoryOpen] = useState(false)
@@ -38,17 +37,9 @@ export function useCreateDialogState(
       [bookmarkOpen, directoryOpen],
     ),
 
-    handleBookmarkOpen: useCallback((): void => {
-      panelRefs.left.current?.clearFocus()
-      panelRefs.right.current?.clearFocus()
-      setBookmarkOpen(true)
-    }, [panelRefs.left, panelRefs.right]),
+    handleBookmarkOpen: useCallback((): void => setBookmarkOpen(true), []),
 
-    handleDirectoryOpen: useCallback((): void => {
-      panelRefs.left.current?.clearFocus()
-      panelRefs.right.current?.clearFocus()
-      setDirectoryOpen(true)
-    }, [panelRefs.left, panelRefs.right]),
+    handleDirectoryOpen: useCallback((): void => setDirectoryOpen(true), []),
 
     handleConfirm: useCallback(
       (title: string, url?: string): void => {
@@ -62,29 +53,33 @@ export function useCreateDialogState(
 
         if (url === undefined) {
           createDir(parentId, title)
-            .then(() => {
+            .then(node => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
+              dispatch(focusSide(focusedSide))
               dispatch(refreshApp())
-
-              // todo clear highlight&selection + dispatch updateLastHighlight to new node
-              resetCurrentSelection()
+              panelRefs[focusedSide].current?.clearSelection()
+              setTimeout(() => {
+                panelRefs[focusedSide].current?.focus(node.id)
+              }, 100)
             })
             .catch(e => console.log(e))
         } else {
           createBookmark(parentId, title, url)
-            .then(() => {
+            .then(node => {
               setBookmarkOpen(false)
               setDirectoryOpen(false)
+              dispatch(focusSide(focusedSide))
               dispatch(refreshApp())
-
-              // todo clear highlight&selection + dispatch updateLastHighlight to new node
-              resetCurrentSelection()
+              panelRefs[focusedSide].current?.clearSelection()
+              setTimeout(() => {
+                panelRefs[focusedSide].current?.focus(node.id)
+              }, 100)
             })
             .catch(e => console.log(e))
         }
       },
-      [dispatch, focusedNodeId, resetCurrentSelection],
+      [dispatch, panelRefs, focusedSide, focusedNodeId],
     ),
 
     handleClose: useCallback((): void => {

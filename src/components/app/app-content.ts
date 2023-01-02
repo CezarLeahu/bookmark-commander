@@ -5,8 +5,6 @@ import { useCallback, useEffect } from 'react'
 import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
 
 import { BTN } from '../../services/bookmarks/types'
-import { FolderPanelHandle } from '../panel/panel-commands'
-import { PairRef } from '../../services/utils/hooks'
 import { updateNodeId } from '../../store/panel-state-reducers'
 import { useAppDispatch } from '../../store/hooks'
 import { useSelectFocusedSide } from '../../store/app-state-hooks'
@@ -20,21 +18,6 @@ export function useLoadAppCommonStateEffect(): void {
       e => console.log(e),
     )
   }, [dispatch])
-}
-
-export function useSelectionReset(panelRefs: PairRef<FolderPanelHandle | null>): () => void {
-  const focusedSide = useSelectFocusedSide()
-  const otherSide: Side = other(focusedSide)
-  const focusedNodeId = useSelectFocusedNodeId()
-  const otherNodeId = useSelectOtherNodeId()
-
-  return useCallback((): void => {
-    panelRefs[focusedSide].current?.clearSelection()
-    if (focusedNodeId === otherNodeId) {
-      panelRefs[otherSide].current?.clearSelection()
-      panelRefs[otherSide].current?.clearFocus()
-    }
-  }, [panelRefs, focusedSide, otherSide, focusedNodeId, otherNodeId])
 }
 
 export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => void {
@@ -52,6 +35,8 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
       const ids = new Set<string>(idsToBeDeleted)
       const otherSide: Side = other(focusedSide)
 
+      // ideally this should check more than just one level, but we only allow empty folder deletion
+      // we can't delete an ancestor, just the current dir
       const checkSide = (side: Side, nodeId: string): void => {
         if (ids.has(nodeId)) {
           getNode(nodeId)

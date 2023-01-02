@@ -1,22 +1,13 @@
 # Backlog
 
-- TODO: highlight row after edit/create confirmation or cancelation
-- TODO: highlight nearby row after delete confirmation or same old row on cancelation
-
-- after deletion the focus should go a nearby row
+- handle Ctrl+A key (or command)
+- handle F6 key (or command) - Move, add labels
 
 - one common method for setting the highlight/selection - for Move/DnD/Dialog result
-
+- actually fix the ('goAway') focus on search cancellation
 - remove effects/callbacks on REFs
 
-- fix delete
-
-- actually fix the ('goAway') focus on search cancellation
-- handle Ctrl+A key (or command)
-
-- Copy & Paste events
-
-- replace resetSelection... with actual panelRefs calls
+- Cut & Paste events - in a future version
 
 - [Extension] Check what else is needed to publish the extension
 - [Extension] Actually publish the extension
@@ -76,6 +67,12 @@ Also:
 - check selection/highlight afer dialog Ok/Cancel
 
 ## Done
+
+- replace resetSelection... with actual panelRefs calls
+
+- highlight row after edit/create confirmation or cancelation
+- highlight nearby row after delete confirmation or same old row on cancelation
+- after deletion the focus should go a nearby row
 
 - onMove or on DND between panels lastHighlightId (in the source panel) should be cleared - it no longer exists
 - moving of element should result in the element remaining selected

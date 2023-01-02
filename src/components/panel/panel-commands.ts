@@ -17,6 +17,7 @@ export interface FolderPanelHandle {
   readonly focus: (id?: string | undefined) => void
   readonly clearSelection: () => void
   readonly select: (ids: string[]) => void
+  readonly retrieveRowIdNearSelection: () => string | undefined
 }
 
 const startCellEdit = (api: GridApi<BTN>, id: string): void => {
@@ -93,6 +94,14 @@ export function usePanelHandlers(
           .filter(n => n !== undefined && n.id !== currentNode.parentId)
           .map(n => n as RowNode<BTN>)
           .forEach(n => n.setSelected(true))
+      },
+
+      retrieveRowIdNearSelection: (): string | undefined => {
+        const firstSelectedRowIndex: number = api?.getSelectedNodes()[0].rowIndex ?? -1
+        if (firstSelectedRowIndex <= 0) {
+          return undefined
+        }
+        return api?.getModel().getRow(firstSelectedRowIndex - 1)?.id
       },
     }),
     [api, currentNode],

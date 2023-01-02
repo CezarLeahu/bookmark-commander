@@ -1,12 +1,12 @@
+import { focusSide, refreshApp } from '../../store/app-state-reducers'
 import { useCallback, useState } from 'react'
 
 import { BTN } from '../../services/bookmarks/types'
 import { FolderPanelHandle } from '../panel/panel-commands'
 import { PairRef } from '../../services/utils/hooks'
-import { refreshApp } from '../../store/app-state-reducers'
 import { update } from '../../services/bookmarks/commands'
 import { useAppDispatch } from '../../store/hooks'
-import { useSelectionReset } from '../app/app-content'
+import { useSelectFocusedSide } from '../../store/app-state-hooks'
 
 interface EditDialogState {
   open: boolean
@@ -17,33 +17,27 @@ interface EditDialogState {
 
 export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>): EditDialogState {
   const dispatch = useAppDispatch()
-
-  const resetCurrentSelection = useSelectionReset(panelRefs)
+  const focusedSide = useSelectFocusedSide()
 
   const [open, setOpen] = useState(false)
 
   return {
     open,
 
-    handleOpen: useCallback((): void => {
-      panelRefs.left.current?.clearFocus()
-      panelRefs.right.current?.clearFocus()
-      setOpen(true)
-    }, [panelRefs]),
+    handleOpen: useCallback((): void => setOpen(true), []),
 
     handleConfirm: useCallback(
       (node: BTN): void => {
         update(node)
           .then(() => {
             setOpen(false)
+            dispatch(focusSide(focusedSide))
             dispatch(refreshApp())
-
-            // todo clear highlight&selection + dispatch updateLastHighlight to edited node
-            resetCurrentSelection()
+            panelRefs[focusedSide].current?.focus(node.id)
           })
           .catch(e => console.log(e))
       },
-      [dispatch, resetCurrentSelection],
+      [dispatch, panelRefs, focusedSide],
     ),
 
     handleClose: useCallback((): void => setOpen(false), []),
