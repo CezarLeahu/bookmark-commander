@@ -33,6 +33,7 @@ const KeysToPermit = new Set<string>([
   keys.ESCAPE,
   keys.PAGE_HOME,
   keys.PAGE_END,
+  keys.SPACE,
 ])
 
 export function suppressKeys(params: SuppressKeyboardEventParams): boolean {
@@ -52,27 +53,6 @@ export function usePanelKeyListener(
   const currentNode = useSelectNode(side)
 
   const openHighlightedRow = useOpenHighlightedRow(api, side)
-
-  const toggleHighlightedRowSelection: () => void = useCallback((): void => {
-    if (api === undefined || currentNode?.parentId === undefined) {
-      return
-    }
-    const rowIndex = api.getFocusedCell()?.rowIndex
-    if (rowIndex === undefined || rowIndex === 0 || rowIndex < 0) {
-      return
-    }
-
-    const row = api?.getModel().getRow(rowIndex)
-    if (row === undefined || row.id === undefined || row.id === currentNode?.parentId) {
-      return
-    }
-    const selected = row.isSelected()
-    if (selected === undefined) {
-      return
-    }
-
-    row.setSelected(!selected)
-  }, [api, currentNode])
 
   const handleKeyUpCapture = useCallback(
     (e: KeyboardEvent): void => {
@@ -135,10 +115,6 @@ export function usePanelKeyListener(
           openDialogActions.openDelete()
           break
         }
-        case keys.SPACE: {
-          toggleHighlightedRowSelection()
-          break
-        }
         case keys.TAB: {
           dispatch(focusSide(other(side)))
           break
@@ -156,7 +132,6 @@ export function usePanelKeyListener(
       currentNode,
       openDialogActions,
       openHighlightedRow,
-      toggleHighlightedRowSelection,
       moveItemsBetweenPanels,
     ],
   )

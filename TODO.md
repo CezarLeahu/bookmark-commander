@@ -1,6 +1,5 @@
 # Backlog
 
-- fix selection with Space key on large pages (it scrolls to end at the moment)
 - one common method for setting the highlight/selection - for Move/DnD/Dialog result
 - actually fix the ('goAway') focus on search cancellation
 - remove effects/callbacks on REFs
@@ -66,6 +65,7 @@ Also:
 
 ## Done
 
+- fix selection with Space key on large pages (it scrolls to end at the moment)
 - handle Ctrl+A key (or command)
 - handle F6 key (or command) - Move, add labels
 

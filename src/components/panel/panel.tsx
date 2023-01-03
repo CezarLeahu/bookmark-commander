@@ -225,7 +225,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
           className={theme.palette.mode === 'dark' ? 'ag-theme-alpine-dark' : 'ag-theme-alpine'}
           sx={{ width: '100%', height: '100%' }}
         >
-          <AgGridReact
+          <AgGridReact<BTN>
             columnDefs={meta.columnDefs}
             defaultColDef={meta.defaultColDef}
             rowData={rows}
