@@ -11,7 +11,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": ["bookmarks", "tabs", "favicon"],
+  "permissions": ["bookmarks", "favicon"],
   "icons": {
     "16": "icon16.png",
     "32": "icon32.png",
