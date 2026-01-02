@@ -79,9 +79,7 @@ export function usePanelMetadataWithDragAndDrop(): FolderPanelMetadata {
     },
 
     setPotentialParentAndRefresh: (api: GridApi, node: RowNode<BTN>): void => {
-      const rowsToRefresh = [potentialParent.current, node].filter(n => n !== undefined) as Array<
-        RowNode<BTN>
-      >
+      const rowsToRefresh = [potentialParent.current, node].filter(n => n !== undefined)
       potentialParent.current = node
       api.refreshCells({
         rowNodes: rowsToRefresh,

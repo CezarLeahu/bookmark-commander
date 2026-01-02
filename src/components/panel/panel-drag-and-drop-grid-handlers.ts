@@ -114,9 +114,7 @@ export function useDragAndDropHandlers(side: Side, meta: FolderPanelMetadata): D
         }
 
         const nodeData: BTN = e.node.data
-        const ids = e.nodes
-          .map(n => n.data?.id ?? undefined)
-          .filter(e => e !== undefined) as string[]
+        const ids = e.nodes.map(n => n.data?.id ?? undefined).filter(e => e !== undefined)
 
         const { dropIntoDir, dropAtIndex } = dropInfo(e, rows.length)
 
