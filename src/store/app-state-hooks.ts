@@ -10,7 +10,7 @@ export function useSelectAppOutdated(): object {
   return useAppSelector(selector, Object.is)
 }
 
-export function useSelectFocusedSide(): Side {
+export function useSelectFocusedSide(): Side | undefined {
   const selector = useCallback((state: RootState) => state.app.focusedSide, [])
   return useAppSelector(selector)
 }

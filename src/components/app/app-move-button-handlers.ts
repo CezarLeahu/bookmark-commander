@@ -29,6 +29,11 @@ export function useMoveHandlers(panelRefs: PairRef<FolderPanelHandle | null>): M
 
   return {
     handleMoveBetweenPanels: (): void => {
+      if (focusedSide === undefined) {
+        console.log('app-move-button-handlers: handleMoveBetweenPanels: focusedSide is undefined')
+        return
+      }
+
       if (focusedNodeId === otherNodeId) {
         console.log('Source directory is the same as the target directory')
         return
@@ -55,9 +60,15 @@ export function useMoveHandlers(panelRefs: PairRef<FolderPanelHandle | null>): M
     },
 
     handleMoveUp: useCallback((): void => {
+      if (focusedSide === undefined) {
+        console.log('app-move-button-handlers: handleMoveUp: focusedSide is undefined')
+        return
+      }
+
       if (focusedIds.length === 0) {
         return
       }
+
       moveUp(focusedIds)
         .then(() => {
           panelRefs[focusedSide].current?.select(focusedIds)
@@ -68,9 +79,15 @@ export function useMoveHandlers(panelRefs: PairRef<FolderPanelHandle | null>): M
     }, [dispatch, focusedSide, focusedIds, panelRefs]),
 
     handleMoveDown: useCallback((): void => {
-      if (focusedIds === undefined || focusedIds.length === 0) {
+      if (focusedSide === undefined) {
+        console.log('app-move-button-handlers: handleMoveDown: focusedSide is undefined')
         return
       }
+
+      if (focusedIds.length === 0) {
+        return
+      }
+
       moveDown(focusedIds)
         .then(() => {
           panelRefs[focusedSide].current?.select(focusedIds)

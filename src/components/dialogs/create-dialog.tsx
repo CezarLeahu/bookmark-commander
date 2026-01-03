@@ -3,11 +3,13 @@ import * as keys from '../../services/utils/keys'
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material'
 import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 
+import { Side } from '../../services/utils/types'
 import { useKeyDownCallback } from './dialog-keys'
 
 interface CreateDialogProps {
   readonly open: boolean
   readonly isDirectory: boolean
+  readonly side: Side
   onConfirm: (title: string, url?: string) => void
   onCancel: () => void
 }
@@ -15,10 +17,13 @@ interface CreateDialogProps {
 const CreateDialog: React.FC<CreateDialogProps> = ({
   open,
   isDirectory,
+  side,
   onConfirm,
   onCancel,
 }: CreateDialogProps) => {
-  console.log('CreateDialog')
+  if (side === undefined) {
+    throw new Error('The "side" argument should never be undefined')
+  }
 
   const ref = useRef<HTMLInputElement>(null)
 
@@ -34,6 +39,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     setTitle(e.target.value)
     setValidTitle(!isDirectory || e.target.value.length > 0) // folders should have names
   }
+
   const handleUrlValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
@@ -58,6 +64,7 @@ const CreateDialog: React.FC<CreateDialogProps> = ({
     },
     [handleConfirm],
   )
+
   const handleKeyDown = useKeyDownCallback()
 
   useEffect(() => {

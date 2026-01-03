@@ -17,7 +17,10 @@ export function useSelectRightNodeId(): string {
 
 export function useSelectFocusedPanelInRootDir(): boolean {
   const selector = useCallback(
-    (state: RootState) => state.panel[state.app.focusedSide].nodeId === '0',
+    (state: RootState) =>
+      state.app.focusedSide === undefined
+        ? true
+        : state.panel[state.app.focusedSide].nodeId === '0',
     [],
   )
   return useAppSelector(selector)
@@ -29,7 +32,10 @@ export function useSelectNodeId(side: Side): string {
 }
 
 export function useSelectFocusedNodeId(): string {
-  const selector = useCallback((state: RootState) => state.panel[state.app.focusedSide].nodeId, [])
+  const selector = useCallback(
+    (state: RootState) => state.panel[state.app.focusedSide ?? 'left'].nodeId,
+    [],
+  )
   return useAppSelector(selector)
 }
 
@@ -68,7 +74,8 @@ export function useSelectLastHighlightId(side: Side): string | undefined {
 
 export function useSelectFocusedPanelSelectionIds(): string[] {
   const selector = useCallback(
-    (state: RootState) => state.panel[state.app.focusedSide].selectionIds,
+    (state: RootState) =>
+      state.app.focusedSide === undefined ? [] : state.panel[state.app.focusedSide].selectionIds,
     [],
   )
   return useAppSelector(selector, shallowEqual)
@@ -76,14 +83,20 @@ export function useSelectFocusedPanelSelectionIds(): string[] {
 
 export function useSelectFocusedPanelHasSelection(): boolean {
   const selector = useCallback(
-    (state: RootState) => state.panel[state.app.focusedSide].selectionIds.length > 0,
+    (state: RootState) =>
+      state.app.focusedSide === undefined
+        ? false
+        : state.panel[state.app.focusedSide].selectionIds.length > 0,
     [],
   )
   return useAppSelector(selector)
 }
 export function useSelectFocusedPanelHasSingleSelection(): boolean {
   const selector = useCallback(
-    (state: RootState) => state.panel[state.app.focusedSide].selectionIds.length === 1,
+    (state: RootState) =>
+      state.app.focusedSide === undefined
+        ? false
+        : state.panel[state.app.focusedSide].selectionIds.length === 1,
     [],
   )
   return useAppSelector(selector)

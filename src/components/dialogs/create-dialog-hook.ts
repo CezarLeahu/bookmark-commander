@@ -25,8 +25,8 @@ export function useCreateDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): CreateDialogState {
   const dispatch = useAppDispatch()
-  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedSide = useSelectFocusedSide()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedNodeId = useSelectFocusedNodeId()
 
   const [bookmarkOpen, setBookmarkOpen] = useState(false)
@@ -37,8 +37,8 @@ export function useCreateDialogState(
     directoryOpen,
 
     isOpen: useCallback(
-      (): boolean => bookmarkOpen || directoryOpen,
-      [bookmarkOpen, directoryOpen],
+      (): boolean => (bookmarkOpen || directoryOpen) && focusedSide !== undefined,
+      [bookmarkOpen, directoryOpen, focusedSide],
     ),
 
     handleBookmarkOpen: useCallback((): void => {
@@ -55,6 +55,11 @@ export function useCreateDialogState(
 
     handleConfirm: useCallback(
       (title: string, url?: string): void => {
+        if (focusedSide === undefined) {
+          console.log('create-dialog-hook: handleConfirm: focusedSide is undefined')
+          return
+        }
+
         const parentId = focusedNodeId
         if (parentId === undefined) {
           console.log('The current panel current node id is unknown (undefined).')

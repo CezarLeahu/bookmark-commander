@@ -23,8 +23,11 @@ const EditDialog: React.FC<EditDialogProps> = ({
   onConfirm,
   onCancel,
 }: EditDialogProps) => {
-  const nodeId = useSelectSelectionIds(side)[0]
+  if (side === undefined) {
+    throw new Error('The "side" argument should never be undefined')
+  }
 
+  const nodeId = useSelectSelectionIds(side)[0]
   if (nodeId === undefined) {
     throw new Error('The "nodeId" argument should never be undefined')
   }
@@ -70,6 +73,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
     setTitle(e.target.value)
     setValidTitle(!isDir || e.target.value.length > 0) // folders should have names
   }
+
   const handleUrlValidation = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ): void => {
@@ -94,6 +98,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
     },
     [handleConfirm],
   )
+
   const handleKeyDown = useKeyDownCallback()
 
   return (

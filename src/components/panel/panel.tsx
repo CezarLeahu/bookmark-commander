@@ -112,6 +112,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
 
   const handleSelectionChanged = useCallback(
     (event: SelectionChangedEvent<BTN>): void => {
+      console.debug('panel: handleSelectionChanged')
       dispatch(updateSelection({ side, ids: event.api.getSelectedRows().map(r => r.id) }))
     },
     [dispatch, side],
@@ -120,6 +121,7 @@ const FolderPanel: React.ForwardRefRenderFunction<FolderPanelHandle, FolderPanel
   const lastHighlightId = useSelectLastHighlightId(side)
   const handleCellFocusChanged = useCallback(
     (event: CellFocusedEvent<BTN>): void => {
+      console.debug('panel: handleCellFocusChanged')
       const cell = event.api.getFocusedCell()
       if (cell !== undefined && cell !== null) {
         if (cell.rowIndex === -1) {

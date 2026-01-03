@@ -1,6 +1,10 @@
 import { Side, other } from '../../services/utils/types'
+import {
+  focusSide,
+  updateSearchResultSelection,
+  updateTopNodes,
+} from '../../store/app-state-reducers'
 import { getNode, getTopNodes } from '../../services/bookmarks/queries'
-import { updateSearchResultSelection, updateTopNodes } from '../../store/app-state-reducers'
 import { useCallback, useEffect } from 'react'
 import { useSelectFocusedNodeId, useSelectOtherNodeId } from '../../store/panel-state-hooks'
 
@@ -14,7 +18,10 @@ export function useLoadAppCommonStateEffect(): void {
 
   useEffect(() => {
     getTopNodes().then(
-      nodes => dispatch(updateTopNodes({ nodes })),
+      nodes => {
+        console.debug('app-content: useLoadAppCommonStateEffect')
+        dispatch(updateTopNodes({ nodes }))
+      },
       e => console.log(e),
     )
   }, [dispatch])
@@ -28,6 +35,11 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
 
   return useCallback(
     (idsToBeDeleted: string[]): void => {
+      if (focusedSide === undefined) {
+        console.debug('app-content: useUpdateCurrentPathsIfNeeded: focusedSide is undefined')
+        return
+      }
+
       if (idsToBeDeleted.length === 0) {
         return
       }
@@ -41,6 +53,7 @@ export function useUpdateCurrentPathsIfNeeded(): (idsToBeDeleted: string[]) => v
         if (ids.has(nodeId)) {
           getNode(nodeId)
             .then(n => {
+              console.debug('app-content: useUpdateCurrentPathsIfNeeded')
               dispatch(updateNodeId({ side, id: n.parentId ?? '0' }))
             })
             .catch(e => {
@@ -63,7 +76,11 @@ export function useJumpToParent(): (node: BTN) => void {
 
   return useCallback(
     (node: BTN): void => {
-      dispatch(updateNodeId({ side: focusedSide, id: node.parentId ?? '0' }))
+      if (focusedSide === undefined) {
+        console.debug('app-content: useJumpToParent: focusedSide is undefined')
+        dispatch(focusSide('left'))
+      }
+      dispatch(updateNodeId({ side: focusedSide ?? 'left', id: node.parentId ?? '0' }))
       dispatch(updateSearchResultSelection(node))
     },
     [dispatch, focusedSide],

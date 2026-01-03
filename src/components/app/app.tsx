@@ -48,17 +48,17 @@ const App: React.FC = () => {
   const panelRefs = usePairRef<FolderPanelHandle | null>(null, null)
   const { handleGridReadyLeft, handleGridReadyRight } = useDragAndDropPanelBinder()
 
-  const createDialog = useCreateDialogState(panelRefs)
-  const editDialog = useEditDialogState(panelRefs)
-  const deleteDialog = useDeleteDialogState(panelRefs)
+  const createDialogState = useCreateDialogState(panelRefs)
+  const editDialogState = useEditDialogState(panelRefs)
+  const deleteDialogState = useDeleteDialogState(panelRefs)
   const dialogActions = useMemo<OpenDialogActions>(() => {
     return {
-      openNewBookmark: createDialog.handleBookmarkOpen,
-      openNewDirectory: createDialog.handleDirectoryOpen,
-      openEdit: editDialog.handleOpen,
-      openDelete: deleteDialog.handleOpen,
+      openNewBookmark: createDialogState.handleBookmarkOpen,
+      openNewDirectory: createDialogState.handleDirectoryOpen,
+      openEdit: editDialogState.handleOpen,
+      openDelete: deleteDialogState.handleOpen,
     }
-  }, [createDialog, editDialog, deleteDialog])
+  }, [createDialogState, editDialogState, deleteDialogState])
 
   const { handleMoveBetweenPanels, handleMoveUp, handleMoveDown } = useMoveHandlers(panelRefs)
 
@@ -120,75 +120,94 @@ const App: React.FC = () => {
 
       <Box display='flex' justifyContent='center' alignItems='center' sx={{ padding: '5px' }}>
         <ButtonGroup variant='text' aria-label='Actions'>
-          <Button onClick={createDialog.handleBookmarkOpen} disabled={focusedPanelInRootDir}>
+          <Button
+            onClick={createDialogState.handleBookmarkOpen}
+            disabled={focusedSide === undefined || focusedPanelInRootDir}
+          >
             New
           </Button>
 
-          <Button onClick={createDialog.handleDirectoryOpen} disabled={focusedPanelInRootDir}>
+          <Button
+            onClick={createDialogState.handleDirectoryOpen}
+            disabled={focusedSide === undefined || focusedPanelInRootDir}
+          >
             New Folder (F1)
           </Button>
-          <Button disabled={!focusedPanelHasSingleSelection} onClick={editDialog.handleOpen}>
+          <Button
+            disabled={focusedSide === undefined || !focusedPanelHasSingleSelection}
+            onClick={editDialogState.handleOpen}
+          >
             Edit (F2)
           </Button>
           <Button
-            disabled={sameNodeIds}
+            disabled={focusedSide === undefined || sameNodeIds}
             onClick={() => dispatch(updateNodeId({ side: 'right', id: leftNodeId }))}
           >
             Mirror ({'\u2192'})
           </Button>
           <Button
-            disabled={sameNodeIds}
+            disabled={focusedSide === undefined || sameNodeIds}
             onClick={() => dispatch(updateNodeId({ side: 'left', id: rightNodeId }))}
           >
             Mirror ({'\u2190'})
           </Button>
           <Button
-            disabled={sameNodeIds || !focusedPanelHasSelection}
+            disabled={focusedSide === undefined || sameNodeIds || !focusedPanelHasSelection}
             onClick={handleMoveBetweenPanels}
           >
             Move (F6)
           </Button>
-          <Button disabled={!focusedPanelHasSelection} onClick={handleMoveUp}>
+          <Button
+            disabled={focusedSide === undefined || !focusedPanelHasSelection}
+            onClick={handleMoveUp}
+          >
             Move Up ({'\u2191'})
           </Button>
-          <Button disabled={!focusedPanelHasSelection} onClick={handleMoveDown}>
+          <Button
+            disabled={focusedSide === undefined || !focusedPanelHasSelection}
+            onClick={handleMoveDown}
+          >
             Move Down ({'\u2193'})
           </Button>
-          <Button disabled={!focusedPanelHasSelection} onClick={deleteDialog.handleOpen}>
+          <Button
+            disabled={focusedSide === undefined || !focusedPanelHasSelection}
+            onClick={deleteDialogState.handleOpen}
+          >
             Delete (F8)
           </Button>
           <Button onClick={closeCurrentTab}>Exit</Button>
         </ButtonGroup>
       </Box>
 
-      {createDialog.isOpen() ? (
+      {focusedSide !== undefined && createDialogState.isOpen() ? (
         <CreateDialog
-          open={createDialog.isOpen()}
-          isDirectory={createDialog.directoryOpen}
-          onConfirm={createDialog.handleConfirm}
-          onCancel={createDialog.handleClose}
+          open={createDialogState.isOpen()}
+          isDirectory={createDialogState.directoryOpen}
+          side={focusedSide}
+          onConfirm={createDialogState.handleConfirm}
+          onCancel={createDialogState.handleClose}
         />
       ) : (
         <></>
       )}
 
-      {editDialog.open ? (
+      {focusedSide !== undefined && editDialogState.open ? (
         <EditDialog
-          open={editDialog.open}
+          open={editDialogState.open}
           side={focusedSide}
-          onConfirm={editDialog.handleConfirm}
-          onCancel={editDialog.handleClose}
+          onConfirm={editDialogState.handleConfirm}
+          onCancel={editDialogState.handleClose}
         />
       ) : (
         <></>
       )}
 
-      {deleteDialog.open ? (
+      {focusedSide !== undefined && deleteDialogState.open ? (
         <DeleteConfirmationDialog
-          open={deleteDialog.open}
+          open={deleteDialogState.open}
           side={focusedSide}
-          onConfirm={deleteDialog.handleConfirm}
-          onCancel={deleteDialog.handleClose}
+          onConfirm={deleteDialogState.handleConfirm}
+          onCancel={deleteDialogState.handleClose}
         />
       ) : (
         <></>

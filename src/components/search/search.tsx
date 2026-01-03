@@ -161,8 +161,10 @@ const Search: React.FC<SearchProps> = ({ goAway }: SearchProps) => {
     <ClickAwayListener onClickAway={handleClose}>
       <Box sx={{ position: 'relative' }}>
         <FormControl sx={{ m: 1, width: '50ch' }} variant='standard' aria-describedby=''>
-          <InputLabel htmlFor='search-bookkmarks'>Search bookmarks</InputLabel>
+          <InputLabel htmlFor='search-bookmarks'>Search bookmarks</InputLabel>
           <Input
+            id='search-bookmarks'
+            autoFocus
             aria-describedby={sid}
             type='text'
             ref={inputBoxEl}

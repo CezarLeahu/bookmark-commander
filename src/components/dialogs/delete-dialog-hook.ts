@@ -27,8 +27,8 @@ export function useDeleteDialogState(
   panelRefs: PairRef<FolderPanelHandle | null>,
 ): DeleteDialogState {
   const dispatch = useAppDispatch()
-  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedSide = useSelectFocusedSide()
+  const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const nodeId = useSelectFocusedNodeId()
   const otherNodeId = useSelectOtherNodeId()
   const selectedIds = useSelectFocusedPanelSelectionIds()
@@ -42,6 +42,11 @@ export function useDeleteDialogState(
     open,
 
     handleOpen: useCallback((): void => {
+      if (focusedSide === undefined) {
+        console.log('delete-dialog-hook: handleOpen: focusedSide is undefined')
+        return
+      }
+
       if (!focusedPanelInRootDir && selectedIds.length > 0) {
         setOpen(true)
         setNearbyRowId(panelRefs[focusedSide].current?.retrieveRowIdNearSelection())
@@ -49,6 +54,11 @@ export function useDeleteDialogState(
     }, [panelRefs, focusedPanelInRootDir, selectedIds, focusedSide]),
 
     handleConfirm: useCallback((): void => {
+      if (focusedSide === undefined) {
+        console.log('delete-dialog-hook: handleConfirm: focusedSide is undefined')
+        return
+      }
+
       if (selectedIds.length === 0) {
         setOpen(false)
         return

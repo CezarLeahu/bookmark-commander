@@ -21,9 +21,9 @@ interface EditDialogState {
 
 export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>): EditDialogState {
   const dispatch = useAppDispatch()
+  const focusedSide = useSelectFocusedSide()
   const focusedPanelInRootDir = useSelectFocusedPanelInRootDir()
   const focusedPanelHasSingleSelection = useSelectFocusedPanelHasSingleSelection()
-  const focusedSide = useSelectFocusedSide()
 
   const [open, setOpen] = useState(false)
 
@@ -31,13 +31,23 @@ export function useEditDialogState(panelRefs: PairRef<FolderPanelHandle | null>)
     open,
 
     handleOpen: useCallback((): void => {
+      if (focusedSide === undefined) {
+        console.log('edit-dialog-hook: handleOpen: focusedSide is undefined')
+        return
+      }
+
       if (!focusedPanelInRootDir && focusedPanelHasSingleSelection) {
         setOpen(true)
       }
-    }, [focusedPanelInRootDir, focusedPanelHasSingleSelection]),
+    }, [focusedSide, focusedPanelInRootDir, focusedPanelHasSingleSelection]),
 
     handleConfirm: useCallback(
       (node: BTN): void => {
+        if (focusedSide === undefined) {
+          console.log('edit-dialog-hook: handleConfirm: focusedSide is undefined')
+          return
+        }
+
         update(node)
           .then(() => {
             setOpen(false)

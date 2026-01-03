@@ -5,7 +5,7 @@ import { Side } from '../services/utils/types'
 
 export interface AppState {
   outdated: object
-  focusedSide: Side
+  focusedSide: Side | undefined
   topNodes: BTN[]
   searchResultSelection: {
     current: BTN | undefined
@@ -14,7 +14,7 @@ export interface AppState {
 
 const initialState: AppState = {
   outdated: {},
-  focusedSide: 'left',
+  focusedSide: undefined,
   topNodes: [],
   searchResultSelection: { current: undefined },
 }
@@ -27,6 +27,7 @@ export const appStateSlice = createSlice({
       state.outdated = {}
     },
     focusSide: (state, { payload }: PayloadAction<Side>) => {
+      console.debug('reduce focusSide with: ' + payload)
       state.focusedSide = payload
     },
     updateTopNodes: (state, { payload }: PayloadAction<{ nodes: BTN[] }>) => {

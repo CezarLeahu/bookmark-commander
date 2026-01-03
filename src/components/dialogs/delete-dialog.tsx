@@ -52,6 +52,10 @@ const DeleteConfirmationDialog: React.FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
   onCancel,
 }: DeleteConfirmationDialogProps) => {
+  if (side === undefined) {
+    throw new Error('The "side" argument should never be undefined')
+  }
+
   const [[title, message], setMessages] = useState<[string, string]>([
     'Delete items?',
     'Delete items?',
