@@ -16,7 +16,11 @@ export const ThemeContextProvider: React.FC<{ children: ReactNode }> = ({
 }: {
   children: ReactNode
 }) => {
-  const [mode, setMode] = useState<'light' | 'dark'>('dark')
+  const browserColorMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
+
+  const [mode, setMode] = useState<'light' | 'dark'>(browserColorMode)
 
   const themeContextMemo: ThemeContextProps = useMemo(
     () => ({
