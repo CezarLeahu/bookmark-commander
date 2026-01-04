@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "version": "1.0",
+  "version": "1.1",
   "short_name": "BC",
   "name": "Bookmark Commander",
-  "description": "Two-panel bookmark manager",
+  "description": "Dual-panel Bookmark Manager",
   "action": {
     "default_title": "Bookmark Commander",
     "default_icon": "icon.png"
